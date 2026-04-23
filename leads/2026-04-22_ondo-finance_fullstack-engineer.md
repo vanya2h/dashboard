@@ -1,11 +1,11 @@
 ---
-status: new
+status: applied
 company: Ondo Finance
 role: Full Stack Software Engineer
 source: jobstash.xyz
 url: https://jobstash.xyz/full-stack-software-engineer-ondo-finance/BbtLYt
 discovered: 2026-04-22
-applied:
+applied: 2026-04-23
 salary_range: not listed (Founders Fund + Pantera + Coinbase Ventures)
 domain: web3
 follow_up:
@@ -51,3 +51,4 @@ The Web team builds the applications, APIs, and underlying systems behind Ondo's
 ## Timeline
 
 - 2026-04-22: Discovered via jobstash.xyz
+- 2026-04-23: Applied via Gem ATS

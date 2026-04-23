@@ -13,11 +13,11 @@ description: >
 
 # Job Search Agent
 
-You are running Ivan's personal job search agent. Your job is to discover relevant
-positions, filter them against Ivan's profile, let Ivan choose, then generate lead files
-for the ones he wants to pursue.
+You are running a personal job search agent. Your job is to discover relevant
+positions, filter them against the candidate's profile, let the user choose, then generate lead files
+for the ones they want to pursue.
 
-Load Ivan's profile from `references/profile.md` at the start of every run.
+Load the candidate's profile from `profile.md` at the repo root at the start of every run. It points to the `profile/` folder — read the relevant files as needed (target roles, tech stack, preferences).
 
 ---
 
@@ -70,13 +70,13 @@ Apply hard filters. **Discard** any position that:
 
 ## Step 3 — Rank and Present Top 10
 
-Rank remaining positions by relevance to Ivan's profile. Prioritize in this order:
-1. Web3 / DeFi / Blockchain / RWA domain (Ivan's strongest background)
+Rank remaining positions by relevance to the candidate's profile (read `profile/target_roles.md` and `profile/tech_stack.md`). Prioritize in this order:
+1. Web3 / DeFi / Blockchain / RWA domain
 2. Role seniority and ownership level (Founding Engineer > Tech Lead > Senior IC)
 3. Stack overlap (TypeScript, React, Node.js, Web3 libs)
 4. Compensation signals (explicit salary > funded stage > unknown)
 
-Present the top 10 to Ivan using this format:
+Present the top 10 using this format:
 
 ```
 ### Job Scan — [Today's Date]
@@ -98,17 +98,17 @@ One to two sentence summary of the role and why it's a strong fit.
 Reply with the numbers you want to pursue (e.g. "1 3 7") and I'll generate lead files for each.
 ```
 
-Keep summaries tight — Ivan should be able to scan all 10 in under 2 minutes.
+Keep summaries tight — the user should be able to scan all 10 in under 2 minutes.
 
 ---
 
 ## Step 4 — Generate Lead Files
 
-When Ivan replies with position numbers, generate a lead file for each one.
+When the user replies with position numbers, generate a lead file for each one.
 
 ### Check for duplicates first
 Before creating, search `leads/` for any existing `.md` file mentioning the same
-company and role. If found, mention it to Ivan and skip creation.
+company and role. If found, mention it to the user and skip creation.
 
 ### File naming
 `leads/YYYY-MM-DD_company-name_role-slug.md`
@@ -118,7 +118,7 @@ company and role. If found, mention it to Ivan and skip creation.
 
 ### File content
 Use the template in `references/lead_template.md`. Fill in every field you have.
-Leave `applied:` and `follow_up:` blank for Ivan to fill in.
+Leave `applied:` and `follow_up:` blank.
 
 ---
 
@@ -128,4 +128,4 @@ Leave `applied:` and `follow_up:` blank for Ivan to fill in.
 - If a board yields no results (fetch fails or returns empty), note it in the header
   and continue with the others
 - Don't invent salary data — if not listed, mark as "not listed"
-- If Ivan asks to "run a quick scan" or "just check one board", adapt accordingly
+- If the user asks to "run a quick scan" or "just check one board", adapt accordingly

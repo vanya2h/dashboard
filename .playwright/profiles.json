@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "web3career": {
+      "loginUrl": "https://web3.career/login",
+      "description": "web3.career job board account"
+    },
+    "jobstash": {
+      "loginUrl": "https://jobstash.xyz/login",
+      "description": "jobstash.xyz job board account"
+    }
+  }
+}
