@@ -14,8 +14,6 @@ Applies Ivan to a specific job end-to-end.
 
 **Token efficiency rules — follow these strictly:**
 
-- Read only the lead file. Do not load profile.md or any other reference file.
-- All needed information (cover letter text, URL, company, role) is in the lead file.
 - Do not re-read files you have already read in this session.
 - Keep Playwright MCP interactions minimal: fill → screenshot → confirm → next field group.
 - Do not take extra screenshots unless something looks wrong.
