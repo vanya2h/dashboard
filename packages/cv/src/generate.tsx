@@ -1,6 +1,6 @@
-import { renderToFile } from "@react-pdf/renderer";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { renderToFile } from "@react-pdf/renderer";
 import { CvPdfDocument } from "./Cv";
 
 const outDir = join(process.cwd(), "dist");

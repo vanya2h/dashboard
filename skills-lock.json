@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "humanizer": {
+      "source": "zed-industries/zed",
+      "sourceType": "github",
+      "computedHash": "421a3d9577f6bb31f61d2aa0d083d36a648fa687a4545c0e4d5bf349c07ad572"
+    },
+    "integrate-configs": {
+      "source": "vanya2h/common",
+      "sourceType": "github",
+      "computedHash": "4c185ad98f49f105096b02f24abb2c6f189d099b6a7d2832710ae909d46fa0fc"
+    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",

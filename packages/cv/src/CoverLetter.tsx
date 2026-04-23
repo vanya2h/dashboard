@@ -99,6 +99,47 @@ const s = StyleSheet.create({
   },
 });
 
+interface CoverLetterProps {
+  company: string;
+  role: string;
+  greeting?: string;
+  paragraphs: string[];
+}
+
+export function CoverLetterPdf({ company, role, greeting, paragraphs }: CoverLetterProps) {
+  return (
+    <Document title={`Ivan K. — Cover Letter — ${company}`} author="Ivan K.">
+      <Page size="A4" style={s.page}>
+        <View style={s.headerRow}>
+          <View style={s.circle} />
+        </View>
+
+        <View style={s.meta}>
+          <Text style={s.metaLabel}>Applying for</Text>
+          <Text style={s.metaValue}>
+            {role} — {company}
+          </Text>
+        </View>
+
+        <View style={s.divider} />
+
+        <Text style={s.greeting}>{greeting ?? `Hi ${company} team,`}</Text>
+
+        {paragraphs.map((para, i) => (
+          <Text key={i} style={s.paragraph}>
+            {para}
+          </Text>
+        ))}
+
+        <View style={s.closing}>
+          <Text>Best,</Text>
+          <Text style={s.signature}>Ivan K.</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
 export function CoverLetterOnramperPdf() {
   return (
     <Document title="Ivan K. — Cover Letter — Onramper" author="Ivan K.">

@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "generate": "tsx src/generate.tsx",
-    "dev": "tsx watch src/generate.tsx"
+    "generate:cover-letter": "tsx src/generate-cover-letter.tsx",
+    "dev": "tsx watch src/generate.tsx",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4",
     "react": "^18"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@types/react": "^18",
     "tsx": "^4",
     "typescript": "^5"
