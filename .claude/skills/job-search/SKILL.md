@@ -1,8 +1,8 @@
 ---
 name: job-search
 description: >
-  Job search agent that scans Wellfound, web3.career, and jobstash.xyz for new
-  opportunities and generates structured lead files. Trigger this skill whenever
+  Job search agent that scans Wellfound, web3.career, jobstash.xyz, and TheirStack
+  for new opportunities and generates structured lead files. Trigger this skill whenever
   the user asks to search for jobs, find leads, run a job scan, check job boards,
   look for openings, find founding engineer or tech lead roles, or wants help
   applying to a position. Also trigger for: "what's new on the boards", "find me
@@ -21,28 +21,67 @@ Load the candidate's profile from `profile.md` at the repo root at the start of 
 
 ---
 
-## Step 1 — Discover
+## Step 1 — Choose Data Source
 
-Use the bundled Playwright scraper to fetch live listings from all three boards.
-The scraper is at `.claude/skills/job-search/scripts/scrape-jobs.js`.
+Ask the user which source(s) to use. Present the options clearly:
+
+```
+Which data source would you like to scan?
+
+1. wellfound     — Wellfound.com (Playwright scraper)
+2. web3career    — web3.career (Playwright scraper)
+3. jobstash      — jobstash.xyz (Playwright scraper)
+4. theirstack    — TheirStack API (requires THEIRSTACK_API_KEY)
+5. all scrapers  — wellfound + web3career + jobstash
+6. all           — all scrapers + theirstack
+
+Reply with a number or name.
+```
+
+Wait for the user's reply, then proceed to Step 2 with the selected source(s).
+
+If the user says "quick scan", "just check one", or names a board directly in their opening message, skip this prompt and proceed with the source they specified.
+
+---
+
+## Step 2 — Discover
 
 ### Setup (first run only)
 ```bash
 cd .claude/skills/job-search/scripts && npm install && npx playwright install chromium
 ```
 
-### Run the scraper for each board
+All scripts load environment variables automatically from the repo root `.env` via `dotenv-cli`.
+
+### Scrapers — wellfound, web3career, jobstash
+
+Run only the boards the user selected from the scripts directory:
+
 ```bash
-node .claude/skills/job-search/scripts/scrape-jobs.js wellfound   > /tmp/jobs_wellfound.json
-node .claude/skills/job-search/scripts/scrape-jobs.js web3career  > /tmp/jobs_web3career.json
-node .claude/skills/job-search/scripts/scrape-jobs.js jobstash    > /tmp/jobs_jobstash.json
+cd .claude/skills/job-search/scripts
+npm run scrape:wellfound  > /tmp/jobs_wellfound.json
+npm run scrape:web3career > /tmp/jobs_web3career.json
+npm run scrape:jobstash   > /tmp/jobs_jobstash.json
 ```
 
 Each command outputs a JSON array of `{ source, url, title, company, raw_text }` objects.
 Progress and errors are written to stderr; stdout is clean JSON for processing.
 
-### After scraping
-Read all three JSON files and merge into a single candidate list. From each entry's
+### TheirStack API
+
+API key is read from `THEIRSTACK_API_KEY` in the repo root `.env` automatically.
+
+Run the TypeScript fetcher from the scripts directory:
+```bash
+cd .claude/skills/job-search/scripts
+npm run fetch:theirstack > /tmp/jobs_theirstack.json
+```
+
+Outputs the same `{ source, url, title, company, raw_text }` format.
+
+### After fetching
+
+Read all selected JSON files and merge into a single candidate list. From each entry's
 `raw_text`, extract what you can:
 - Company name and role title
 - Salary range (if mentioned)
@@ -52,13 +91,12 @@ Read all three JSON files and merge into a single candidate list. From each entr
 
 Aim for 30–50 raw candidates total before filtering. Deduplicate by company + role title.
 
-### If a board fails
-If a board's scraper returns 0 results or errors (the site may have changed its markup),
-note it in the results header and continue with the remaining boards. Do not silently drop it.
+### If a source fails
+Note it in the results header and continue with the remaining sources. Do not silently drop it.
 
 ---
 
-## Step 2 — Filter
+## Step 3 — Filter
 
 Apply hard filters. **Discard** any position that:
 - Requires relocation or is not remote-friendly
@@ -68,7 +106,7 @@ Apply hard filters. **Discard** any position that:
 
 ---
 
-## Step 3 — Rank and Present Top 10
+## Step 4 — Rank and Present Top 10
 
 Rank remaining positions by relevance to the candidate's profile (read `profile/target_roles.md` and `profile/tech_stack.md`). Prioritize in this order:
 1. Web3 / DeFi / Blockchain / RWA domain
@@ -80,7 +118,7 @@ Present the top 10 using this format:
 
 ```
 ### Job Scan — [Today's Date]
-Scanned: wellfound.com · web3.career · jobstash.xyz
+Scanned: [selected sources]
 Raw candidates: X | After filtering: X | Showing top 10
 
 ────────────────────────────────────────
@@ -102,7 +140,7 @@ Keep summaries tight — the user should be able to scan all 10 in under 2 minut
 
 ---
 
-## Step 4 — Generate Lead Files
+## Step 5 — Generate Lead Files
 
 When the user replies with position numbers, generate a lead file for each one.
 
@@ -124,8 +162,8 @@ Leave `applied:` and `follow_up:` blank.
 
 ## Notes
 
-- Always deduplicate across boards before showing results
-- If a board yields no results (fetch fails or returns empty), note it in the header
+- Always deduplicate across sources before showing results
+- If a source yields no results (fetch fails or returns empty), note it in the header
   and continue with the others
 - Don't invent salary data — if not listed, mark as "not listed"
 - If the user asks to "run a quick scan" or "just check one board", adapt accordingly
