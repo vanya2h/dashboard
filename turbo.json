@@ -25,5 +25,12 @@
       "cache": false
     }
   },
-  "globalEnv": ["THEIRSTACK_API_KEY", "ANTHROPIC_API_KEY"]
+  "globalEnv": [
+    "THEIRSTACK_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "NODE_ENV",
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL"
+  ]
 }

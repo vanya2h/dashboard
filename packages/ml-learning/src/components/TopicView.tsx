@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
+import { useProgress } from "../hooks/useProgress";
 import { useClaude } from "../lib/claude";
-import { useStore } from "../store";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -574,8 +574,7 @@ function ErrorSection({ message, onRetry }: { message: string; onRetry: () => vo
 export function TopicView() {
   const { curriculumId, taskId } = useParams<{ curriculumId: string; taskId: string }>();
   const navigate = useNavigate();
-  const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const toggleTask = useStore((s) => s.toggleTask);
+  const { completedTaskIds, toggleTask } = useProgress();
 
   const { streamAI, askAI } = useClaude();
   const [phase, setPhase] = useState<SessionPhase>({ name: "choice" });
@@ -751,7 +750,7 @@ export function TopicView() {
       );
       if (ctrl.signal.aborted) return;
       const { passed, feedback } = parseJSON<{ score: number; passed: boolean; feedback: string }>(gradingText);
-      if (passed && !isCompleted) toggleTask(task!.id);
+      if (passed && !isCompleted) await toggleTask(task!.id);
       setPhase({ name: "final-test", material, answers, grading: feedback, gradingDone: true, passed });
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });

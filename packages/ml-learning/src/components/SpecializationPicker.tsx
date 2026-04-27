@@ -1,11 +1,11 @@
 import type { SpecializationId } from "../data/curriculum";
 import { SPECIALIZATION_INFO } from "../data/curriculum";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
 
 type Props = { curriculumId: string };
 
 export function SpecializationPicker({ curriculumId }: Props) {
-  const setSpecialization = useStore((s) => s.setSpecialization);
+  const { setSpecialization } = useProgress();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">

@@ -1,5 +1,5 @@
 import { format, getDay, subDays } from "date-fns";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
 
 const CELL = 11;
 const GAP = 2;
@@ -26,7 +26,7 @@ function useColorScheme() {
 }
 
 export function Heatmap() {
-  const activity = useStore((s) => s.activity);
+  const { activity } = useProgress();
   const scheme = useColorScheme();
   const colors = scheme === "dark" ? COLORS_DARK : COLORS_LIGHT;
 

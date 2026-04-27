@@ -22,7 +22,9 @@
   "prettier": "@vanya2h/prettier-config",
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "esbuild",
+      "@prisma/engines",
+      "prisma"
     ]
   }
 }

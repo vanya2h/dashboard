@@ -1,7 +1,7 @@
 import { type MouseEvent, useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { SPECIALIZATION_INFO } from "../data/curriculum";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
 import { SpecializationPicker } from "./SpecializationPicker";
 import { TaskRow } from "./TaskRow";
 
@@ -16,9 +16,8 @@ function phaseProgress(tasks: Task[], completedTaskIds: Record<string, string>) 
 
 export function PhaseCard({ phase, curriculumId }: Props) {
   const [open, setOpen] = useState(true);
-  const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const specialization = useStore((s) => s.specializations[curriculumId] ?? null);
-  const clearSpecialization = useStore((s) => s.clearSpecialization);
+  const { completedTaskIds, specializations, clearSpecialization } = useProgress();
+  const specialization = specializations[curriculumId] ?? null;
 
   const isPhase3 = phase.id === "phase-3";
   const visibleTasks = isPhase3

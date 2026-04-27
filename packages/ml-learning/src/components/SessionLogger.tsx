@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
 
 export function SessionLogger() {
   const [minutes, setMinutes] = useState("");
-  const logMinutes = useStore((s) => s.logMinutes);
+  const { logMinutes } = useProgress();
 
   function handleLog() {
     const val = parseInt(minutes, 10);

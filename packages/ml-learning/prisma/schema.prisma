@@ -1,0 +1,121 @@
+generator client {
+  provider     = "prisma-client-js"
+  output       = "../node_modules/@prisma/client-generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Better Auth tables ───────────────────────────────────────────────────────
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  sessions        Session[]
+  accounts        Account[]
+  taskCompletions TaskCompletion[]
+  dailyActivities DailyActivity[]
+  specializations Specialization[]
+  settings        AppSetting[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verifications")
+}
+
+// ─── Progress tracking tables ─────────────────────────────────────────────────
+
+model TaskCompletion {
+  id          String   @id @default(cuid())
+  taskId      String
+  completedAt DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@map("task_completions")
+}
+
+model DailyActivity {
+  id      String   @id @default(cuid())
+  date    String
+  taskIds String[]
+  minutes Int      @default(0)
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([date, userId])
+  @@map("daily_activities")
+}
+
+model Specialization {
+  id           String @id @default(cuid())
+  curriculumId String
+  branch       String
+  userId       String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([curriculumId, userId])
+  @@map("specializations")
+}
+
+model AppSetting {
+  id     String @id @default(cuid())
+  key    String
+  value  String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([key, userId])
+  @@map("app_settings")
+}

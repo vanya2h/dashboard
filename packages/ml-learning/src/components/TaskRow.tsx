@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
 
 type Props = { task: Task; curriculumId: string };
 
 export function TaskRow({ task, curriculumId }: Props) {
-  const completedTaskIds = useStore((s) => s.completedTaskIds);
+  const { completedTaskIds } = useProgress();
   const navigate = useNavigate();
   const checked = !!completedTaskIds[task.id];
 

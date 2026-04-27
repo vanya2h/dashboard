@@ -1,9 +1,10 @@
 node_modules
 .turbo
 dist
+.react-router/
 .react-router
-.env
 .env.local
+.env
 *.local
 .DS_Store
 .playwright/profiles/

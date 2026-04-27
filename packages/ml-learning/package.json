@@ -9,16 +9,24 @@
     "start": "dotenv -e ../../.env -- react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "db:generate": "dotenv -e ../../.env -- prisma generate",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "db:push": "dotenv -e ../../.env -- prisma db push",
+    "db:studio": "dotenv -e ../../.env -- prisma studio"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
     "@hono/zod-validator": "^0.7.6",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@react-router/node": "^7.14.2",
     "@react-router/serve": "^7.14.2",
+    "better-auth": "^1.6.9",
     "date-fns": "^3.6.0",
     "hono": "^4.12.15",
     "isbot": "^5",
+    "pg": "^8.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.14.2",
@@ -27,10 +35,11 @@
   },
   "devDependencies": {
     "@react-router/dev": "^7.14.2",
-    "dotenv-cli": "^8.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^7.8.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.0",
     "vite": "^6.0.0"

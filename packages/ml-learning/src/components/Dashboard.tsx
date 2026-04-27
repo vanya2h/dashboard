@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
 import type { Skill } from "../data/types";
+import { useProgress } from "../hooks/useProgress";
 import { computeRecentActivity, computeUnlockedSkills } from "../lib/skills";
-import { useStore } from "../store";
 import { Heatmap } from "./Heatmap";
 
 const QUOTES = [
@@ -220,8 +220,7 @@ function SkillsSection({
 }
 
 export function Dashboard() {
-  const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const specializations = useStore((s) => s.specializations);
+  const { completedTaskIds, specializations } = useProgress();
 
   return (
     <main>

@@ -1,8 +1,41 @@
 import { format, subDays } from "date-fns";
 import { useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
+import { useRootData } from "../../app/hooks/useRootData";
 import { CURRICULUMS } from "../data/curriculum";
-import { useStore } from "../store";
+import { useProgress } from "../hooks/useProgress";
+import type { AuthUser } from "../server/auth";
+
+function hashToHue(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffffff;
+  return h % 360;
+}
+
+function UserAvatar({ user }: { user: AuthUser }) {
+  const initials = user.name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const hue = hashToHue(user.id);
+
+  if (user.image) {
+    return <img src={user.image} alt={user.name} className="w-8 h-8 rounded-full object-cover" />;
+  }
+
+  return (
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+      style={{
+        background: `linear-gradient(135deg, hsl(${hue}, 65%, 55%), hsl(${(hue + 60) % 360}, 65%, 40%))`,
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
 
 function calcCurriculumProgress(
   curriculumId: string,
@@ -41,12 +74,12 @@ function calcStreak(activity: Record<string, { minutes: number; taskIds: string[
 }
 
 export function Header() {
+  const user = (useRootData()?.user ?? null) as AuthUser | null;
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const activity = useStore((s) => s.activity);
-  const specializations = useStore((s) => s.specializations);
+  const { completedTaskIds, activity, specializations } = useProgress();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -137,6 +170,12 @@ export function Header() {
           <span className="font-semibold text-neutral-900 dark:text-neutral-100">{streak}</span>
           {streak === 1 ? " day" : " days"} streak
         </span>
+        {user && (
+          <div className="flex items-center gap-2">
+            <UserAvatar user={user} />
+            <span className="text-neutral-700 dark:text-neutral-300 font-medium">{user.name}</span>
+          </div>
+        )}
       </div>
     </header>
   );
