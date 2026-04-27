@@ -1,30 +1,32 @@
-import { fetchServerSentEvents, useChat } from "@tanstack/ai-react";
-import { useCallback, useMemo, useRef } from "react";
+import { hc } from "hono/client";
+import { useCallback } from "react";
+import type { AppType } from "../server/app";
+
+const client = hc<AppType>("/");
+
+async function* readSSEStream(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          yield JSON.parse(line.slice(6)) as string;
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 
 export function useClaude() {
-  const systemRef = useRef("");
-  const onUpdateRef = useRef<((text: string) => void) | null>(null);
-  const accRef = useRef("");
-
-  /* eslint-disable react-hooks/refs, react-hooks/preserve-manual-memoization */
-  // Options fn is called lazily at request time (not during render) — ref access is safe.
-  const connection = useMemo(
-    () => fetchServerSentEvents("/api/chat", () => ({ body: { system: systemRef.current } })),
-    [],
-  );
-  /* eslint-enable react-hooks/refs, react-hooks/preserve-manual-memoization */
-
-  const { sendMessage, clear, stop } = useChat({
-    connection,
-    onChunk: (chunk) => {
-      if (chunk.type === "TEXT_MESSAGE_CONTENT") {
-        const delta = (chunk as { delta?: string }).delta ?? "";
-        accRef.current += delta;
-        onUpdateRef.current?.(accRef.current);
-      }
-    },
-  });
-
   const streamAI = useCallback(
     async (
       system: string,
@@ -32,18 +34,22 @@ export function useClaude() {
       onUpdate: (text: string) => void,
       signal?: AbortSignal,
     ): Promise<string> => {
-      systemRef.current = system;
-      onUpdateRef.current = onUpdate;
-      accRef.current = "";
-      clear();
+      const res = await client.api.chat.$post(
+        { json: { messages: [{ role: "user", content: message }], system } },
+        { init: { signal } },
+      );
 
-      signal?.addEventListener("abort", () => stop(), { once: true });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      if (!res.body) throw new Error("No response body");
 
-      await sendMessage(message);
-      onUpdateRef.current = null;
-      return accRef.current;
+      let accumulated = "";
+      for await (const delta of readSSEStream(res.body)) {
+        accumulated += delta;
+        onUpdate(accumulated);
+      }
+      return accumulated;
     },
-    [sendMessage, clear, stop],
+    [],
   );
 
   const askAI = useCallback(

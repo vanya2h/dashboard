@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import { useStore } from "../store";
 
@@ -5,7 +6,7 @@ type Props = { task: Task; curriculumId: string };
 
 export function TaskRow({ task, curriculumId }: Props) {
   const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const startTopic = useStore((s) => s.startTopic);
+  const navigate = useNavigate();
   const checked = !!completedTaskIds[task.id];
 
   return (
@@ -30,7 +31,7 @@ export function TaskRow({ task, curriculumId }: Props) {
       </label>
       {!checked && (
         <button
-          onClick={() => startTopic(task.id, curriculumId)}
+          onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}
           className="opacity-0 group-hover:opacity-100 shrink-0 text-xs px-2 py-0.5 rounded bg-green-600 text-white hover:bg-green-700 transition-opacity"
         >
           Start

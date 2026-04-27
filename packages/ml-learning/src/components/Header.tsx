@@ -1,5 +1,6 @@
 import { format, subDays } from "date-fns";
 import { useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
 import { useStore } from "../store";
 
@@ -46,17 +47,22 @@ export function Header() {
   const completedTaskIds = useStore((s) => s.completedTaskIds);
   const activity = useStore((s) => s.activity);
   const specializations = useStore((s) => s.specializations);
-  const currentView = useStore((s) => s.currentView);
-  const activeCurriculumId = useStore((s) => s.activeCurriculumId);
-  const setView = useStore((s) => s.setView);
 
-  const streak = calcStreak(activity);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams<{ curriculumId?: string }>();
 
-  const activeCurriculum = CURRICULUMS.find((c) => c.id === activeCurriculumId);
-  const currentLabel = currentView === "dashboard" ? "Dashboard" : (activeCurriculum?.name ?? "");
+  const isDashboard = location.pathname === "/";
+  const activeCurriculumId = params.curriculumId ?? null;
+  const activeCurriculum = activeCurriculumId ? CURRICULUMS.find((c) => c.id === activeCurriculumId) : null;
+  const currentLabel = isDashboard ? "Dashboard" : (activeCurriculum?.name ?? "");
 
   const pct =
-    currentView === "curriculum" ? calcCurriculumProgress(activeCurriculumId, completedTaskIds, specializations) : null;
+    activeCurriculumId && !isDashboard
+      ? calcCurriculumProgress(activeCurriculumId, completedTaskIds, specializations)
+      : null;
+
+  const streak = calcStreak(activity);
 
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
     if (!dropdownRef.current?.contains(e.relatedTarget as Node)) {
@@ -88,11 +94,11 @@ export function Header() {
             <div className="absolute left-0 top-full mt-1 z-50 min-w-40 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg py-1">
               <button
                 onClick={() => {
-                  setView("dashboard");
+                  navigate("/");
                   setDropdownOpen(false);
                 }}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
-                  currentView === "dashboard"
+                  isDashboard
                     ? "text-green-700 dark:text-green-400 font-medium"
                     : "text-neutral-700 dark:text-neutral-300"
                 }`}
@@ -104,11 +110,11 @@ export function Header() {
                 <button
                   key={c.id}
                   onClick={() => {
-                    setView("curriculum", c.id);
+                    navigate(`/curriculum/${c.id}`);
                     setDropdownOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
-                    currentView === "curriculum" && activeCurriculumId === c.id
+                    !isDashboard && activeCurriculumId === c.id
                       ? "text-green-700 dark:text-green-400 font-medium"
                       : "text-neutral-700 dark:text-neutral-300"
                   }`}

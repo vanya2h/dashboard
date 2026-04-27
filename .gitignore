@@ -1,6 +1,7 @@
 node_modules
 .turbo
 dist
+.react-router
 .env
 .env.local
 *.local

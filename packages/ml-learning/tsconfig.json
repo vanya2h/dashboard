@@ -7,7 +7,8 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "rootDirs": [".", "./.react-router/types"]
   },
-  "include": ["src", "eslint.config.ts", "vite.config.ts"]
+  "include": ["app", "src", ".react-router/types/**/*", "eslint.config.ts", "vite.config.ts", "react-router.config.ts"]
 }

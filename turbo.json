@@ -25,5 +25,5 @@
       "cache": false
     }
   },
-  "globalEnv": ["THEIRSTACK_API_KEY"]
+  "globalEnv": ["THEIRSTACK_API_KEY", "ANTHROPIC_API_KEY"]
 }

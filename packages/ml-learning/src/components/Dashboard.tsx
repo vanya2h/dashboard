@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
 import type { Skill } from "../data/types";
 import { computeRecentActivity, computeUnlockedSkills } from "../lib/skills";
@@ -221,7 +222,6 @@ function SkillsSection({
 export function Dashboard() {
   const completedTaskIds = useStore((s) => s.completedTaskIds);
   const specializations = useStore((s) => s.specializations);
-  const setView = useStore((s) => s.setView);
 
   return (
     <main>
@@ -237,17 +237,17 @@ export function Dashboard() {
           {CURRICULUMS.map((curriculum) => {
             const pct = calcCurriculumProgress(curriculum.id, completedTaskIds, specializations);
             return (
-              <button
+              <Link
                 key={curriculum.id}
-                onClick={() => setView("curriculum", curriculum.id)}
-                className="text-left rounded-lg border border-neutral-200 dark:border-neutral-800 p-4 hover:border-green-500 dark:hover:border-green-600 transition-colors"
+                to={`/curriculum/${curriculum.id}`}
+                className="block rounded-lg border border-neutral-200 dark:border-neutral-800 p-4 hover:border-green-500 dark:hover:border-green-600 transition-colors"
               >
                 <div className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">{curriculum.name}</div>
                 <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{pct}% complete</div>
-              </button>
+              </Link>
             );
           })}
         </div>

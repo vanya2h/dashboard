@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
 import { useClaude } from "../lib/claude";
 import { useStore } from "../store";
@@ -571,9 +572,9 @@ function ErrorSection({ message, onRetry }: { message: string; onRetry: () => vo
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function TopicView() {
-  const topicTask = useStore((s) => s.topicTask);
+  const { curriculumId, taskId } = useParams<{ curriculumId: string; taskId: string }>();
+  const navigate = useNavigate();
   const completedTaskIds = useStore((s) => s.completedTaskIds);
-  const closeTopic = useStore((s) => s.closeTopic);
   const toggleTask = useStore((s) => s.toggleTask);
 
   const { streamAI, askAI } = useClaude();
@@ -586,17 +587,21 @@ export function TopicView() {
     for (const c of CURRICULUMS) {
       for (const p of c.phases) {
         for (const t of p.tasks) {
-          if (t.id === topicTask?.taskId) return { task: t, curriculum: c };
+          if (t.id === taskId) return { task: t, curriculum: c };
         }
       }
     }
     return { task: null, curriculum: null };
   })();
 
-  if (!task || !curriculum) {
-    closeTopic();
-    return null;
-  }
+  const goBack = () => navigate(`/curriculum/${curriculumId}`);
+
+  useEffect(() => {
+    if (!task || !curriculum) goBack();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!task || !curriculum) return null;
 
   const isCompleted = !!completedTaskIds[task.id];
 
@@ -758,7 +763,7 @@ export function TopicView() {
       {/* Header */}
       <header className="flex items-start gap-4 px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
         <button
-          onClick={closeTopic}
+          onClick={goBack}
           className="mt-0.5 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
         >
           ← Back
@@ -847,7 +852,7 @@ export function TopicView() {
           }
         />
       )}
-      {phase.name === "complete" && <CompleteSection taskTitle={task.title} onBack={closeTopic} />}
+      {phase.name === "complete" && <CompleteSection taskTitle={task.title} onBack={goBack} />}
       {phase.name === "error" && <ErrorSection message={phase.message} onRetry={() => setPhase({ name: "choice" })} />}
     </div>
   );

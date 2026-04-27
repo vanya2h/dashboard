@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "hono": {
+      "source": "yusukebe/hono-skill",
+      "sourceType": "github",
+      "computedHash": "220e5e1b12bbaeec49ec362b6e2262d77632d0536e9758bba9acbbc323fef990"
+    },
     "humanizer": {
       "source": "zed-industries/zed",
       "sourceType": "github",
@@ -10,6 +15,11 @@
       "source": "vanya2h/common",
       "sourceType": "github",
       "computedHash": "4c185ad98f49f105096b02f24abb2c6f189d099b6a7d2832710ae909d46fa0fc"
+    },
+    "react-router-framework-mode": {
+      "source": "remix-run/agent-skills",
+      "sourceType": "github",
+      "computedHash": "26c5bdac2f686c47eb4c4b48b6cb52401cde1dc833e6d26408ddfb22ea83c5ca"
     },
     "skill-creator": {
       "source": "anthropics/skills",
