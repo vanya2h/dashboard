@@ -1,13 +1,23 @@
+export type HandsOnTask = { task: string; hint?: string };
+
+export type PartPlan = { title: string; description: string };
+
+export type MaterialPlan = {
+  partPlans: PartPlan[];
+  finalTest: Array<{ question: string; hint?: string }>;
+};
+
 export type StudyPart = {
   title: string;
   study: string;
-  handsOn: string;
+  handsOn: HandsOnTask[];
   writeUpPrompt: string;
 };
 
 export type Material = {
-  parts: StudyPart[];
-  finalTest: Array<{ question: string; hint?: string }>;
+  plan: MaterialPlan;
+  parts: (StudyPart | null)[];
+  assessmentContext?: string;
 };
 
 export type PersistedPhase =
@@ -24,7 +34,8 @@ export type PersistedPhase =
       grading: string;
       gradingDone: boolean;
       passed: boolean;
-    };
+    }
+  | { name: "gaps-review"; summary: string; gaps: string[]; context: string };
 
 export type SessionPhase =
   | { name: "init" }
@@ -41,8 +52,10 @@ export type SessionPhase =
       name: "part";
       material: Material;
       partIdx: number;
-      step: "study" | "hands-on" | "write-up";
+      step: "generating" | "study" | "hands-on" | "write-up";
+      stream: string;
       userText: string;
+      handsOnAnswers: Record<number, string>;
       feedback: string;
       feedbackStreaming: boolean;
     }

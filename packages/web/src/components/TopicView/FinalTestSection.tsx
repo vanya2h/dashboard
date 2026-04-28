@@ -1,5 +1,5 @@
 import type { SessionPhase } from "./types";
-import { Btn, Spinner, Textarea } from "./ui";
+import { Btn, Markdown, Spinner, Textarea } from "./ui";
 
 export function FinalTestSection({
   phase,
@@ -13,7 +13,7 @@ export function FinalTestSection({
   onComplete: () => void;
 }) {
   const { material, answers, grading, gradingDone, passed } = phase;
-  const allAnswered = material.finalTest.every((_, i) => (answers[i] ?? "").trim().length > 0);
+  const allAnswered = material.plan.finalTest.every((_, i) => (answers[i] ?? "").trim().length > 0);
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
@@ -23,7 +23,7 @@ export function FinalTestSection({
       </p>
 
       <div className="flex flex-col gap-6">
-        {material.finalTest.map((q, i) => (
+        {material.plan.finalTest.map((q, i) => (
           <div key={i}>
             <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-1">
               {i + 1}. {q.question}
@@ -62,7 +62,7 @@ export function FinalTestSection({
               {passed ? "Passed!" : "Not quite — review and try again"}
             </div>
           )}
-          <p className="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap">{grading}</p>
+          <Markdown isAnimating={!gradingDone}>{grading ?? ""}</Markdown>
           {gradingDone && (
             <div className="mt-4">
               <Btn onClick={onComplete}>{passed ? "Complete topic →" : "Try again"}</Btn>

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
+import { apiClient } from "../lib/apiClient";
 
 type Props = { task: Task; curriculumId: string };
 
@@ -16,7 +17,9 @@ function sessionLabel(session: ActiveSession): string {
     const step = STEP_LABELS[session.step ?? ""] ?? session.step ?? "";
     return `Part ${(session.partIdx ?? 0) + 1} · ${step}`;
   }
-  return "Final test";
+  if (session.name === "gaps-review") return "Assessment done";
+  if (session.name === "final-test") return "Final test";
+  return session.name;
 }
 
 export function TaskRow({ task, curriculumId }: Props) {
@@ -51,16 +54,27 @@ export function TaskRow({ task, curriculumId }: Props) {
         </span>
       </label>
       {!checked && (
-        <button
-          onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}
-          className={`shrink-0 text-xs px-2 py-0.5 rounded text-white transition-opacity ${
-            activeSession
-              ? "bg-amber-500 hover:bg-amber-600"
-              : "opacity-0 group-hover:opacity-100 bg-green-600 hover:bg-green-700"
-          }`}
+        <div
+          className={`shrink-0 flex gap-1 transition-opacity ${activeSession ? "" : "opacity-0 group-hover:opacity-100"}`}
         >
-          {activeSession ? "Continue" : "Start"}
-        </button>
+          {activeSession && (
+            <button
+              onClick={() => {
+                void apiClient.api["topic-sessions"][":taskId"].$delete({ param: { taskId: task.id } });
+                navigate(`/topic/${curriculumId}/${task.id}`);
+              }}
+              className="text-xs px-2 py-0.5 rounded text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              Start over
+            </button>
+          )}
+          <button
+            onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}
+            className={`text-xs px-2 py-0.5 rounded text-white ${activeSession ? "bg-amber-500 hover:bg-amber-600" : "bg-green-600 hover:bg-green-700"}`}
+          >
+            {activeSession ? "Continue" : "Start"}
+          </button>
+        </div>
       )}
     </div>
   );

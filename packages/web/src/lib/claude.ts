@@ -32,10 +32,11 @@ export function useClaude() {
       system: string,
       message: string,
       onUpdate: (text: string) => void,
+      maxTokens: number,
       signal?: AbortSignal,
     ): Promise<string> => {
       const res = await client.api.chat.$post(
-        { json: { messages: [{ role: "user", content: message }], system } },
+        { json: { messages: [{ role: "user", content: message }], system, maxTokens } },
         { init: { signal } },
       );
 
@@ -53,8 +54,8 @@ export function useClaude() {
   );
 
   const askAI = useCallback(
-    (system: string, message: string, signal?: AbortSignal): Promise<string> =>
-      streamAI(system, message, () => {}, signal),
+    (system: string, message: string, maxTokens: number, signal?: AbortSignal): Promise<string> =>
+      streamAI(system, message, () => {}, maxTokens, signal),
     [streamAI],
   );
 

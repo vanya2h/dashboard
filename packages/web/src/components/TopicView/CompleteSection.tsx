@@ -1,6 +1,14 @@
 import { Btn } from "./ui";
 
-export function CompleteSection({ taskTitle, onBack }: { taskTitle: string; onBack: () => void }) {
+export function CompleteSection({
+  taskTitle,
+  onBack,
+  onStartOver,
+}: {
+  taskTitle: string;
+  onBack: () => void;
+  onStartOver: () => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
       <div className="text-4xl mb-4">✓</div>
@@ -10,7 +18,12 @@ export function CompleteSection({ taskTitle, onBack }: { taskTitle: string; onBa
         <span className="font-medium text-neutral-700 dark:text-neutral-300">{taskTitle}</span>. It&apos;s been marked
         as done.
       </p>
-      <Btn onClick={onBack}>Back to curriculum</Btn>
+      <div className="flex gap-3">
+        <Btn onClick={onBack} variant="secondary">
+          Back to curriculum
+        </Btn>
+        <Btn onClick={onStartOver}>Start over</Btn>
+      </div>
     </div>
   );
 }

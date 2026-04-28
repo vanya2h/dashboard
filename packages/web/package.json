@@ -14,7 +14,8 @@
     "db:migrate": "pnpm withenv -- prisma migrate dev",
     "db:push": "pnpm withenv -- prisma db push",
     "db:studio": "pnpm withenv -- prisma studio",
-    "withenv": "dotenv -e ../../.env"
+    "withenv": "dotenv -e ../../.env",
+    "measure-tokens": "dotenv -e ../../.env tsx scripts/measure-tokens.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
@@ -25,14 +26,17 @@
     "@prisma/client-runtime-utils": "^7.8.0",
     "@react-router/node": "^7.14.2",
     "@react-router/serve": "^7.14.2",
+    "@streamdown/code": "^1.1.1",
     "better-auth": "^1.6.9",
     "date-fns": "^3.6.0",
     "hono": "^4.12.15",
     "isbot": "^5",
+    "jsonrepair": "^3.14.0",
     "pg": "^8.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.14.2",
+    "streamdown": "^2.5.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.0"
   },

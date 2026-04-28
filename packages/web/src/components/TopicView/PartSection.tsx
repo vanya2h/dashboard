@@ -1,72 +1,109 @@
 import type { SessionPhase } from "./types";
-import { Btn, PartProgress, Spinner, StudyContent, Textarea } from "./ui";
+import { Btn, Markdown, PartNav, PartProgress, Spinner, Textarea } from "./ui";
 
 export function PartSection({
   phase,
   onUpdateText,
+  onAnswerChange,
   onNextStep,
   onSubmitHandsOn,
   onSubmitWriteUp,
   onNextPart,
+  onGoToPart,
 }: {
   phase: Extract<SessionPhase, { name: "part" }>;
   onUpdateText: (text: string) => void;
+  onAnswerChange: (idx: number, text: string) => void;
   onNextStep: () => void;
   onSubmitHandsOn: () => void;
   onSubmitWriteUp: () => void;
   onNextPart: () => void;
+  onGoToPart: (idx: number) => void;
 }) {
-  const { material, partIdx, step, userText, feedback, feedbackStreaming } = phase;
-  const part = material.parts[partIdx];
-  if (!part) return null;
-
-  const isLastPart = partIdx === material.parts.length - 1;
+  const { material, partIdx, step, stream, userText, handsOnAnswers, feedback, feedbackStreaming } = phase;
+  const { plan, parts } = material;
+  const partPlan = plan.partPlans[partIdx];
+  const part = parts[partIdx];
+  const isLastPart = partIdx === plan.partPlans.length - 1;
+  const allTasksAnswered = part?.handsOn.every((_, i) => (handsOnAnswers[i] ?? "").trim().length > 0) ?? false;
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      <PartProgress partIdx={partIdx} total={material.parts.length} step={step} />
+      <PartNav partPlans={plan.partPlans} parts={parts} currentIdx={partIdx} onGoTo={onGoToPart} />
+      <PartProgress partIdx={partIdx} total={plan.partPlans.length} step={step} />
 
-      <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-6">{part.title}</h2>
+      <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-6">{partPlan?.title ?? ""}</h2>
 
-      {step === "study" && (
+      {step === "generating" && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-neutral-400 dark:text-neutral-600">
+          <Spinner />
+          <p className="text-sm">Preparing study material{stream ? "…" : ""}</p>
+        </div>
+      )}
+
+      {step === "study" && part && (
         <>
-          <StudyContent content={part.study} />
+          <Markdown>{part.study}</Markdown>
           <div className="mt-8">
-            <Btn onClick={onNextStep}>Got it — move to practice →</Btn>
+            {isLastPart ? (
+              <Btn onClick={onNextStep}>Move to practice →</Btn>
+            ) : (
+              <Btn onClick={onNextPart}>Next part →</Btn>
+            )}
           </div>
         </>
       )}
 
-      {step === "hands-on" && (
+      {step === "hands-on" && part && (
         <>
-          <div className="mb-4 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
-              Exercise
-            </p>
-            <StudyContent content={part.handsOn} />
-          </div>
-
           {!feedback && !feedbackStreaming && (
-            <>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Your approach / solution:</p>
-              <Textarea
-                value={userText}
-                onChange={onUpdateText}
-                placeholder="Work through the exercise here. Notes, code, your reasoning…"
-                rows={6}
-              />
-              <div className="mt-4">
-                <Btn onClick={onSubmitHandsOn} disabled={userText.trim().length === 0}>
+            <div className="flex flex-col gap-6">
+              {part.handsOn.map((t, i) => (
+                <div key={i} className="flex flex-col gap-3">
+                  <div className="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                    <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
+                      Task {i + 1}
+                    </p>
+                    <Markdown>{t.task}</Markdown>
+                    {t.hint && (
+                      <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-600 italic">Hint: {t.hint}</p>
+                    )}
+                  </div>
+                  <Textarea
+                    value={handsOnAnswers[i] ?? ""}
+                    onChange={(v) => onAnswerChange(i, v)}
+                    placeholder="Your answer, code, or reasoning…"
+                    rows={4}
+                  />
+                </div>
+              ))}
+              <div>
+                <Btn onClick={onSubmitHandsOn} disabled={!allTasksAnswered}>
                   Submit for feedback →
                 </Btn>
               </div>
-            </>
+            </div>
           )}
 
           {(feedback || feedbackStreaming) && (
-            <div className="mt-2">
-              <div className="text-xs text-neutral-500 dark:text-neutral-400 italic mb-1">Your solution:</div>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 whitespace-pre-wrap">{userText}</p>
+            <div>
+              <div className="flex flex-col gap-4 mb-6">
+                {part.handsOn.map((t, i) => (
+                  <div key={i} className="flex flex-col gap-2">
+                    <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                      <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
+                        Task {i + 1}
+                      </p>
+                      <Markdown>{t.task}</Markdown>
+                    </div>
+                    {handsOnAnswers[i] && (
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-wrap px-1">
+                        {handsOnAnswers[i]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
               <div className="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                 <div className="flex items-center gap-2 mb-2">
                   <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
@@ -74,7 +111,7 @@ export function PartSection({
                   </p>
                   {feedbackStreaming && <Spinner />}
                 </div>
-                <p className="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap">{feedback}</p>
+                <Markdown isAnimating={feedbackStreaming}>{feedback ?? ""}</Markdown>
               </div>
               {!feedbackStreaming && (
                 <div className="mt-6">
@@ -86,7 +123,7 @@ export function PartSection({
         </>
       )}
 
-      {step === "write-up" && (
+      {step === "write-up" && part && (
         <>
           <div className="mb-4 p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
             <p className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">
@@ -123,7 +160,7 @@ export function PartSection({
                   </p>
                   {feedbackStreaming && <Spinner />}
                 </div>
-                <p className="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap">{feedback}</p>
+                <Markdown isAnimating={feedbackStreaming}>{feedback ?? ""}</Markdown>
               </div>
 
               {!feedbackStreaming && (
