@@ -45,6 +45,7 @@ type SessionPhase =
       gradingDone: boolean;
       passed: boolean;
     }
+  | { name: "gaps-review"; summary: string; gaps: string[]; context: string }
   | { name: "complete" }
   | { name: "error"; message: string };
 
@@ -56,8 +57,8 @@ Respond with ONLY valid JSON matching this exact schema — no markdown, no expl
   "parts": [
     {
       "title": "concise part title",
-      "study": "in-depth explanation with examples (plain text, 300-600 words, use \\n for line breaks)",
-      "handsOn": "specific practical exercise to attempt (plain text, be concrete — coding task, design problem, or scenario to analyze)",
+      "study": "in-depth explanation with examples targeting the knowledge gaps identified in the assessment (plain text, 300-600 words, use \\n for line breaks).",
+      "handsOn": "small specific practical exercises that directly address the knowledge gaps from the assessment — concrete enough that completing them would let the learner answer the assessment questions correctly (plain text — coding task, design problem, or scenario to analyze)",
       "writeUpPrompt": "one targeted reflection question"
     }
   ],
@@ -66,21 +67,27 @@ Respond with ONLY valid JSON matching this exact schema — no markdown, no expl
   ]
 }
 Rules:
-- 2–4 parts, ordered from foundational to advanced
+- all material must be ordered from foundational to advanced
+- Every part must close a gap the assessment exposed — do not cover topics the learner already knows
 - Study: explain the WHY and trade-offs, use code examples where relevant (inline, no fences)
-- Hands-on: concrete enough that the learner knows exactly what to produce
-- finalTest: 5–6 questions mixing conceptual and applied, no trivial questions
-- Write for a senior developer: go deep, skip the obvious`;
+- Hands-on: if the learner completes it successfully, they must be able to answer the related assessment questions correctly
+- finalTest: 5-6 questions mixing conceptual and applied, no trivial questions`;
 
 const ASSESSMENT_SYSTEM = `You are an expert tutor generating a quick knowledge assessment.
 Respond with ONLY valid JSON — no markdown, no explanation:
 { "questions": ["question 1", "question 2", "question 3", "question 4"] }
-Requirements: exactly 4 short-answer questions, test genuine understanding not memorization, reveal gaps when answered poorly, each answerable in 2-4 sentences.`;
+Requirements: exactly several short-answer questions, test genuine understanding not memorization, reveal gaps when answered poorly, each answerable in 1-3 sentences.`;
 
 const ASSESSMENT_EVAL_SYSTEM = `You are an expert tutor analyzing assessment answers.
 Respond with ONLY valid JSON — no markdown, no explanation:
 { "summary": "1 sentence on current knowledge level", "gaps": ["concept needing focus", ...] }
 Be accurate. gaps can be empty array. Max 3 gaps.`;
+
+const HANDS_ON_EVAL_SYSTEM = `You are a concise, direct tutor reviewing a learner's hands-on exercise solution. Keep response under 150 words.
+1 sentence: what they got right.
+1-2 sentences: the most important gap or misconception in their solution.
+1 sentence: one concrete next step to deepen their understanding.
+Be honest — vague praise is useless.`;
 
 const WRITEUP_SYSTEM = `You are a concise, supportive tutor reviewing a learner's reflection. Keep response under 100 words.
 1 sentence: acknowledge what they captured well.
@@ -258,6 +265,50 @@ function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; onAsses
 
 // ── Section: Assessment ───────────────────────────────────────────────────────
 
+function GapsReviewSection({
+  phase,
+  onContinue,
+}: {
+  phase: Extract<SessionPhase, { name: "gaps-review" }>;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-8">
+      <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">Assessment complete</h2>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">{phase.summary}</p>
+
+      {phase.gaps.length > 0 ? (
+        <div className="mb-8">
+          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+            Gaps to cover
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {phase.gaps.map((gap) => (
+              <li
+                key={gap}
+                className="rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-1 text-sm text-amber-800 dark:text-amber-300"
+              >
+                {gap}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="mb-8 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 px-4 py-3 text-sm text-green-800 dark:text-green-300">
+          No significant gaps detected — the material will go deep on advanced nuances.
+        </div>
+      )}
+
+      <button
+        onClick={onContinue}
+        className="rounded-lg bg-green-600 hover:bg-green-700 px-5 py-2 text-sm font-medium text-white transition-colors"
+      >
+        Start studying
+      </button>
+    </div>
+  );
+}
+
 function AssessmentSection({
   phase,
   onAnswerChange,
@@ -327,16 +378,11 @@ function AssessmentSection({
 
 // ── Section: Loading ──────────────────────────────────────────────────────────
 
-function LoadingSection({ stream }: { stream: string }) {
+function LoadingSection() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-6">
       <Spinner />
       <p className="text-sm text-neutral-500 dark:text-neutral-400">Preparing your personalized study session…</p>
-      {stream && (
-        <div className="text-xs text-neutral-400 dark:text-neutral-600 max-w-sm text-center font-mono">
-          {stream.slice(-80)}
-        </div>
-      )}
     </div>
   );
 }
@@ -347,12 +393,14 @@ function PartSection({
   phase,
   onUpdateText,
   onNextStep,
+  onSubmitHandsOn,
   onSubmitWriteUp,
   onNextPart,
 }: {
   phase: Extract<SessionPhase, { name: "part" }>;
   onUpdateText: (text: string) => void;
   onNextStep: () => void;
+  onSubmitHandsOn: () => void;
   onSubmitWriteUp: () => void;
   onNextPart: () => void;
 }) {
@@ -385,18 +433,44 @@ function PartSection({
             </p>
             <StudyContent content={part.handsOn} />
           </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Your approach / solution:</p>
-          <Textarea
-            value={userText}
-            onChange={onUpdateText}
-            placeholder="Work through the exercise here. Notes, code, your reasoning…"
-            rows={6}
-          />
-          <div className="mt-4">
-            <Btn onClick={onNextStep} disabled={userText.trim().length === 0}>
-              Done — move to reflection →
-            </Btn>
-          </div>
+
+          {!feedback && !feedbackStreaming && (
+            <>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Your approach / solution:</p>
+              <Textarea
+                value={userText}
+                onChange={onUpdateText}
+                placeholder="Work through the exercise here. Notes, code, your reasoning…"
+                rows={6}
+              />
+              <div className="mt-4">
+                <Btn onClick={onSubmitHandsOn} disabled={userText.trim().length === 0}>
+                  Submit for feedback →
+                </Btn>
+              </div>
+            </>
+          )}
+
+          {(feedback || feedbackStreaming) && (
+            <div className="mt-2">
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 italic mb-1">Your solution:</div>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 whitespace-pre-wrap">{userText}</p>
+              <div className="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                    Feedback
+                  </p>
+                  {feedbackStreaming && <Spinner />}
+                </div>
+                <p className="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap">{feedback}</p>
+              </div>
+              {!feedbackStreaming && (
+                <div className="mt-6">
+                  <Btn onClick={onNextStep}>Move to reflection →</Btn>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -684,7 +758,44 @@ export function TopicView() {
         gaps.length > 0
           ? `Learner level: ${summary}. Key gaps to focus on: ${gaps.join(", ")}.`
           : `Learner level: ${summary}. Knowledge is solid — go deep and cover advanced nuances.`;
-      await loadMaterial(context);
+      setPhase({ name: "gaps-review", summary, gaps, context });
+    } catch (err) {
+      if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
+    }
+  }
+
+  async function submitHandsOn(partIdx: number, material: Material, text: string) {
+    const ctrl = newAbort();
+    const part = material.parts[partIdx]!;
+    setPhase({
+      name: "part",
+      material,
+      partIdx,
+      step: "hands-on",
+      userText: text,
+      feedback: "",
+      feedbackStreaming: true,
+    });
+    try {
+      await streamAI(
+        HANDS_ON_EVAL_SYSTEM,
+        `Exercise: "${part.handsOn}"\nLearner's solution: "${text}"`,
+        (acc) => {
+          if (!ctrl.signal.aborted)
+            setPhase({
+              name: "part",
+              material,
+              partIdx,
+              step: "hands-on",
+              userText: text,
+              feedback: acc,
+              feedbackStreaming: true,
+            });
+        },
+        ctrl.signal,
+      );
+      if (!ctrl.signal.aborted)
+        setPhase((prev) => (prev.name === "part" ? { ...prev, feedbackStreaming: false } : prev));
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
     }
@@ -791,7 +902,10 @@ export function TopicView() {
           }}
         />
       )}
-      {phase.name === "loading" && <LoadingSection stream={phase.stream} />}
+      {phase.name === "gaps-review" && (
+        <GapsReviewSection phase={phase} onContinue={() => loadMaterial(phase.context)} />
+      )}
+      {phase.name === "loading" && <LoadingSection />}
       {phase.name === "part" && (
         <PartSection
           phase={phase}
@@ -799,11 +913,14 @@ export function TopicView() {
           onNextStep={() =>
             setPhase((prev) => {
               if (prev.name !== "part") return prev;
-              if (prev.step === "study") return { ...prev, step: "hands-on", userText: "" };
+              if (prev.step === "study") return { ...prev, step: "hands-on", userText: "", feedback: "" };
               if (prev.step === "hands-on") return { ...prev, step: "write-up", userText: "", feedback: "" };
               return prev;
             })
           }
+          onSubmitHandsOn={() => {
+            if (phase.name === "part") submitHandsOn(phase.partIdx, phase.material, phase.userText);
+          }}
           onSubmitWriteUp={() => {
             if (phase.name === "part") submitWriteUp(phase.partIdx, phase.material, phase.userText);
           }}
