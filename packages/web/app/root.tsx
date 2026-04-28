@@ -9,11 +9,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session) return { user: null, progress: null };
 
   const userId = session.user.id;
-  const [completions, activities, specializations, startedAt] = await Promise.all([
+  const [completions, activities, specializations, startedAt, topicSessions] = await Promise.all([
     db.taskCompletion.findMany({ where: { userId } }),
     db.dailyActivity.findMany({ where: { userId } }),
     db.specialization.findMany({ where: { userId } }),
     db.appSetting.findUnique({ where: { key_userId: { key: "startedAt", userId } } }),
+    db.topicSession.findMany({ where: { userId } }),
   ]);
 
   return {
@@ -28,6 +29,12 @@ export async function loader({ request }: Route.LoaderArgs) {
         string | null
       >,
       startedAt: startedAt?.value ?? new Date().toISOString(),
+      activeSessions: Object.fromEntries(
+        topicSessions.map((s) => {
+          const data = s.phaseData as { name: string; partIdx?: number; step?: string };
+          return [s.taskId, { name: data.name, partIdx: data.partIdx, step: data.step }];
+        }),
+      ),
     },
   };
 }

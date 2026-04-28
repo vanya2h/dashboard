@@ -1,13 +1,29 @@
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
+import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 
 type Props = { task: Task; curriculumId: string };
 
+const STEP_LABELS: Record<string, string> = {
+  study: "Study",
+  "hands-on": "Practice",
+  "write-up": "Write-up",
+};
+
+function sessionLabel(session: ActiveSession): string {
+  if (session.name === "part") {
+    const step = STEP_LABELS[session.step ?? ""] ?? session.step ?? "";
+    return `Part ${(session.partIdx ?? 0) + 1} · ${step}`;
+  }
+  return "Final test";
+}
+
 export function TaskRow({ task, curriculumId }: Props) {
-  const { completedTaskIds } = useProgress();
+  const { completedTaskIds, activeSessions } = useProgress();
   const navigate = useNavigate();
   const checked = !!completedTaskIds[task.id];
+  const activeSession = activeSessions[task.id];
 
   return (
     <div className="group flex items-start gap-3 py-1.5 px-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
@@ -27,14 +43,23 @@ export function TaskRow({ task, curriculumId }: Props) {
               ~{task.estMinutes >= 60 ? `${Math.round(task.estMinutes / 60)}h` : `${task.estMinutes}m`}
             </span>
           )}
+          {activeSession && (
+            <span className="ml-2 text-xs text-amber-500 dark:text-amber-400 font-medium">
+              {sessionLabel(activeSession)}
+            </span>
+          )}
         </span>
       </label>
       {!checked && (
         <button
           onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}
-          className="opacity-0 group-hover:opacity-100 shrink-0 text-xs px-2 py-0.5 rounded bg-green-600 text-white hover:bg-green-700 transition-opacity"
+          className={`shrink-0 text-xs px-2 py-0.5 rounded text-white transition-opacity ${
+            activeSession
+              ? "bg-amber-500 hover:bg-amber-600"
+              : "opacity-0 group-hover:opacity-100 bg-green-600 hover:bg-green-700"
+          }`}
         >
-          Start
+          {activeSession ? "Continue" : "Start"}
         </button>
       )}
     </div>

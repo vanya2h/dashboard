@@ -9,11 +9,18 @@ export type ActivityEntry = {
   minutes: number;
 };
 
+export type ActiveSession = {
+  name: string;
+  partIdx?: number;
+  step?: string;
+};
+
 export type Progress = {
   completedTaskIds: Record<string, string>;
   activity: Record<string, ActivityEntry>;
   specializations: Record<string, string | null>;
   startedAt: string;
+  activeSessions: Record<string, ActiveSession>;
 };
 
 const EMPTY: Progress = {
@@ -21,6 +28,7 @@ const EMPTY: Progress = {
   activity: {},
   specializations: {},
   startedAt: new Date().toISOString(),
+  activeSessions: {},
 };
 
 export function useProgress() {

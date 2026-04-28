@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { requireAuth } from "./middleware/requireAuth";
 import { chatRoute } from "./routes/chat";
 import { progressRoute } from "./routes/progress";
+import { topicSessionRoute } from "./routes/topicSession";
 import { auth } from "./auth";
 
 const app = new Hono()
@@ -14,8 +15,10 @@ const app = new Hono()
   // Protected routes
   .use("/api/chat", requireAuth)
   .use("/api/progress/*", requireAuth)
+  .use("/api/topic-sessions/*", requireAuth)
   .route("/api", chatRoute)
-  .route("/api", progressRoute);
+  .route("/api", progressRoute)
+  .route("/api", topicSessionRoute);
 
 export type AppType = typeof app;
 export { app };
