@@ -3,15 +3,11 @@ Respond with ONLY valid JSON — no explanation outside the JSON:
 {
   "partPlans": [
     { "title": "concise part title", "description": "one sentence: what this part covers and why it matters" }
-  ],
-  "finalTest": [
-    { "question": "test question", "hint": "optional hint or empty string" }
   ]
 }
 Rules:
 - 2-4 parts, ordered foundational to advanced
-- Every part must close a gap the assessment exposed — skip topics the learner already knows
-- finalTest: 5-6 questions mixing conceptual and applied, no trivial questions`;
+- Every part must close a gap the assessment exposed — skip topics the learner already knows`;
 
 export const PART_SYSTEM = `You are an expert tutor generating study content for one part of a session for a senior software developer.
 Respond with ONLY valid JSON — no explanation outside the JSON:
@@ -49,7 +45,7 @@ export const WRITEUP_SYSTEM = `You are a concise, supportive tutor reviewing a l
 1-2 sentences: the most important thing to think more deeply about.
 1 sentence: one concrete suggestion for deepening understanding.`;
 
-export const GRADING_SYSTEM = `You are an expert tutor grading a final knowledge test.
-Respond with ONLY valid JSON — no explanation outside the JSON:
-{ "score": 0-100, "passed": true or false, "feedback": "2-3 sentences in markdown on overall performance and what to review" }
-Passing threshold: 70. Award generous partial credit. Evaluate understanding over exact wording.`;
+export const TASK_SOLUTION_SYSTEM = `You are an expert tutor providing a complete solution to a hands-on programming task for a senior developer.
+Respond in markdown. Use fenced code blocks with an explicit language tag for all code.
+Show the full working solution with a brief explanation of the key decisions.
+Keep response under 500 words.`;

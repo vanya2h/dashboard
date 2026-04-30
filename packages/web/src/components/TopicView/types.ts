@@ -4,7 +4,6 @@ export type PartPlan = { title: string; description: string };
 
 export type MaterialPlan = {
   partPlans: PartPlan[];
-  finalTest: Array<{ question: string; hint?: string }>;
 };
 
 export type StudyPart = {
@@ -21,20 +20,9 @@ export type Material = {
 };
 
 export type PersistedPhase =
-  | {
-      name: "part";
-      material: Material;
-      partIdx: number;
-      step: "study" | "hands-on" | "write-up";
-      feedback: string;
-    }
-  | {
-      name: "final-test";
-      material: Material;
-      grading: string;
-      gradingDone: boolean;
-      passed: boolean;
-    }
+  | { name: "study"; material: Material; partIdx: number }
+  | { name: "hands-on"; material: Material; partIdx: number; feedback: string }
+  | { name: "write-up"; material: Material; partIdx: number; feedback: string }
   | { name: "gaps-review"; summary: string; gaps: string[]; context: string };
 
 export type SessionPhase =
@@ -49,24 +37,32 @@ export type SessionPhase =
     }
   | { name: "loading"; stream: string }
   | {
-      name: "part";
+      name: "study";
       material: Material;
       partIdx: number;
-      step: "generating" | "study" | "hands-on" | "write-up";
       stream: string;
-      userText: string;
-      handsOnAnswers: Record<number, string>;
+    }
+  | {
+      name: "hands-on";
+      material: Material;
+      partIdx: number;
+      answers: Record<number, string>;
       feedback: string;
       feedbackStreaming: boolean;
     }
   | {
-      name: "final-test";
+      name: "write-up";
       material: Material;
-      answers: Record<number, string>;
-      grading: string;
-      gradingDone: boolean;
-      passed: boolean;
+      partIdx: number;
+      text: string;
+      feedback: string;
+      feedbackStreaming: boolean;
     }
-  | { name: "gaps-review"; summary: string; gaps: string[]; context: string }
+  | {
+      name: "gaps-review";
+      summary: string;
+      gaps: string[];
+      context: string;
+    }
   | { name: "complete" }
   | { name: "error"; message: string };

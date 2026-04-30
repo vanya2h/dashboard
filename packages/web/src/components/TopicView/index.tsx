@@ -8,21 +8,21 @@ import { AssessmentSection, GapsReviewSection } from "./AssessmentSection";
 import { ChoiceSection } from "./ChoiceSection";
 import { CompleteSection } from "./CompleteSection";
 import { ErrorSection } from "./ErrorSection";
-import { FinalTestSection } from "./FinalTestSection";
+import { HandsOnSection } from "./HandsOnSection";
 import { LoadingSection } from "./LoadingSection";
-import { PartSection } from "./PartSection";
 import {
   ASSESSMENT_EVAL_SYSTEM,
   ASSESSMENT_SYSTEM,
-  GRADING_SYSTEM,
   HANDS_ON_EVAL_SYSTEM,
   PART_SYSTEM,
   PLAN_SYSTEM,
   WRITEUP_SYSTEM,
 } from "./prompts";
+import { StudySection } from "./StudySection";
 import type { Material, PersistedPhase, SessionPhase } from "./types";
 import { Spinner } from "./ui";
-import { parseJSON, parsePart, parsePlan } from "./utils";
+import { extractStudy, parseJSON, parsePart, parsePlan } from "./utils";
+import { WriteUpSection } from "./WriteUpSection";
 
 const TOKENS_PLAN = 600;
 const TOKENS_PART = 3000;
@@ -30,21 +30,11 @@ const TOKENS_ASSESSMENT = 300;
 const TOKENS_ASSESSMENT_EVAL = 300;
 const TOKENS_HANDS_ON_EVAL = 500;
 const TOKENS_WRITEUP = 250;
-const TOKENS_GRADING = 300;
 
 function restorePhase(p: PersistedPhase): SessionPhase {
-  if (p.name === "part") {
-    return {
-      ...p,
-      userText: "",
-      handsOnAnswers: {},
-      feedbackStreaming: false,
-      stream: "",
-      // if part content is missing (was generating when user left), restart generation
-      step: p.material.parts[p.partIdx] ? p.step : "generating",
-    };
-  }
-  if (p.name === "final-test") return { ...p, answers: {} };
+  if (p.name === "study") return { ...p, stream: "" };
+  if (p.name === "hands-on") return { ...p, answers: {}, feedbackStreaming: false };
+  if (p.name === "write-up") return { ...p, text: "", feedbackStreaming: false };
   if (p.name === "gaps-review") return p;
   return { name: "choice" };
 }
@@ -119,7 +109,7 @@ export function TopicView() {
         userMsg,
         (acc) => {
           if (!ctrl.signal.aborted) {
-            setPhase((prev) => (prev.name === "part" ? { ...prev, stream: acc } : prev));
+            setPhase((prev) => (prev.name === "study" ? { ...prev, stream: extractStudy(acc) } : prev));
           }
         },
         TOKENS_PART,
@@ -131,9 +121,7 @@ export function TopicView() {
       const updatedParts = material.parts.map((p, i) => (i === partIdx ? studyPart : p));
       const updatedMaterial = { ...material, parts: updatedParts };
 
-      setPhase((prev) =>
-        prev.name === "part" ? { ...prev, material: updatedMaterial, step: "study", stream: "" } : prev,
-      );
+      setPhase((prev) => (prev.name === "study" ? { ...prev, material: updatedMaterial, stream: "" } : prev));
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
     }
@@ -169,17 +157,7 @@ export function TopicView() {
         assessmentContext,
       };
 
-      setPhase({
-        name: "part",
-        material,
-        partIdx: 0,
-        step: "generating",
-        stream: "",
-        userText: "",
-        handsOnAnswers: {},
-        feedback: "",
-        feedbackStreaming: false,
-      });
+      setPhase({ name: "study", material, partIdx: 0, stream: "" });
       void loadPart(0, material);
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
@@ -242,25 +220,21 @@ export function TopicView() {
     const qa = part.handsOn
       .map((t, i) => `Task ${i + 1}: ${t.task}\nAnswer ${i + 1}: ${answers[i] ?? "(no answer)"}`)
       .join("\n\n");
-    setPhase((prev) =>
-      prev.name === "part"
-        ? { ...prev, step: "hands-on", userText: "", handsOnAnswers: answers, feedback: "", feedbackStreaming: true }
-        : prev,
-    );
+    setPhase((prev) => (prev.name === "hands-on" ? { ...prev, feedback: "", feedbackStreaming: true } : prev));
     try {
       await streamAI(
         HANDS_ON_EVAL_SYSTEM,
         qa,
         (acc) => {
           if (!ctrl.signal.aborted) {
-            setPhase((prev) => (prev.name === "part" ? { ...prev, feedback: acc } : prev));
+            setPhase((prev) => (prev.name === "hands-on" ? { ...prev, feedback: acc } : prev));
           }
         },
         TOKENS_HANDS_ON_EVAL,
         ctrl.signal,
       );
       if (!ctrl.signal.aborted)
-        setPhase((prev) => (prev.name === "part" ? { ...prev, feedbackStreaming: false } : prev));
+        setPhase((prev) => (prev.name === "hands-on" ? { ...prev, feedbackStreaming: false } : prev));
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
     }
@@ -270,123 +244,40 @@ export function TopicView() {
     const ctrl = newAbort();
     const part = material.parts[partIdx];
     if (!part) return;
-    setPhase((prev) =>
-      prev.name === "part"
-        ? { ...prev, step: "write-up", userText: text, handsOnAnswers: {}, feedback: "", feedbackStreaming: true }
-        : prev,
-    );
+    setPhase((prev) => (prev.name === "write-up" ? { ...prev, feedback: "", feedbackStreaming: true } : prev));
     try {
       await streamAI(
         WRITEUP_SYSTEM,
         `Topic: "${part.title}"\nLearner's reflection: "${text}"`,
         (acc) => {
           if (!ctrl.signal.aborted) {
-            setPhase((prev) => (prev.name === "part" ? { ...prev, feedback: acc } : prev));
+            setPhase((prev) => (prev.name === "write-up" ? { ...prev, feedback: acc } : prev));
           }
         },
         TOKENS_WRITEUP,
         ctrl.signal,
       );
       if (!ctrl.signal.aborted) {
-        setPhase((prev) => (prev.name === "part" ? { ...prev, feedbackStreaming: false } : prev));
+        setPhase((prev) => (prev.name === "write-up" ? { ...prev, feedbackStreaming: false } : prev));
       }
     } catch (err) {
       if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
     }
   }
 
-  async function submitFinalTest(material: Material, answers: Record<number, string>) {
-    if (!task) return;
-    const ctrl = newAbort();
-    setPhase({ name: "final-test", material, answers, grading: "", gradingDone: false, passed: false });
-
-    const qa = material.plan.finalTest
-      .map((q, i) => `Q${i + 1}: ${q.question}\nA${i + 1}: ${answers[i] ?? "(no answer)"}`)
-      .join("\n\n");
-
-    try {
-      const gradingText = await streamAI(
-        GRADING_SYSTEM,
-        `Topic: "${task.title}"\n\nTest answers:\n${qa}`,
-        (acc) => {
-          if (!ctrl.signal.aborted) {
-            setPhase({ name: "final-test", material, answers, grading: acc, gradingDone: false, passed: false });
-          }
-        },
-        TOKENS_GRADING,
-        ctrl.signal,
-      );
-      if (ctrl.signal.aborted) return;
-      const { passed, feedback } = parseJSON<{ score: number; passed: boolean; feedback: string }>(gradingText);
-      if (passed && !isCompleted) await toggleTask(task.id);
-      setPhase({ name: "final-test", material, answers, grading: feedback, gradingDone: true, passed });
-    } catch (err) {
-      if (!ctrl.signal.aborted) setPhase({ name: "error", message: String(err) });
-    }
-  }
-
-  function handleNextPart() {
-    if (phase.name !== "part") return;
-    const nextIdx = phase.partIdx + 1;
-    const { material } = phase;
-
-    if (nextIdx >= material.plan.partPlans.length) {
-      setPhase({ name: "final-test", material, answers: {}, grading: "", gradingDone: false, passed: false });
-      return;
-    }
-
+  function handleNextPart(material: Material, partIdx: number) {
+    const nextIdx = partIdx + 1;
     if (material.parts[nextIdx]) {
-      setPhase((prev) =>
-        prev.name === "part"
-          ? {
-              ...prev,
-              partIdx: nextIdx,
-              step: "study",
-              stream: "",
-              userText: "",
-              handsOnAnswers: {},
-              feedback: "",
-              feedbackStreaming: false,
-            }
-          : prev,
-      );
+      setPhase({ name: "study", material, partIdx: nextIdx, stream: "" });
     } else {
-      // Set generating state then call loadPart
-      const nextMaterial = material;
-      setPhase((prev) =>
-        prev.name === "part"
-          ? {
-              ...prev,
-              partIdx: nextIdx,
-              step: "generating",
-              stream: "",
-              userText: "",
-              handsOnAnswers: {},
-              feedback: "",
-              feedbackStreaming: false,
-            }
-          : prev,
-      );
-      void loadPart(nextIdx, nextMaterial);
+      setPhase({ name: "study", material, partIdx: nextIdx, stream: "" });
+      void loadPart(nextIdx, material);
     }
   }
 
-  function handleGoToPart(idx: number) {
-    if (phase.name !== "part" || !phase.material.parts[idx]) return;
-    setPhase((prev) =>
-      prev.name === "part"
-        ? {
-            ...prev,
-            partIdx: idx,
-            step: "study",
-            stream: "",
-            userText: "",
-            handsOnAnswers: {},
-            feedback: "",
-            feedbackStreaming: false,
-          }
-        : prev,
-    );
+  function handleGoToPart(material: Material, idx: number) {
+    if (!material.parts[idx]) return;
+    setPhase({ name: "study", material, partIdx: idx, stream: "" });
   }
 
   // ── Effects ───────────────────────────────────────────────────────────────
@@ -405,7 +296,7 @@ export function TopicView() {
             const restored = restorePhase(p);
             setPhase(restored);
             sessionLoadedRef.current = true;
-            if (restored.name === "part" && restored.step === "generating") {
+            if (restored.name === "study" && !restored.material.parts[restored.partIdx]) {
               void loadPart(restored.partIdx, restored.material);
             }
           } else {
@@ -430,30 +321,23 @@ export function TopicView() {
   useEffect(() => {
     if (!sessionLoadedRef.current || !taskId) return;
 
-    if (phase.name === "part" && !phase.feedbackStreaming && phase.step !== "generating") {
+    if (phase.name === "study") {
+      void apiClient.api["topic-sessions"][":taskId"].$put({
+        param: { taskId },
+        json: { phaseData: { name: "study", material: phase.material, partIdx: phase.partIdx } },
+      });
+    } else if (phase.name === "hands-on" && !phase.feedbackStreaming) {
       void apiClient.api["topic-sessions"][":taskId"].$put({
         param: { taskId },
         json: {
-          phaseData: {
-            name: "part",
-            material: phase.material,
-            partIdx: phase.partIdx,
-            step: phase.step,
-            feedback: phase.feedback,
-          },
+          phaseData: { name: "hands-on", material: phase.material, partIdx: phase.partIdx, feedback: phase.feedback },
         },
       });
-    } else if (phase.name === "final-test" && (phase.grading === "" || phase.gradingDone)) {
+    } else if (phase.name === "write-up" && !phase.feedbackStreaming) {
       void apiClient.api["topic-sessions"][":taskId"].$put({
         param: { taskId },
         json: {
-          phaseData: {
-            name: "final-test",
-            material: phase.material,
-            grading: phase.grading,
-            gradingDone: phase.gradingDone,
-            passed: phase.passed,
-          },
+          phaseData: { name: "write-up", material: phase.material, partIdx: phase.partIdx, feedback: phase.feedback },
         },
       });
     } else if (phase.name === "gaps-review") {
@@ -479,6 +363,8 @@ export function TopicView() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  const inSession = phase.name === "study" || phase.name === "hands-on" || phase.name === "write-up";
+
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       <header className="flex items-start gap-4 px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
@@ -493,7 +379,7 @@ export function TopicView() {
           <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 leading-snug">{task.title}</h1>
         </div>
         <div className="ml-auto flex items-center gap-3 shrink-0">
-          {(phase.name === "part" || phase.name === "final-test") && (
+          {inSession && (
             <button
               onClick={startOver}
               className="text-xs text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400 transition-colors"
@@ -530,51 +416,55 @@ export function TopicView() {
         <GapsReviewSection phase={phase} onContinue={() => void loadPlan(phase.context)} />
       )}
       {phase.name === "loading" && <LoadingSection />}
-      {phase.name === "part" && (
-        <PartSection
+      {phase.name === "study" && (
+        <StudySection
           phase={phase}
-          onUpdateText={(text) => setPhase((prev) => (prev.name === "part" ? { ...prev, userText: text } : prev))}
-          onAnswerChange={(idx, text) =>
-            setPhase((prev) =>
-              prev.name === "part" ? { ...prev, handsOnAnswers: { ...prev.handsOnAnswers, [idx]: text } } : prev,
-            )
-          }
-          onNextStep={() =>
-            setPhase((prev) => {
-              if (prev.name !== "part") return prev;
-              if (prev.step === "study")
-                return { ...prev, step: "hands-on", handsOnAnswers: {}, userText: "", feedback: "" };
-              if (prev.step === "hands-on")
-                return { ...prev, step: "write-up", handsOnAnswers: {}, userText: "", feedback: "" };
-              return prev;
+          onMoveToHandsOn={() =>
+            setPhase({
+              name: "hands-on",
+              material: phase.material,
+              partIdx: phase.partIdx,
+              answers: {},
+              feedback: "",
+              feedbackStreaming: false,
             })
           }
-          onSubmitHandsOn={() => {
-            if (phase.name === "part") void submitHandsOn(phase.partIdx, phase.material, phase.handsOnAnswers);
-          }}
-          onSubmitWriteUp={() => {
-            if (phase.name === "part") void submitWriteUp(phase.partIdx, phase.material, phase.userText);
-          }}
-          onNextPart={handleNextPart}
-          onGoToPart={handleGoToPart}
+          onNextPart={() => handleNextPart(phase.material, phase.partIdx)}
+          onGoToPart={(idx) => handleGoToPart(phase.material, idx)}
         />
       )}
-      {phase.name === "final-test" && (
-        <FinalTestSection
+      {phase.name === "hands-on" && (
+        <HandsOnSection
           phase={phase}
           onAnswerChange={(idx, text) =>
             setPhase((prev) =>
-              prev.name === "final-test" ? { ...prev, answers: { ...prev.answers, [idx]: text } } : prev,
+              prev.name === "hands-on" ? { ...prev, answers: { ...prev.answers, [idx]: text } } : prev,
             )
           }
-          onSubmit={() => {
-            if (phase.name === "final-test") void submitFinalTest(phase.material, phase.answers);
+          onSubmit={() => void submitHandsOn(phase.partIdx, phase.material, phase.answers)}
+          onMoveToWriteUp={() =>
+            setPhase({
+              name: "write-up",
+              material: phase.material,
+              partIdx: phase.partIdx,
+              text: "",
+              feedback: "",
+              feedbackStreaming: false,
+            })
+          }
+          onGoToPart={(idx) => handleGoToPart(phase.material, idx)}
+        />
+      )}
+      {phase.name === "write-up" && (
+        <WriteUpSection
+          phase={phase}
+          onUpdateText={(text) => setPhase((prev) => (prev.name === "write-up" ? { ...prev, text } : prev))}
+          onSubmit={() => void submitWriteUp(phase.partIdx, phase.material, phase.text)}
+          onComplete={() => {
+            if (task && !isCompleted) void toggleTask(task.id);
+            setPhase({ name: "complete" });
           }}
-          onComplete={() =>
-            setPhase((prev) =>
-              prev.name === "final-test" ? (prev.passed ? { name: "complete" } : { name: "choice" }) : prev,
-            )
-          }
+          onGoToPart={(idx) => handleGoToPart(phase.material, idx)}
         />
       )}
       {phase.name === "complete" && <CompleteSection taskTitle={task.title} onBack={goBack} onStartOver={startOver} />}

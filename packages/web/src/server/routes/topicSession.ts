@@ -7,7 +7,7 @@ import type { AuthEnv } from "../middleware/requireAuth";
 
 const paramSchema = z.object({ taskId: z.string().min(1) });
 
-const phaseDataSchema = z.object({ name: z.enum(["part", "final-test", "gaps-review"]) }).loose();
+const phaseDataSchema = z.object({ name: z.enum(["study", "hands-on", "write-up", "gaps-review"]) }).loose();
 
 export const topicSessionRoute = new Hono<AuthEnv>()
   .get("/topic-sessions/:taskId", zValidator("param", paramSchema), async (c) => {

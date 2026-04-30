@@ -66,32 +66,30 @@ export function PartProgress({
 }: {
   partIdx: number;
   total: number;
-  step: "generating" | "study" | "hands-on" | "write-up";
+  step: "study" | "hands-on" | "write-up";
 }) {
   return (
     <div className="flex items-center gap-2 text-xs mb-4">
       <span className="text-neutral-500 dark:text-neutral-400">
         Part {partIdx + 1} of {total}
       </span>
-      {step !== "generating" && (
-        <>
-          <span className="text-neutral-300 dark:text-neutral-700">·</span>
-          {(["study", "hands-on", "write-up"] as const).map((s, i) => (
-            <span key={s} className="flex items-center gap-1">
-              {i > 0 && <span className="text-neutral-300 dark:text-neutral-700">→</span>}
-              <span
-                className={
-                  step === s
-                    ? "text-green-600 dark:text-green-400 font-semibold"
-                    : "text-neutral-400 dark:text-neutral-600"
-                }
-              >
-                {s}
-              </span>
+      <>
+        <span className="text-neutral-300 dark:text-neutral-700">·</span>
+        {(["study", "hands-on", "write-up"] as const).map((s, i) => (
+          <span key={s} className="flex items-center gap-1">
+            {i > 0 && <span className="text-neutral-300 dark:text-neutral-700">→</span>}
+            <span
+              className={
+                step === s
+                  ? "text-green-600 dark:text-green-400 font-semibold"
+                  : "text-neutral-400 dark:text-neutral-600"
+              }
+            >
+              {s}
             </span>
-          ))}
-        </>
-      )}
+          </span>
+        ))}
+      </>
     </div>
   );
 }

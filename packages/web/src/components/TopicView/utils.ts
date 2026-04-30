@@ -33,8 +33,13 @@ export function parsePlan(text: string): MaterialPlan {
   const raw = parseJSON<Partial<MaterialPlan>>(text);
   return {
     partPlans: Array.isArray(raw.partPlans) ? raw.partPlans : [],
-    finalTest: Array.isArray(raw.finalTest) ? raw.finalTest : [],
   };
+}
+
+export function extractStudy(raw: string): string {
+  const match = raw.match(/"study"\s*:\s*"((?:[^"\\]|\\[\s\S])*)(?:"|$)/s);
+  if (!match?.[1]) return "";
+  return match[1].replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
 }
 
 export function parsePart(text: string): StudyPart {
