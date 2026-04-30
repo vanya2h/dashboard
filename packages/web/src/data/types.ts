@@ -3,7 +3,6 @@ export type Task = {
   title: string;
   notes?: string;
   estMinutes?: number;
-  branch?: string;
 };
 
 export type Phase = {
@@ -17,7 +16,7 @@ export type Skill = {
   id: string;
   name: string;
   description: string;
-  unlockedBy: { phaseId: string; branch?: string };
+  unlockedBy: { phaseId: string };
 };
 
 export type CurriculumDef = {

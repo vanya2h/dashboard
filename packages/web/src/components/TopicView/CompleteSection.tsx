@@ -1,4 +1,4 @@
-import { Btn } from "./ui";
+import { Button } from "@cloudflare/kumo/components/button";
 
 export function CompleteSection({
   taskTitle,
@@ -19,10 +19,12 @@ export function CompleteSection({
         as done.
       </p>
       <div className="flex gap-3">
-        <Btn onClick={onBack} variant="secondary">
+        <Button variant="secondary" onClick={onBack}>
           Back to curriculum
-        </Btn>
-        <Btn onClick={onStartOver}>Start over</Btn>
+        </Button>
+        <Button variant="primary" onClick={onStartOver}>
+          Start over
+        </Button>
       </div>
     </div>
   );

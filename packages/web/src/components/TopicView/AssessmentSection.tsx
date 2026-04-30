@@ -1,5 +1,8 @@
+import { Badge } from "@cloudflare/kumo/components/badge";
+import { Button } from "@cloudflare/kumo/components/button";
+import { InputArea } from "@cloudflare/kumo/components/input";
 import type { SessionPhase } from "./types";
-import { Btn, Spinner, Textarea } from "./ui";
+import { Spinner } from "./ui";
 
 export function GapsReviewSection({
   phase,
@@ -20,11 +23,8 @@ export function GapsReviewSection({
           </p>
           <ul className="flex flex-wrap gap-2">
             {phase.gaps.map((gap) => (
-              <li
-                key={gap}
-                className="rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-1 text-sm text-amber-800 dark:text-amber-300"
-              >
-                {gap}
+              <li key={gap}>
+                <Badge variant="warning">{gap}</Badge>
               </li>
             ))}
           </ul>
@@ -35,12 +35,9 @@ export function GapsReviewSection({
         </div>
       )}
 
-      <button
-        onClick={onContinue}
-        className="rounded-lg bg-green-600 hover:bg-green-700 px-5 py-2 text-sm font-medium text-white transition-colors"
-      >
+      <Button variant="primary" onClick={onContinue}>
         Start studying
-      </button>
+      </Button>
     </div>
   );
 }
@@ -94,19 +91,21 @@ export function AssessmentSection({
             <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-2">
               {i + 1}. {q}
             </p>
-            <Textarea
+            <InputArea
               value={phase.answers[i] ?? ""}
-              onChange={(v) => onAnswerChange(i, v)}
+              onChange={(e) => onAnswerChange(i, e.target.value)}
               placeholder="Your answer…"
               rows={3}
+              aria-label="Text input"
+              className="w-full"
             />
           </div>
         ))}
       </div>
       <div className="mt-8">
-        <Btn onClick={onSubmit} disabled={!allAnswered}>
+        <Button variant="primary" disabled={!allAnswered} onClick={onSubmit}>
           Submit answers →
-        </Btn>
+        </Button>
       </div>
     </div>
   );

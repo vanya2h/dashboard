@@ -1,6 +1,5 @@
 import { useRevalidator } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
-import type { SpecializationId } from "../data/curriculum";
 import { apiClient } from "../lib/apiClient";
 
 export type ActivityEntry = {
@@ -18,7 +17,6 @@ export type ActiveSession = {
 export type Progress = {
   completedTaskIds: Record<string, string>;
   activity: Record<string, ActivityEntry>;
-  specializations: Record<string, string | null>;
   startedAt: string;
   activeSessions: Record<string, ActiveSession>;
 };
@@ -26,7 +24,6 @@ export type Progress = {
 const EMPTY: Progress = {
   completedTaskIds: {},
   activity: {},
-  specializations: {},
   startedAt: new Date().toISOString(),
   activeSessions: {},
 };
@@ -42,18 +39,5 @@ export function useProgress() {
     revalidate();
   }
 
-  async function setSpecialization(curriculumId: string, s: SpecializationId) {
-    await apiClient.api.progress.specializations[":curriculumId"].$put({
-      param: { curriculumId },
-      json: { branch: s },
-    });
-    revalidate();
-  }
-
-  async function clearSpecialization(curriculumId: string) {
-    await apiClient.api.progress.specializations[":curriculumId"].$delete({ param: { curriculumId } });
-    revalidate();
-  }
-
-  return { ...progress, toggleTask, setSpecialization, clearSpecialization };
+  return { ...progress, toggleTask };
 }

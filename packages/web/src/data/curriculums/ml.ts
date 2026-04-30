@@ -1,7 +1,5 @@
 import type { CurriculumDef, Phase } from "../types";
 
-export type SpecializationId = "applied-llms" | "trading" | "research";
-
 const PHASES: Phase[] = [
   {
     id: "phase-0",
@@ -51,62 +49,54 @@ const PHASES: Phase[] = [
   },
   {
     id: "phase-3",
-    title: "Phase 3 — Specialization",
-    subtitle: "Pick one path. Don't try to do all three.",
+    title: "Phase 3 — Advanced ML",
+    subtitle: "Go deep. Pick the areas most relevant to your goals.",
     tasks: [
       {
         id: "p3a-karpathy-advanced",
         title: "Karpathy's advanced videos (deep dive into LLM internals)",
         estMinutes: 240,
-        branch: "applied-llms",
       },
       {
         id: "p3a-build-agent",
         title: "Build a working agent with tool use (LangGraph or hand-rolled)",
         estMinutes: 480,
-        branch: "applied-llms",
       },
       {
         id: "p3a-finetune",
         title: "Fine-tune an open model (Llama / Qwen) on a custom dataset",
         estMinutes: 360,
-        branch: "applied-llms",
       },
-      { id: "p3a-evals", title: "Set up evals for your agent / model", estMinutes: 240, branch: "applied-llms" },
+      { id: "p3a-evals", title: "Set up evals for your agent / model", estMinutes: 240 },
       {
         id: "p3b-timeseries",
         title: "Time-series forecasting fundamentals (ARIMA → Transformers for TS)",
         estMinutes: 360,
-        branch: "trading",
       },
       {
         id: "p3b-rl-basics",
         title: "RL basics (Sutton & Barto chapters 1–6, plus a practical implementation)",
         estMinutes: 480,
-        branch: "trading",
       },
       {
         id: "p3b-microstructure",
         title: "Order book microstructure features (imbalance, queue dynamics)",
         estMinutes: 240,
-        branch: "trading",
       },
-      { id: "p3b-backtest", title: "Build a leak-proof backtester", estMinutes: 360, branch: "trading" },
-      { id: "p3c-cs231n", title: "Stanford CS231n (CNNs for visual recognition)", estMinutes: 720, branch: "research" },
-      { id: "p3c-cs224n", title: "Stanford CS224n (NLP with deep learning)", estMinutes: 720, branch: "research" },
+      { id: "p3b-backtest", title: "Build a leak-proof backtester", estMinutes: 360 },
+      { id: "p3c-cs231n", title: "Stanford CS231n (CNNs for visual recognition)", estMinutes: 720 },
+      { id: "p3c-cs224n", title: "Stanford CS224n (NLP with deep learning)", estMinutes: 720 },
       {
         id: "p3c-attention-paper",
         title: 'Read & reproduce "Attention Is All You Need"',
         estMinutes: 360,
-        branch: "research",
       },
       {
         id: "p3c-gpt-papers",
         title: "Read GPT-1, GPT-2, GPT-3, InstructGPT papers",
         estMinutes: 240,
-        branch: "research",
       },
-      { id: "p3c-reproduce", title: "Reproduce a recent paper end-to-end", estMinutes: 600, branch: "research" },
+      { id: "p3c-reproduce", title: "Reproduce a recent paper end-to-end", estMinutes: 600 },
     ],
   },
   {
@@ -125,30 +115,6 @@ const PHASES: Phase[] = [
     ],
   },
 ];
-
-export const SPECIALIZATION_INFO: Record<
-  SpecializationId,
-  { label: string; description: string; tasks: number; hours: number }
-> = {
-  "applied-llms": {
-    label: "Applied LLMs / agents",
-    description: "Highest market demand. Build agents, fine-tune open models.",
-    tasks: 4,
-    hours: 22,
-  },
-  trading: {
-    label: "ML for trading",
-    description: "Time-series forecasting, RL, microstructure, backtesting.",
-    tasks: 4,
-    hours: 24,
-  },
-  research: {
-    label: "Foundations / research",
-    description: "Deep theory. Stanford courses, reproduce papers end-to-end.",
-    tasks: 5,
-    hours: 44,
-  },
-};
 
 export const ML_CURRICULUM: CurriculumDef = {
   id: "ml",
@@ -174,22 +140,10 @@ export const ML_CURRICULUM: CurriculumDef = {
       unlockedBy: { phaseId: "phase-2" },
     },
     {
-      id: "ml-applied-llms",
-      name: "Applied LLMs & Agents",
-      description: "Built and evaluated production-grade LLM agents",
-      unlockedBy: { phaseId: "phase-3", branch: "applied-llms" },
-    },
-    {
-      id: "ml-trading-systems",
-      name: "ML for Trading",
-      description: "Time-series forecasting, RL, and leak-proof backtesting",
-      unlockedBy: { phaseId: "phase-3", branch: "trading" },
-    },
-    {
-      id: "ml-research",
-      name: "ML Research",
-      description: "Stanford courses + reproduced core papers end-to-end",
-      unlockedBy: { phaseId: "phase-3", branch: "research" },
+      id: "ml-advanced",
+      name: "Advanced ML",
+      description: "Completed the full Phase 3 advanced ML curriculum",
+      unlockedBy: { phaseId: "phase-3" },
     },
     {
       id: "ml-shipped-project",

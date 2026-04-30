@@ -9,10 +9,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session) return { user: null, progress: null };
 
   const userId = session.user.id;
-  const [completions, activities, specializations, startedAt, topicSessions] = await Promise.all([
+  const [completions, activities, startedAt, topicSessions] = await Promise.all([
     db.taskCompletion.findMany({ where: { userId } }),
     db.dailyActivity.findMany({ where: { userId } }),
-    db.specialization.findMany({ where: { userId } }),
     db.appSetting.findUnique({ where: { key_userId: { key: "startedAt", userId } } }),
     db.topicSession.findMany({ where: { userId } }),
   ]);
@@ -24,10 +23,6 @@ export async function loader({ request }: Route.LoaderArgs) {
       activity: Object.fromEntries(
         activities.map((a) => [a.date, { date: a.date, taskIds: a.taskIds as string[], minutes: a.minutes }]),
       ),
-      specializations: Object.fromEntries(specializations.map((s) => [s.curriculumId, s.branch])) as Record<
-        string,
-        string | null
-      >,
       startedAt: startedAt?.value ?? new Date().toISOString(),
       activeSessions: Object.fromEntries(
         topicSessions.map((s) => {
@@ -47,6 +42,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Prevent flash of wrong theme before hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}})()`,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
         {children}

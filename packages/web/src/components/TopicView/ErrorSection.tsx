@@ -1,4 +1,4 @@
-import { Btn } from "./ui";
+import { Button } from "@cloudflare/kumo/components/button";
 
 export function ErrorSection({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
@@ -6,9 +6,9 @@ export function ErrorSection({ message, onRetry }: { message: string; onRetry: (
       <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Something went wrong</h2>
 
       <p className="text-neutral-500 dark:text-neutral-400 mb-6 max-w-sm font-mono text-xs">{message}</p>
-      <Btn onClick={onRetry} variant="secondary">
+      <Button variant="secondary" onClick={onRetry}>
         Try again
-      </Btn>
+      </Button>
     </div>
   );
 }

@@ -16,18 +16,11 @@ function resolveSkillUnlock(
   skill: Skill,
   curriculum: CurriculumDef,
   completedTaskIds: Record<string, string>,
-  specializations: Record<string, string | null>,
 ): UnlockedSkill | null {
   const phase = curriculum.phases.find((p) => p.id === skill.unlockedBy.phaseId);
   if (!phase) return null;
 
-  const { branch } = skill.unlockedBy;
-
-  if (branch) {
-    if ((specializations[curriculum.id] ?? null) !== branch) return null;
-  }
-
-  const tasks = branch ? phase.tasks.filter((t) => t.branch === branch) : phase.tasks.filter((t) => !t.branch);
+  const tasks = phase.tasks;
 
   if (tasks.length === 0 || !tasks.every((t) => !!completedTaskIds[t.id])) return null;
 
@@ -43,26 +36,19 @@ function resolveSkillUnlock(
   return { skill, curriculumId: curriculum.id, curriculumName: curriculum.name, unlockedAt };
 }
 
-export function computeUnlockedSkills(
-  completedTaskIds: Record<string, string>,
-  specializations: Record<string, string | null>,
-): UnlockedSkill[] {
+export function computeUnlockedSkills(completedTaskIds: Record<string, string>): UnlockedSkill[] {
   return CURRICULUMS.flatMap((curriculum) =>
     (curriculum.skills ?? [])
-      .map((skill) => resolveSkillUnlock(skill, curriculum, completedTaskIds, specializations))
+      .map((skill) => resolveSkillUnlock(skill, curriculum, completedTaskIds))
       .filter((s): s is UnlockedSkill => s !== null),
   ).sort((a, b) => b.unlockedAt.getTime() - a.unlockedAt.getTime());
 }
 
-export function computeRecentActivity(
-  completedTaskIds: Record<string, string>,
-  specializations: Record<string, string | null>,
-  limit = 8,
-): ActivityItem[] {
+export function computeRecentActivity(completedTaskIds: Record<string, string>, limit = 8): ActivityItem[] {
   const unlockedSkillIds = new Set<string>();
   const items: ActivityItem[] = [];
 
-  for (const unlocked of computeUnlockedSkills(completedTaskIds, specializations)) {
+  for (const unlocked of computeUnlockedSkills(completedTaskIds)) {
     unlockedSkillIds.add(unlocked.skill.id);
     items.push({ type: "skill", skill: unlocked, date: unlocked.unlockedAt });
   }

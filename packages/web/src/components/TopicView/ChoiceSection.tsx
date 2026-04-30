@@ -1,3 +1,5 @@
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+
 export function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; onAssess: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
@@ -6,24 +8,24 @@ export function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; 
         Take a quick test to surface gaps and personalize the material, or dive straight in from the beginning.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
-        <button
-          onClick={onAssess}
-          className="flex flex-col items-start gap-2 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 p-5 text-left hover:border-green-500 dark:hover:border-green-500 transition-colors"
+        <LayerCard
+          render={<button onClick={onAssess} className="text-left" />}
+          className="flex flex-col items-start gap-2 rounded-xl p-5"
         >
           <span className="font-semibold text-neutral-900 dark:text-neutral-100">Quick assessment first</span>
           <span className="text-xs text-neutral-500 dark:text-neutral-400">
             Answer 4 questions so the AI can focus on your gaps
           </span>
-        </button>
-        <button
-          onClick={onScratch}
-          className="flex flex-col items-start gap-2 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 p-5 text-left hover:border-green-500 dark:hover:border-green-500 transition-colors"
+        </LayerCard>
+        <LayerCard
+          render={<button onClick={onScratch} className="text-left" />}
+          className="flex flex-col items-start gap-2 rounded-xl p-5"
         >
           <span className="font-semibold text-neutral-900 dark:text-neutral-100">Start from scratch</span>
           <span className="text-xs text-neutral-500 dark:text-neutral-400">
             Full comprehensive material from the beginning
           </span>
-        </button>
+        </LayerCard>
       </div>
     </div>
   );

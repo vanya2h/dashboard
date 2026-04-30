@@ -23,7 +23,6 @@ model User {
   accounts        Account[]
   taskCompletions TaskCompletion[]
   dailyActivities DailyActivity[]
-  specializations Specialization[]
   settings        AppSetting[]
   topicSessions   TopicSession[]
 
@@ -97,17 +96,6 @@ model DailyActivity {
 
   @@unique([date, userId])
   @@map("daily_activities")
-}
-
-model Specialization {
-  id           String @id @default(cuid())
-  curriculumId String
-  branch       String
-  userId       String
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([curriculumId, userId])
-  @@map("specializations")
 }
 
 model AppSetting {

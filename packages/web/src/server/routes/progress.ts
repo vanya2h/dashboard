@@ -14,10 +14,9 @@ export const progressRoute = new Hono<AuthEnv>()
   .get("/progress", async (c) => {
     const userId = c.var.user.id;
 
-    const [completions, activities, specializations, startedAt] = await Promise.all([
+    const [completions, activities, startedAt] = await Promise.all([
       db.taskCompletion.findMany({ where: { userId } }),
       db.dailyActivity.findMany({ where: { userId } }),
-      db.specialization.findMany({ where: { userId } }),
       db.appSetting.findUnique({ where: { key_userId: { key: "startedAt", userId } } }),
     ]);
 
@@ -26,7 +25,6 @@ export const progressRoute = new Hono<AuthEnv>()
       activity: Object.fromEntries(
         activities.map((a) => [a.date, { date: a.date, taskIds: a.taskIds, minutes: a.minutes }]),
       ),
-      specializations: Object.fromEntries(specializations.map((s) => [s.curriculumId, s.branch])),
       startedAt: startedAt?.value ?? new Date().toISOString(),
     });
   })
@@ -70,40 +68,6 @@ export const progressRoute = new Hono<AuthEnv>()
 
     return c.json({ completed: true, completedAt: completion.completedAt.toISOString() });
   })
-
-  // ─── PUT /progress/specializations/:curriculumId ──────────────────────────────
-  .put(
-    "/progress/specializations/:curriculumId",
-    zValidator("param", z.object({ curriculumId: z.string().min(1) })),
-    zValidator("json", z.object({ branch: z.string().min(1) })),
-    async (c) => {
-      const userId = c.var.user.id;
-      const { curriculumId } = c.req.valid("param");
-      const { branch } = c.req.valid("json");
-
-      await db.specialization.upsert({
-        where: { curriculumId_userId: { curriculumId, userId } },
-        update: { branch },
-        create: { curriculumId, userId, branch },
-      });
-
-      return c.json({ curriculumId, branch });
-    },
-  )
-
-  // ─── DELETE /progress/specializations/:curriculumId ──────────────────────────
-  .delete(
-    "/progress/specializations/:curriculumId",
-    zValidator("param", z.object({ curriculumId: z.string().min(1) })),
-    async (c) => {
-      const userId = c.var.user.id;
-      const { curriculumId } = c.req.valid("param");
-
-      await db.specialization.deleteMany({ where: { curriculumId, userId } });
-
-      return c.json({ curriculumId, branch: null });
-    },
-  )
 
   // ─── PUT /progress/settings/started-at ───────────────────────────────────────
   .put("/progress/settings/started-at", zValidator("json", z.object({ startedAt: z.string() })), async (c) => {

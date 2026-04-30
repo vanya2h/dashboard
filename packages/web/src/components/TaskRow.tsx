@@ -1,3 +1,4 @@
+import { Button } from "@cloudflare/kumo/components/button";
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
@@ -30,7 +31,7 @@ export function TaskRow({ task, curriculumId }: Props) {
 
   return (
     <div className="group flex items-start gap-3 py-1.5 px-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
-      <label className="flex items-start gap-3 flex-1 min-w-0 cursor-default">
+      <label className="flex items-start gap-3 flex-1 min-w-0">
         <input
           type="checkbox"
           checked={checked}
@@ -58,22 +59,20 @@ export function TaskRow({ task, curriculumId }: Props) {
           className={`shrink-0 flex gap-1 transition-opacity ${activeSession ? "" : "opacity-0 group-hover:opacity-100"}`}
         >
           {activeSession && (
-            <button
+            <Button
+              size="xs"
+              variant="secondary"
               onClick={() => {
                 void apiClient.api["topic-sessions"][":taskId"].$delete({ param: { taskId: task.id } });
                 navigate(`/topic/${curriculumId}/${task.id}`);
               }}
-              className="text-xs px-2 py-0.5 rounded text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
               Start over
-            </button>
+            </Button>
           )}
-          <button
-            onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}
-            className={`text-xs px-2 py-0.5 rounded text-white ${activeSession ? "bg-amber-500 hover:bg-amber-600" : "bg-green-600 hover:bg-green-700"}`}
-          >
+          <Button size="xs" variant="primary" onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}>
             {activeSession ? "Continue" : "Start"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

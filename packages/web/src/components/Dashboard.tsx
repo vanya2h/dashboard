@@ -1,3 +1,5 @@
+import { Badge } from "@cloudflare/kumo/components/badge";
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
@@ -55,25 +57,14 @@ function QuoteSlider() {
   );
 }
 
-function calcCurriculumProgress(
-  curriculumId: string,
-  completedTaskIds: Record<string, string>,
-  specializations: Record<string, string | null>,
-) {
+function calcCurriculumProgress(curriculumId: string, completedTaskIds: Record<string, string>) {
   const curriculum = CURRICULUMS.find((c) => c.id === curriculumId);
   if (!curriculum) return 0;
-  const specialization = specializations[curriculumId] ?? null;
   let totalWeight = 0;
   let doneWeight = 0;
   for (const phase of curriculum.phases) {
-    const tasks =
-      phase.id === "phase-3"
-        ? specialization
-          ? phase.tasks.filter((t) => t.branch === specialization)
-          : []
-        : phase.tasks;
-    totalWeight += tasks.reduce((s, t) => s + (t.estMinutes ?? 60), 0);
-    doneWeight += tasks.filter((t) => completedTaskIds[t.id]).reduce((s, t) => s + (t.estMinutes ?? 60), 0);
+    totalWeight += phase.tasks.reduce((s, t) => s + (t.estMinutes ?? 60), 0);
+    doneWeight += phase.tasks.filter((t) => completedTaskIds[t.id]).reduce((s, t) => s + (t.estMinutes ?? 60), 0);
   }
   return totalWeight === 0 ? 0 : Math.round((doneWeight / totalWeight) * 100);
 }
@@ -109,9 +100,9 @@ function SkillBadge({
           {skill.name}
         </span>
         {recentlyUnlocked && (
-          <span className="ml-auto text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-1.5 py-0.5 rounded-full">
+          <Badge variant="success" className="ml-auto">
             New
-          </span>
+          </Badge>
         )}
       </div>
       <p
@@ -123,14 +114,8 @@ function SkillBadge({
   );
 }
 
-function RecentActivity({
-  completedTaskIds,
-  specializations,
-}: {
-  completedTaskIds: Record<string, string>;
-  specializations: Record<string, string | null>;
-}) {
-  const items = computeRecentActivity(completedTaskIds, specializations);
+function RecentActivity({ completedTaskIds }: { completedTaskIds: Record<string, string> }) {
+  const items = computeRecentActivity(completedTaskIds);
   if (items.length === 0) return null;
 
   return (
@@ -170,17 +155,8 @@ function RecentActivity({
   );
 }
 
-function SkillsSection({
-  completedTaskIds,
-  specializations,
-}: {
-  completedTaskIds: Record<string, string>;
-  specializations: Record<string, string | null>;
-}) {
-  const unlockedSkills = useMemo(
-    () => computeUnlockedSkills(completedTaskIds, specializations),
-    [completedTaskIds, specializations],
-  );
+function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, string> }) {
+  const unlockedSkills = useMemo(() => computeUnlockedSkills(completedTaskIds), [completedTaskIds]);
   const { unlockedIds, recentIds } = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -220,33 +196,33 @@ function SkillsSection({
 }
 
 export function Dashboard() {
-  const { completedTaskIds, specializations } = useProgress();
+  const { completedTaskIds } = useProgress();
 
   return (
     <main>
       <QuoteSlider />
       <Heatmap />
-      <RecentActivity completedTaskIds={completedTaskIds} specializations={specializations} />
-      <SkillsSection completedTaskIds={completedTaskIds} specializations={specializations} />
+      <RecentActivity completedTaskIds={completedTaskIds} />
+      <SkillsSection completedTaskIds={completedTaskIds} />
       <section className="px-6 py-4">
         <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
           Programs
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {CURRICULUMS.map((curriculum) => {
-            const pct = calcCurriculumProgress(curriculum.id, completedTaskIds, specializations);
+            const pct = calcCurriculumProgress(curriculum.id, completedTaskIds);
             return (
-              <Link
+              <LayerCard
                 key={curriculum.id}
-                to={`/curriculum/${curriculum.id}`}
-                className="block rounded-lg border border-neutral-200 dark:border-neutral-800 p-4 hover:border-green-500 dark:hover:border-green-600 transition-colors"
+                render={<Link to={`/curriculum/${curriculum.id}`} />}
+                className="block p-4"
               >
                 <div className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">{curriculum.name}</div>
                 <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{pct}% complete</div>
-              </Link>
+              </LayerCard>
             );
           })}
         </div>

@@ -1,21 +1,22 @@
+import { Button } from "@cloudflare/kumo/components/button";
+import { InputArea } from "@cloudflare/kumo/components/input";
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { useRef, useState } from "react";
 import { useClaude } from "../../lib/claude";
 import { TASK_SOLUTION_SYSTEM } from "./prompts";
 import type { SessionPhase } from "./types";
-import { Btn, Markdown, PartNav, PartProgress, Spinner, Textarea } from "./ui";
+import { Markdown, PartProgress, Spinner } from "./ui";
 
 export function HandsOnSection({
   phase,
   onAnswerChange,
   onSubmit,
   onMoveToWriteUp,
-  onGoToPart,
 }: {
   phase: Extract<SessionPhase, { name: "hands-on" }>;
   onAnswerChange: (idx: number, text: string) => void;
   onSubmit: () => void;
   onMoveToWriteUp: () => void;
-  onGoToPart: (idx: number) => void;
 }) {
   const { streamAI } = useClaude();
   const [solutions, setSolutions] = useState<Record<number, { text: string; streaming: boolean }>>({});
@@ -54,30 +55,30 @@ export function HandsOnSection({
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      <PartNav partPlans={plan.partPlans} parts={parts} currentIdx={partIdx} onGoTo={onGoToPart} />
-      <PartProgress partIdx={partIdx} total={plan.partPlans.length} step="hands-on" />
+      <PartProgress partIdx={partIdx} total={plan.partPlans.length} />
 
       {!feedback && !feedbackStreaming && (
         <div className="flex flex-col gap-6">
           {part.handsOn.map((t, i) => (
             <div key={i} className="flex flex-col gap-3">
-              <div className="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+              <LayerCard className="p-4">
                 <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
                   Task {i + 1}
                 </p>
                 <Markdown>{t.task}</Markdown>
                 {t.hint && <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-600 italic">Hint: {t.hint}</p>}
                 <div className="mt-3 flex items-center gap-2">
-                  <button
-                    onClick={() => void handleSolution(i, t.task, t.hint)}
+                  <Button
+                    size="xs"
+                    variant="secondary"
                     disabled={solutions[i]?.streaming}
-                    className="text-xs px-2.5 py-1 rounded-md border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                    onClick={() => void handleSolution(i, t.task, t.hint)}
                   >
                     See solution
-                  </button>
+                  </Button>
                   {solutions[i]?.streaming && <Spinner />}
                 </div>
-              </div>
+              </LayerCard>
               {solutions[i] && (
                 <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">
@@ -86,18 +87,20 @@ export function HandsOnSection({
                   <Markdown isAnimating={solutions[i].streaming}>{solutions[i].text}</Markdown>
                 </div>
               )}
-              <Textarea
+              <InputArea
                 value={answers[i] ?? ""}
-                onChange={(v) => onAnswerChange(i, v)}
+                onChange={(e) => onAnswerChange(i, e.target.value)}
                 placeholder="Your answer, code, or reasoning…"
                 rows={4}
+                aria-label="Text input"
+                className="w-full"
               />
             </div>
           ))}
           <div>
-            <Btn onClick={onSubmit} disabled={!allAnswered}>
+            <Button variant="primary" disabled={!allAnswered} onClick={onSubmit}>
               Submit for feedback →
-            </Btn>
+            </Button>
           </div>
         </div>
       )}
@@ -107,12 +110,12 @@ export function HandsOnSection({
           <div className="flex flex-col gap-4 mb-6">
             {part.handsOn.map((t, i) => (
               <div key={i} className="flex flex-col gap-2">
-                <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <LayerCard className="p-3">
                   <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                     Task {i + 1}
                   </p>
                   <Markdown>{t.task}</Markdown>
-                </div>
+                </LayerCard>
                 {answers[i] && (
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-wrap px-1">
                     {answers[i]}
@@ -121,7 +124,7 @@ export function HandsOnSection({
               </div>
             ))}
           </div>
-          <div className="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+          <LayerCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                 Feedback
@@ -129,10 +132,12 @@ export function HandsOnSection({
               {feedbackStreaming && <Spinner />}
             </div>
             <Markdown isAnimating={feedbackStreaming}>{feedback}</Markdown>
-          </div>
+          </LayerCard>
           {!feedbackStreaming && (
             <div className="mt-6">
-              <Btn onClick={onMoveToWriteUp}>Move to reflection →</Btn>
+              <Button variant="primary" onClick={onMoveToWriteUp}>
+                Move to reflection →
+              </Button>
             </div>
           )}
         </div>

@@ -1,8 +1,7 @@
-import { type MouseEvent, useState } from "react";
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
-import { SPECIALIZATION_INFO } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
-import { SpecializationPicker } from "./SpecializationPicker";
 import { TaskRow } from "./TaskRow";
 
 type Props = { phase: Phase; curriculumId: string };
@@ -16,70 +15,43 @@ function phaseProgress(tasks: Task[], completedTaskIds: Record<string, string>) 
 
 export function PhaseCard({ phase, curriculumId }: Props) {
   const [open, setOpen] = useState(true);
-  const { completedTaskIds, specializations, clearSpecialization } = useProgress();
-  const specialization = specializations[curriculumId] ?? null;
+  const { completedTaskIds } = useProgress();
 
-  const isPhase3 = phase.id === "phase-3";
-  const visibleTasks = isPhase3
-    ? specialization
-      ? phase.tasks.filter((t) => t.branch === specialization)
-      : []
-    : phase.tasks;
-
-  const pct = phaseProgress(visibleTasks, completedTaskIds);
-
-  function handleChangePath(e: MouseEvent) {
-    e.stopPropagation();
-    clearSpecialization(curriculumId);
-  }
+  const pct = phaseProgress(phase.tasks, completedTaskIds);
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-        aria-expanded={open}
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
+    <LayerCard className="overflow-hidden">
+      <LayerCard.Secondary>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-4 py-3 text-left transition-colors cursor-pointer"
+          aria-expanded={open}
+        >
+          <div className="flex-1 min-w-0">
             <span className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">{phase.title}</span>
-            {isPhase3 && specialization && (
-              <span className="text-xs text-green-700 dark:text-green-400 font-medium">
-                {SPECIALIZATION_INFO[specialization as keyof typeof SPECIALIZATION_INFO].label}
-              </span>
-            )}
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{phase.subtitle}</p>
           </div>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{phase.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-3 ml-4">
-          <div className="w-24">
-            <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-              <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+          <div className="flex items-center gap-3 ml-4">
+            <div className="w-24">
+              <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="text-right text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{pct}%</div>
             </div>
-            <div className="text-right text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{pct}%</div>
+            <span className="text-neutral-400 text-xs">{open ? "▲" : "▼"}</span>
           </div>
-          <span className="text-neutral-400 text-xs">{open ? "▲" : "▼"}</span>
-        </div>
-      </button>
+        </button>
+      </LayerCard.Secondary>
 
       {open && (
-        <div className="px-4 pb-3">
-          {isPhase3 && !specialization && <SpecializationPicker curriculumId={curriculumId} />}
-          {isPhase3 && specialization && (
-            <div className="py-1">
-              <button
-                className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 underline"
-                onClick={handleChangePath}
-              >
-                change path
-              </button>
-            </div>
-          )}
-          {visibleTasks.map((task) => (
-            <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
-          ))}
-        </div>
+        <LayerCard.Primary>
+          <div className="px-4 pb-3">
+            {phase.tasks.map((task) => (
+              <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
+            ))}
+          </div>
+        </LayerCard.Primary>
       )}
-    </div>
+    </LayerCard>
   );
 }

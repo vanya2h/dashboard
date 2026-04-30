@@ -1,3 +1,4 @@
+import { Button } from "@cloudflare/kumo/components/button";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { CURRICULUMS } from "../../data/curriculum";
@@ -39,15 +40,17 @@ function restorePhase(p: PersistedPhase): SessionPhase {
   return { name: "choice" };
 }
 
-export function TopicView() {
+export function TopicView({ initialPhaseData }: { initialPhaseData: PersistedPhase | null }) {
   // ── Hooks ────────────────────────────────────────────────────────────────
   const { curriculumId, taskId } = useParams<{ curriculumId: string; taskId: string }>();
   const navigate = useNavigate();
   const { completedTaskIds, toggleTask } = useProgress();
   const { streamAI, askAI } = useClaude();
-  const [phase, setPhase] = useState<SessionPhase>({ name: "init" });
+  const [phase, setPhase] = useState<SessionPhase>(() =>
+    initialPhaseData ? restorePhase(initialPhaseData) : { name: "choice" },
+  );
   const abortRef = useRef<AbortController | null>(null);
-  const sessionLoadedRef = useRef(false);
+  const sessionLoadedRef = useRef(true);
 
   // ── Computed ─────────────────────────────────────────────────────────────
   const { task, curriculum } = (() => {
@@ -282,38 +285,12 @@ export function TopicView() {
 
   // ── Effects ───────────────────────────────────────────────────────────────
 
-  // Load persisted session on mount; resume generation if it was interrupted
+  // Resume part generation if session was restored mid-stream
   useEffect(() => {
-    if (!taskId) return;
-    let cancelled = false;
-    apiClient.api["topic-sessions"][":taskId"]
-      .$get({ param: { taskId } })
-      .then((r) => r.json())
-      .then(({ phaseData }) => {
-        if (!cancelled) {
-          if (phaseData) {
-            const p = phaseData as unknown as PersistedPhase;
-            const restored = restorePhase(p);
-            setPhase(restored);
-            sessionLoadedRef.current = true;
-            if (restored.name === "study" && !restored.material.parts[restored.partIdx]) {
-              void loadPart(restored.partIdx, restored.material);
-            }
-          } else {
-            setPhase({ name: "choice" });
-            sessionLoadedRef.current = true;
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPhase({ name: "choice" });
-          sessionLoadedRef.current = true;
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    if (phase.name !== "study" || phase.material.parts[phase.partIdx]) return;
+    const { partIdx, material } = phase;
+    const id = setTimeout(() => void loadPart(partIdx, material), 0);
+    return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -363,31 +340,19 @@ export function TopicView() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const inSession = phase.name === "study" || phase.name === "hands-on" || phase.name === "write-up";
-
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
-      <header className="flex items-start gap-4 px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
-        <button
-          onClick={goBack}
-          className="mt-0.5 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
-        >
+    <>
+      <header className="flex items-center gap-4 px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
+        <Button size="sm" onClick={goBack}>
           ← Back
-        </button>
+        </Button>
         <div className="min-w-0">
-          <div className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">{curriculum.name}</div>
           <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 leading-snug">{task.title}</h1>
         </div>
         <div className="ml-auto flex items-center gap-3 shrink-0">
-          {inSession && (
-            <button
-              onClick={startOver}
-              className="text-xs text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400 transition-colors"
-            >
-              Start over
-            </button>
-          )}
-          {isCompleted && <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Completed</span>}
+          <Button size="sm" onClick={startOver}>
+            Start over
+          </Button>
         </div>
       </header>
 
@@ -452,7 +417,6 @@ export function TopicView() {
               feedbackStreaming: false,
             })
           }
-          onGoToPart={(idx) => handleGoToPart(phase.material, idx)}
         />
       )}
       {phase.name === "write-up" && (
@@ -464,11 +428,10 @@ export function TopicView() {
             if (task && !isCompleted) void toggleTask(task.id);
             setPhase({ name: "complete" });
           }}
-          onGoToPart={(idx) => handleGoToPart(phase.material, idx)}
         />
       )}
       {phase.name === "complete" && <CompleteSection taskTitle={task.title} onBack={goBack} onStartOver={startOver} />}
       {phase.name === "error" && <ErrorSection message={phase.message} onRetry={() => setPhase({ name: "choice" })} />}
-    </div>
+    </>
   );
 }
