@@ -1,29 +1,34 @@
 import { Button } from "@cloudflare/kumo/components/button";
+import clsx from "clsx";
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
 
-type Props = { task: Task; curriculumId: string };
-
-const STEP_LABELS: Record<string, string> = {
-  study: "Study",
-  "hands-on": "Practice",
-  "write-up": "Write-up",
-};
-
 function sessionLabel(session: ActiveSession): string {
-  if (session.name === "part") {
-    const step = STEP_LABELS[session.step ?? ""] ?? session.step ?? "";
-    return `Part ${(session.partIdx ?? 0) + 1} · ${step}`;
+  const part = `Part ${(session.partIdx ?? 0) + 1}`;
+  switch (session.name) {
+    case "assessing":
+      return "Assessing";
+    case "gaps-review":
+      return "Assessment done";
+    case "study":
+      return `${part} · Study`;
+    case "hands-on":
+      return `${part} · Practice`;
+    case "feedback":
+      return `${part} · Feedback`;
+    case "write-up":
+      return `${part} · Write-up`;
+    default: {
+      const _exhaustive: never = session.name;
+      return _exhaustive;
+    }
   }
-  if (session.name === "gaps-review") return "Assessment done";
-  if (session.name === "final-test") return "Final test";
-  return session.name;
 }
 
-export function TaskRow({ task, curriculumId }: Props) {
+export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: string }) {
   const { completedTaskIds, activeSessions } = useProgress();
   const navigate = useNavigate();
   const checked = !!completedTaskIds[task.id];
@@ -56,7 +61,10 @@ export function TaskRow({ task, curriculumId }: Props) {
       </label>
       {!checked && (
         <div
-          className={`shrink-0 flex gap-1 transition-opacity ${activeSession ? "" : "opacity-0 group-hover:opacity-100"}`}
+          className={clsx(
+            "shrink-0 flex gap-1 transition-opacity",
+            !activeSession && "opacity-0 group-hover:opacity-100",
+          )}
         >
           {activeSession && (
             <Button

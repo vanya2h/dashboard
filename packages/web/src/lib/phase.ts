@@ -1,3 +1,45 @@
+import { parseJSON } from "./json";
+
+export type HandsOnTask = { task: string; hint?: string };
+
+export type PartPlan = { title: string; description: string };
+
+export type MaterialPlan = {
+  partPlans: PartPlan[];
+};
+
+export type StudyPart = {
+  title: string;
+  study: string;
+  handsOn: HandsOnTask[];
+  writeUpPrompt: string;
+};
+
+export type Material = {
+  plan: MaterialPlan;
+  parts: (StudyPart | null)[];
+  assessmentContext?: string;
+};
+
+export type PersistedPhase =
+  | { name: "assessing"; questions: string[]; answers: Record<number, string> }
+  | { name: "gaps-review"; summary: string; gaps: string[]; context: string }
+  | { name: "study"; material: Material; partIdx: number }
+  | { name: "hands-on"; material: Material; partIdx: number; answers: Record<number, string> }
+  | { name: "feedback"; material: Material; partIdx: number; answers: Record<number, string>; feedback: string }
+  | { name: "write-up"; material: Material; partIdx: number; feedback: string };
+
+export type StepKey = "study" | "hands-on" | "feedback" | "write-up";
+
+export const PHASE_ROUTES = {
+  assessing: "assess",
+  "gaps-review": "gaps",
+  study: "study",
+  "hands-on": "hands-on",
+  feedback: "feedback",
+  "write-up": "write-up",
+} as const satisfies Record<PersistedPhase["name"], string>;
+
 export const PLAN_SYSTEM = `You are an expert tutor planning a structured study session for a senior software developer.
 Respond with ONLY valid JSON — no explanation outside the JSON:
 {
@@ -49,3 +91,20 @@ export const TASK_SOLUTION_SYSTEM = `You are an expert tutor providing a complet
 Respond in markdown. Use fenced code blocks with an explicit language tag for all code.
 Show the full working solution with a brief explanation of the key decisions.
 Keep response under 500 words.`;
+
+export function parsePlan(text: string): MaterialPlan {
+  const raw = parseJSON<Partial<MaterialPlan>>(text);
+  return {
+    partPlans: Array.isArray(raw.partPlans) ? raw.partPlans : [],
+  };
+}
+
+export function parsePart(text: string): StudyPart {
+  const raw = parseJSON<Partial<StudyPart>>(text);
+  return {
+    title: raw.title ?? "",
+    study: raw.study ?? "",
+    handsOn: Array.isArray(raw.handsOn) ? raw.handsOn : [],
+    writeUpPrompt: raw.writeUpPrompt ?? "",
+  };
+}

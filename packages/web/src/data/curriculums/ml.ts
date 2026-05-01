@@ -119,6 +119,7 @@ const PHASES: Phase[] = [
 export const ML_CURRICULUM: CurriculumDef = {
   id: "ml",
   name: "ML Learning",
+  description: "Math, PyTorch, and applied ML — from fundamentals to production models.",
   phases: PHASES,
   skills: [
     {

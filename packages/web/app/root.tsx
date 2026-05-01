@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import type { ActiveSession } from "../src/hooks/useProgress";
 import { auth } from "../src/server/auth";
 import { db } from "../src/server/db";
 import type { Route } from "./+types/root";
@@ -26,8 +27,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       startedAt: startedAt?.value ?? new Date().toISOString(),
       activeSessions: Object.fromEntries(
         topicSessions.map((s) => {
-          const data = s.phaseData as { name: string; partIdx?: number; step?: string };
-          return [s.taskId, { name: data.name, partIdx: data.partIdx, step: data.step }];
+          const data = s.phaseData as { name: ActiveSession["name"]; partIdx?: number };
+          return [s.taskId, { name: data.name, partIdx: data.partIdx }];
         }),
       ),
     },

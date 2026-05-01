@@ -1,0 +1,284 @@
+import { Loader } from "@cloudflare/kumo/components/loader";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import { Markdown } from "../../src/components/Markdown";
+import { useTopicSession } from "../../src/hooks/useTopicSession";
+import { useClaude } from "../../src/lib/claude";
+import type { Material, PersistedPhase } from "../../src/lib/phase";
+import { parsePart, parsePlan, PART_SYSTEM, PLAN_SYSTEM } from "../../src/lib/phase";
+import { db } from "../../src/server/db";
+import { requireSession } from "../../src/server/session";
+import type { Route } from "./+types/topic.study";
+import type { loader as layoutLoader } from "./topic-layout";
+
+const TOKENS_PLAN = 600;
+const TOKENS_PART = 3000;
+
+type LoaderResult =
+  | { hasSession: true; material: Material; partIdx: number }
+  | { hasSession: false; assessmentContext: string | undefined };
+
+export async function loader({ request, params }: Route.LoaderArgs): Promise<LoaderResult> {
+  const session = await requireSession(request);
+  const record = await db.topicSession.findUnique({
+    where: { userId_taskId: { userId: session.user.id, taskId: params.taskId } },
+  });
+  const phase = record?.phaseData as PersistedPhase | null;
+
+  if (phase?.name === "study") {
+    return { hasSession: true, material: phase.material, partIdx: phase.partIdx };
+  }
+  if (phase?.name === "gaps-review") {
+    return { hasSession: false, assessmentContext: phase.context };
+  }
+  return { hasSession: false, assessmentContext: undefined };
+}
+
+export default function StudyPage() {
+  const loaderData = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
+  const { taskId } = useParams<{ taskId: string }>();
+  const navigate = useNavigate();
+  const { streamAI } = useClaude();
+  const { saveSession } = useTopicSession(taskId!);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const task = layoutData?.task;
+  const curriculumName = layoutData?.curriculumName;
+
+  const [material, setMaterial] = useState<Material | null>(loaderData.hasSession ? loaderData.material : null);
+  const [partIdx, setPartIdx] = useState(loaderData.hasSession ? loaderData.partIdx : 0);
+  const [planStream, setPlanStream] = useState("");
+  const [partStream, setPartStream] = useState("");
+
+  function newAbort() {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    return ctrl;
+  }
+
+  async function loadPart(idx: number, mat: Material, ctrl: AbortController) {
+    const partPlan = mat.plan.partPlans[idx];
+    if (!partPlan) return;
+
+    const otherParts = mat.plan.partPlans.map((p, i) => `${i + 1}. ${p.title}: ${p.description}`).join("\n");
+
+    const userMsg = [
+      `Topic: "${task?.title}"`,
+      `Curriculum: ${curriculumName}`,
+      mat.assessmentContext ? `Assessment context: ${mat.assessmentContext}` : null,
+      ``,
+      `Generate part ${idx + 1} of ${mat.plan.partPlans.length}: "${partPlan.title}"`,
+      `Scope: ${partPlan.description}`,
+      ``,
+      `Full session outline:`,
+      otherParts,
+    ]
+      .filter((l) => l !== null)
+      .join("\n");
+
+    try {
+      const text = await streamAI(
+        PART_SYSTEM,
+        userMsg,
+        (acc) => {
+          if (!ctrl.signal.aborted) {
+            try {
+              setPartStream(parsePart(acc).study);
+            } catch {
+              // partial stream not yet parseable
+            }
+          }
+        },
+        TOKENS_PART,
+        ctrl.signal,
+      );
+      if (ctrl.signal.aborted) return;
+
+      const studyPart = parsePart(text);
+      setMaterial((prev) => {
+        if (!prev) return prev;
+        const updatedParts = prev.parts.map((p, i) => (i === idx ? studyPart : p));
+        const updated = { ...prev, parts: updatedParts };
+        void saveSession({
+          name: "study",
+          material: updated,
+          partIdx: idx,
+        });
+        return updated;
+      });
+      setPartStream("");
+    } catch (err) {
+      if (!ctrl.signal.aborted) console.error(err);
+    }
+  }
+
+  async function generatePlan() {
+    if (!task) return;
+    const ctrl = newAbort();
+    const assessmentContext = loaderData.hasSession ? undefined : loaderData.assessmentContext;
+
+    const userMsg = assessmentContext
+      ? `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}\n\nAssessment context: ${assessmentContext}`
+      : `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}`;
+
+    try {
+      const text = await streamAI(
+        PLAN_SYSTEM,
+        userMsg,
+        (acc) => {
+          if (!ctrl.signal.aborted) setPlanStream(acc);
+        },
+        TOKENS_PLAN,
+        ctrl.signal,
+      );
+      if (ctrl.signal.aborted) return;
+
+      const plan = parsePlan(text);
+      setPlanStream("");
+
+      const newMaterial: Material = {
+        plan,
+        parts: Array<null>(plan.partPlans.length).fill(null),
+        assessmentContext,
+      };
+
+      setMaterial(newMaterial);
+      setPartIdx(0);
+      void saveSession({ name: "study", material: newMaterial, partIdx: 0 });
+      void loadPart(0, newMaterial, ctrl);
+    } catch (err) {
+      if (!ctrl.signal.aborted) console.error(err);
+    }
+  }
+
+  // On mount: generate plan if no session, or resume incomplete part
+  useEffect(() => {
+    if (!loaderData.hasSession) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void generatePlan();
+    } else if (!loaderData.material.parts[loaderData.partIdx]) {
+      const ctrl = newAbort();
+      void loadPart(loaderData.partIdx, loaderData.material, ctrl);
+    }
+    return () => abortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleGoToPart(idx: number) {
+    if (!material || !material.parts[idx]) return;
+    setPartIdx(idx);
+    void saveSession({ name: "study", material, partIdx: idx });
+  }
+
+  function handleNextPart() {
+    if (!material) return;
+    const nextIdx = partIdx + 1;
+    setPartIdx(nextIdx);
+    if (!material.parts[nextIdx]) {
+      const ctrl = newAbort();
+      void loadPart(nextIdx, material, ctrl);
+    }
+    void saveSession({ name: "study", material, partIdx: nextIdx });
+  }
+
+  function handleMoveToHandsOn() {
+    if (!material) return;
+    void saveSession({ name: "hands-on", material, partIdx, answers: {} });
+    void navigate("../hands-on", { relative: "path" });
+  }
+
+  // Still generating the plan
+  if (!material) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <Loader size="sm" />
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Building your study plan…</p>
+        {planStream && (
+          <p className="text-xs text-neutral-400 dark:text-neutral-600 max-w-sm text-center italic">
+            {planStream.slice(0, 120)}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  const { plan, parts } = material;
+  const partPlan = plan.partPlans[partIdx];
+  const part = parts[partIdx];
+  const isLastPart = partIdx === plan.partPlans.length - 1;
+  const prevPlan = partIdx > 0 ? plan.partPlans[partIdx - 1] : null;
+  const nextPlan = !isLastPart ? plan.partPlans[partIdx + 1] : null;
+
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-8">
+      <div>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+          Part {partIdx + 1} of {plan.partPlans.length}
+        </p>
+      </div>
+
+      <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-6">{partPlan?.title ?? ""}</h2>
+
+      {!part && (
+        <>
+          <div className="flex items-center gap-2 mb-6 text-neutral-400 dark:text-neutral-600">
+            <Loader size="sm" />
+            <p className="text-sm">Preparing study material…</p>
+          </div>
+          {partStream && <Markdown isAnimating>{partStream}</Markdown>}
+        </>
+      )}
+
+      {part && (
+        <>
+          <Markdown>{part.study}</Markdown>
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            {prevPlan && parts[partIdx - 1] ? (
+              <button
+                type="button"
+                onClick={() => handleGoToPart(partIdx - 1)}
+                className="flex flex-col gap-1 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  <ArrowLeftIcon className="inline" /> previous
+                </span>
+                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                  {prevPlan.title}
+                </span>
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {isLastPart ? (
+              <button
+                type="button"
+                onClick={handleMoveToHandsOn}
+                className="flex flex-col items-end gap-1 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 text-right hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">next</span>
+                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">Practice</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleNextPart}
+                className="flex flex-col items-end gap-1 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 text-right hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  next <ArrowRightIcon className="inline" />
+                </span>
+                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                  {nextPlan?.title}
+                </span>
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

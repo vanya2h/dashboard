@@ -173,6 +173,7 @@ const PHASES: Phase[] = [
 export const INTERVIEW_PREP_CURRICULUM: CurriculumDef = {
   id: "interview-prep",
   name: "Frontend / Fullstack Interview Prep",
+  description: "Deep-dive frontend internals, system design, and DSA for senior-level interviews.",
   phases: PHASES,
   skills: [
     {

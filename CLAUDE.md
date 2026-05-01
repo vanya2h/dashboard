@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code Standards Skill
+
+Before making **any** code change, invoke the `/code` skill. It reads only the rule files relevant to what is being changed (CSS, TypeScript, React, React Router).
+
+When the user gives feedback or instructions that establish a new coding rule or correct an existing one — e.g. "use X instead of Y", "never do Z", "always do W" — **update the relevant skill file** in `.claude/skills/code/` immediately after applying the change. The skill files are the source of truth for project conventions; keep them in sync.
+
 ## Definition of Done
 
 A task is complete only after both pass with no errors:

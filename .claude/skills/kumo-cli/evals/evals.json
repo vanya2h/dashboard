@@ -1,0 +1,23 @@
+{
+  "skill_name": "kumo-cli",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a React form in my Cloudflare dashboard app and want to use kumo components. What input-related components does kumo have, and how do I look up the props for the one I need?",
+      "expected_output": "Lists Input-category components (Checkbox, Combobox, DateRangePicker, Field, Input, InputArea, InputGroup, Radio, Select, Switch) and shows the CLI command `npx @cloudflare/kumo doc <ComponentName>` to look up props. Should mention import from @cloudflare/kumo.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "How do I add the PageHeader block to my project using the kumo CLI?",
+      "expected_output": "Guides through the two-step block workflow: first `npx @cloudflare/kumo init` to create kumo.json, then `npx @cloudflare/kumo add PageHeader`. Should explain that blocks are copy-paste patterns.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I want to show toast notifications in my kumo app. What component should I use and what are its props?",
+      "expected_output": "Identifies Toasty as the toast component in the Feedback category. Shows the CLI command `npx @cloudflare/kumo doc Toasty` to get full props. Provides the import `import { Toasty } from '@cloudflare/kumo'` and explains what Toasty does (toast provider, fixed bottom-right viewport, enter/exit animations).",
+      "files": []
+    }
+  ]
+}

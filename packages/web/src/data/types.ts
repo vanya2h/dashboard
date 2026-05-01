@@ -22,6 +22,7 @@ export type Skill = {
 export type CurriculumDef = {
   id: string;
   name: string;
+  description?: string;
   phases: Phase[];
   skills?: Skill[];
 };

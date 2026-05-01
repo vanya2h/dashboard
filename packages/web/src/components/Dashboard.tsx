@@ -1,17 +1,25 @@
 import { Badge } from "@cloudflare/kumo/components/badge";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { formatDistanceToNow } from "date-fns";
+import { Meter } from "@cloudflare/kumo/components/meter";
+import { Text } from "@cloudflare/kumo/components/text";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { CURRICULUMS } from "../data/curriculum";
 import type { Skill } from "../data/types";
 import { useProgress } from "../hooks/useProgress";
-import { computeRecentActivity, computeUnlockedSkills } from "../lib/skills";
-import { Heatmap } from "./Heatmap";
+import { computeUnlockedSkills } from "../lib/skills";
 
 const QUOTES = [
   "If you can't explain it cleanly in writing, you don't understand it.",
-  "Interest = Stimulus Value – Baseline Expectation. You can change your experience of reality by changing either variable.",
+  "The expert in anything was once a beginner who refused to quit.",
+  "Every hour of focused work today is an hour your future self doesn't have to dread.",
+  "You don't rise to the level of your goals — you fall to the level of your systems.",
+  "Discomfort is the price of admission to a meaningful career.",
+  "The gap between where you are and where you want to be is closed one rep at a time.",
+  "Ship something small today. Momentum is built, not found.",
+  "Your skills compound like interest. The earlier you invest, the richer you become.",
+  "A day of deep work done is a day you can defend.",
+  "You are not behind. You are exactly where your effort has put you — and effort is still yours to give.",
 ];
 
 function QuoteSlider() {
@@ -21,37 +29,25 @@ function QuoteSlider() {
   const next = () => setIndex((i) => (i + 1) % QUOTES.length);
 
   return (
-    <section className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
+    <section className="px-6 py-4 border-b border-border">
       <div className="flex items-center gap-3">
         <button
           onClick={prev}
           aria-label="Previous quote"
-          className="shrink-0 text-neutral-400 dark:text-neutral-600 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors text-lg leading-none"
+          className="shrink-0 text-foreground/40 hover:text-foreground/70 transition-colors text-lg leading-none"
         >
           ‹
         </button>
-        <blockquote className="flex-1 text-center text-sm italic text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        <blockquote className="flex-1 text-center text-sm italic text-muted-foreground leading-relaxed">
           &ldquo;{QUOTES[index]}&rdquo;
         </blockquote>
         <button
           onClick={next}
           aria-label="Next quote"
-          className="shrink-0 text-neutral-400 dark:text-neutral-600 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors text-lg leading-none"
+          className="shrink-0 text-foreground/40 hover:text-foreground/70 transition-colors text-lg leading-none"
         >
           ›
         </button>
-      </div>
-      <div className="flex justify-center gap-1.5 mt-3">
-        {QUOTES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            aria-label={`Quote ${i + 1}`}
-            className={`w-1.5 h-1.5 rounded-full transition-colors ${
-              i === index ? "bg-neutral-500 dark:bg-neutral-400" : "bg-neutral-200 dark:bg-neutral-700"
-            }`}
-          />
-        ))}
       </div>
     </section>
   );
@@ -83,20 +79,16 @@ function SkillBadge({
       className={`rounded-lg border p-3 flex flex-col gap-1 transition-colors ${
         unlocked
           ? recentlyUnlocked
-            ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/60 ring-2 ring-green-400 dark:ring-green-600 ring-offset-1 dark:ring-offset-neutral-950"
+            ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/60 ring-2 ring-green-400 dark:ring-green-600 ring-offset-1 ring-offset-background"
             : "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40"
-          : "border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40"
+          : "border-border bg-muted/50"
       }`}
     >
       <div className="flex items-center gap-1.5">
-        <span
-          className={`text-xs font-bold ${unlocked ? "text-green-600 dark:text-green-400" : "text-neutral-300 dark:text-neutral-700"}`}
-        >
+        <span className={`text-xs font-bold ${unlocked ? "text-green-600 dark:text-green-400" : "text-foreground/20"}`}>
           {unlocked ? "✓" : "○"}
         </span>
-        <span
-          className={`text-sm font-semibold leading-snug ${unlocked ? "text-neutral-900 dark:text-neutral-100" : "text-neutral-400 dark:text-neutral-600"}`}
-        >
+        <span className={`text-sm font-semibold leading-snug ${unlocked ? "text-foreground" : "text-foreground/40"}`}>
           {skill.name}
         </span>
         {recentlyUnlocked && (
@@ -105,53 +97,10 @@ function SkillBadge({
           </Badge>
         )}
       </div>
-      <p
-        className={`text-xs leading-snug ${unlocked ? "text-neutral-500 dark:text-neutral-400" : "text-neutral-300 dark:text-neutral-700"}`}
-      >
+      <p className={`text-xs leading-snug ${unlocked ? "text-muted-foreground" : "text-foreground/20"}`}>
         {skill.description}
       </p>
     </div>
-  );
-}
-
-function RecentActivity({ completedTaskIds }: { completedTaskIds: Record<string, string> }) {
-  const items = computeRecentActivity(completedTaskIds);
-  if (items.length === 0) return null;
-
-  return (
-    <section className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
-      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
-        Recent Activity
-      </h2>
-      <ul className="flex flex-col gap-2">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2.5 text-sm">
-            {item.type === "skill" ? (
-              <>
-                <span className="mt-0.5 text-green-600 dark:text-green-400 font-bold shrink-0">★</span>
-                <span className="leading-snug">
-                  <span className="font-medium text-green-700 dark:text-green-400">New skill unlocked:</span>{" "}
-                  <span className="text-neutral-900 dark:text-neutral-100">{item.skill.skill.name}</span>
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-2">
-                    {formatDistanceToNow(item.date, { addSuffix: true })}
-                  </span>
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="mt-0.5 text-neutral-300 dark:text-neutral-600 shrink-0">·</span>
-                <span className="leading-snug text-neutral-600 dark:text-neutral-400">
-                  Completed: <span className="text-neutral-800 dark:text-neutral-200">{item.taskTitle}</span>
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-2">
-                    {formatDistanceToNow(item.date, { addSuffix: true })}
-                  </span>
-                </span>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }
 
@@ -170,14 +119,16 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   if (curriculumsWithSkills.length === 0) return null;
 
   return (
-    <section className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
-      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-4">
-        Skills
-      </h2>
+    <section className="px-6 py-4 border-b border-border">
+      <div className="mb-4">
+        <Text variant="heading3" as="h2">
+          Skills
+        </Text>
+      </div>
       <div className="flex flex-col gap-6">
         {curriculumsWithSkills.map((curriculum) => (
           <div key={curriculum.id}>
-            <h3 className="text-xs font-medium text-neutral-400 dark:text-neutral-500 mb-2">{curriculum.name}</h3>
+            <h3 className="text-xs font-medium text-foreground/40 mb-2">{curriculum.name}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {(curriculum.skills ?? []).map((skill) => (
                 <SkillBadge
@@ -201,32 +152,31 @@ export function Dashboard() {
   return (
     <main>
       <QuoteSlider />
-      <Heatmap />
-      <RecentActivity completedTaskIds={completedTaskIds} />
-      <SkillsSection completedTaskIds={completedTaskIds} />
-      <section className="px-6 py-4">
-        <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
-          Programs
-        </h2>
+
+      <section className="px-6 py-4 border-b border-border">
+        <div className="mb-3">
+          <Text variant="heading3" as="h2">
+            Programs
+          </Text>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {CURRICULUMS.map((curriculum) => {
             const pct = calcCurriculumProgress(curriculum.id, completedTaskIds);
             return (
-              <LayerCard
-                key={curriculum.id}
-                render={<Link to={`/curriculum/${curriculum.id}`} />}
-                className="block p-4"
-              >
-                <div className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">{curriculum.name}</div>
-                <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                </div>
-                <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{pct}% complete</div>
+              <LayerCard key={curriculum.id} render={<Link to={`/curriculum/${curriculum.id}`} />}>
+                <LayerCard.Secondary>{curriculum.name}</LayerCard.Secondary>
+                <LayerCard.Primary>
+                  {curriculum.description && (
+                    <p className="text-sm text-muted-foreground mb-3">{curriculum.description}</p>
+                  )}
+                  <Meter label="Progress" value={pct} showValue />
+                </LayerCard.Primary>
               </LayerCard>
             );
           })}
         </div>
       </section>
+      <SkillsSection completedTaskIds={completedTaskIds} />
     </main>
   );
 }

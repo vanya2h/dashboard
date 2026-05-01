@@ -43,31 +43,3 @@ export function computeUnlockedSkills(completedTaskIds: Record<string, string>):
       .filter((s): s is UnlockedSkill => s !== null),
   ).sort((a, b) => b.unlockedAt.getTime() - a.unlockedAt.getTime());
 }
-
-export function computeRecentActivity(completedTaskIds: Record<string, string>, limit = 8): ActivityItem[] {
-  const unlockedSkillIds = new Set<string>();
-  const items: ActivityItem[] = [];
-
-  for (const unlocked of computeUnlockedSkills(completedTaskIds)) {
-    unlockedSkillIds.add(unlocked.skill.id);
-    items.push({ type: "skill", skill: unlocked, date: unlocked.unlockedAt });
-  }
-
-  for (const curriculum of CURRICULUMS) {
-    for (const phase of curriculum.phases) {
-      for (const task of phase.tasks) {
-        const ts = completedTaskIds[task.id];
-        if (!ts) continue;
-        items.push({
-          type: "task",
-          taskId: task.id,
-          taskTitle: task.title,
-          curriculumName: curriculum.name,
-          date: new Date(ts),
-        });
-      }
-    }
-  }
-
-  return items.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, limit);
-}

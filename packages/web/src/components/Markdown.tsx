@@ -1,10 +1,5 @@
-import { Loader } from "@cloudflare/kumo/components/loader";
 import { code } from "@streamdown/code";
 import { Streamdown } from "streamdown";
-
-export function Spinner() {
-  return <Loader size="sm" />;
-}
 
 export function Markdown({ children, isAnimating = false }: { children: string; isAnimating?: boolean }) {
   return (
@@ -12,16 +7,6 @@ export function Markdown({ children, isAnimating = false }: { children: string; 
       <Streamdown animated isAnimating={isAnimating} plugins={{ code }} shikiTheme={["github-light", "github-dark"]}>
         {children}
       </Streamdown>
-    </div>
-  );
-}
-
-export function PartProgress({ partIdx, total }: { partIdx: number; total: number }) {
-  return (
-    <div>
-      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-        Part {partIdx + 1} of {total}
-      </p>
     </div>
   );
 }

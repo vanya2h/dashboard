@@ -1,6 +1,8 @@
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { useNavigate } from "react-router";
 
-export function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; onAssess: () => void }) {
+export default function ChoicePage() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">How do you want to start?</h2>
@@ -9,7 +11,7 @@ export function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; 
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
         <LayerCard
-          render={<button onClick={onAssess} className="text-left" />}
+          render={<button onClick={() => void navigate("../assess", { relative: "path" })} className="text-left" />}
           className="flex flex-col items-start gap-2 rounded-xl p-5"
         >
           <span className="font-semibold text-neutral-900 dark:text-neutral-100">Quick assessment first</span>
@@ -18,7 +20,7 @@ export function ChoiceSection({ onScratch, onAssess }: { onScratch: () => void; 
           </span>
         </LayerCard>
         <LayerCard
-          render={<button onClick={onScratch} className="text-left" />}
+          render={<button onClick={() => void navigate("../study", { relative: "path" })} className="text-left" />}
           className="flex flex-col items-start gap-2 rounded-xl p-5"
         >
           <span className="font-semibold text-neutral-900 dark:text-neutral-100">Start from scratch</span>

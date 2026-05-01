@@ -1,4 +1,6 @@
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { Meter } from "@cloudflare/kumo/components/meter";
+import { Text } from "@cloudflare/kumo/components/text";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
@@ -28,17 +30,18 @@ export function PhaseCard({ phase, curriculumId }: Props) {
           aria-expanded={open}
         >
           <div className="flex-1 min-w-0">
-            <span className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">{phase.title}</span>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{phase.subtitle}</p>
+            <Text variant="heading3">{phase.title}</Text>
+            <div className="mt-1">
+              <Text variant="secondary" size="xs">
+                {phase.subtitle}
+              </Text>
+            </div>
           </div>
           <div className="flex items-center gap-3 ml-4">
-            <div className="w-24">
-              <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
-              </div>
-              <div className="text-right text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{pct}%</div>
+            <div className="w-52">
+              <Meter value={pct} label="Progress" showValue />
             </div>
-            <span className="text-neutral-400 text-xs">{open ? "▲" : "▼"}</span>
+            <span className="text-foreground/40 text-xs">{open ? "▲" : "▼"}</span>
           </div>
         </button>
       </LayerCard.Secondary>

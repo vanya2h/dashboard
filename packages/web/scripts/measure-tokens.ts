@@ -16,7 +16,8 @@ import {
   PLAN_SYSTEM,
   WRITEUP_SYSTEM,
 } from "../src/components/TopicView/prompts.js";
-import { parseJSON, parsePart, parsePlan } from "../src/components/TopicView/utils.js";
+import { parseJSON } from "../src/lib/json.js";
+import { parsePart, parsePlan } from "../src/lib/phase.js";
 
 // ---------------------------------------------------------------------------
 // Static inputs — simulates a "median" session on TypeScript Conditional Types

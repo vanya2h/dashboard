@@ -7,6 +7,16 @@ export default [
   layout("./routes/app-layout.tsx", [
     index("./routes/home.tsx"),
     route("curriculum/:curriculumId", "./routes/curriculum.$curriculumId.tsx"),
-    route("topic/:curriculumId/:taskId", "./routes/topic.$curriculumId.$taskId.tsx"),
+    route("topic/:curriculumId/:taskId", "./routes/topic-layout.tsx", [
+      index("./routes/topic.index.tsx"),
+      route("choice", "./routes/topic.choice.tsx"),
+      route("assess", "./routes/topic.assess.tsx"),
+      route("gaps", "./routes/topic.gaps.tsx"),
+      route("study", "./routes/topic.study.tsx"),
+      route("hands-on", "./routes/topic.hands-on.tsx"),
+      route("feedback", "./routes/topic.feedback.tsx"),
+      route("write-up", "./routes/topic.write-up.tsx"),
+      route("complete", "./routes/topic.complete.tsx"),
+    ]),
   ]),
 ] satisfies RouteConfig;

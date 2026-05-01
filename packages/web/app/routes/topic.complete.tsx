@@ -1,14 +1,14 @@
 import { Button } from "@cloudflare/kumo/components/button";
+import { useNavigate, useParams, useRouteLoaderData } from "react-router";
+import type { loader as layoutLoader } from "./topic-layout";
 
-export function CompleteSection({
-  taskTitle,
-  onBack,
-  onStartOver,
-}: {
-  taskTitle: string;
-  onBack: () => void;
-  onStartOver: () => void;
-}) {
+export default function CompletePage() {
+  const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
+  const { curriculumId } = useParams<{ curriculumId: string }>();
+  const navigate = useNavigate();
+
+  const taskTitle = layoutData?.task.title ?? "";
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
       <div className="text-4xl mb-4">✓</div>
@@ -19,10 +19,10 @@ export function CompleteSection({
         as done.
       </p>
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={onBack}>
+        <Button variant="secondary" onClick={() => void navigate(`/curriculum/${curriculumId}`)}>
           Back to curriculum
         </Button>
-        <Button variant="primary" onClick={onStartOver}>
+        <Button variant="primary" onClick={() => void navigate("../choice", { relative: "path" })}>
           Start over
         </Button>
       </div>

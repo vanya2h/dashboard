@@ -1,6 +1,7 @@
 import { useRevalidator } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import { apiClient } from "../lib/apiClient";
+import type { PersistedPhase } from "../lib/phase";
 
 export type ActivityEntry = {
   date: string;
@@ -9,9 +10,8 @@ export type ActivityEntry = {
 };
 
 export type ActiveSession = {
-  name: string;
+  name: PersistedPhase["name"];
   partIdx?: number;
-  step?: string;
 };
 
 export type Progress = {
@@ -32,7 +32,7 @@ export function useProgress() {
   const data = useRootData();
   const { revalidate } = useRevalidator();
 
-  const progress: Progress = data?.progress ?? EMPTY;
+  const progress = (data?.progress ?? EMPTY) as Progress;
 
   async function toggleTask(taskId: string) {
     await apiClient.api.progress.tasks[":taskId"].toggle.$post({ param: { taskId } });
