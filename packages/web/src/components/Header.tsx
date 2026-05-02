@@ -8,6 +8,7 @@ import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
 import type { AuthUser } from "../server/auth";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 function hashToHue(id: string): number {
   let h = 0;
@@ -70,6 +71,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-6 text-sm text-muted-foreground">
+        <LanguageSwitcher />
         {user && (
           <DropdownMenu>
             <DropdownMenu.Trigger

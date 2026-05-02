@@ -1,9 +1,10 @@
+import { lingui } from "@lingui/vite-plugin";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig(({ command }) => ({
-  plugins: [tailwindcss(), reactRouter()],
+  plugins: [tailwindcss(), lingui(), reactRouter()],
   ssr: {
     noExternal: command === "build" ? true : undefined,
     optimizeDeps: {

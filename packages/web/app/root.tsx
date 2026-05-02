@@ -1,14 +1,18 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { I18nProvider } from "@lingui/react";
+import { useEffect } from "react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router";
 import { parseCurriculumDef } from "../src/data/types";
 import type { ActiveSession } from "../src/hooks/useProgress";
+import { activateLocale, getLocaleFromRequest, i18n } from "../src/lib/i18n";
 import { auth } from "../src/server/auth";
 import { db } from "../src/server/db";
 import type { Route } from "./+types/root";
 import "../src/index.css";
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const locale = getLocaleFromRequest(request);
   const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) return { user: null, progress: null };
+  if (!session) return { locale, user: null, progress: null };
 
   const userId = session.user.id;
   const [completions, activities, startedAt, topicSessions, customCurriculums] = await Promise.all([
@@ -20,6 +24,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   ]);
 
   return {
+    locale,
     user: session.user,
     progress: {
       completedTaskIds: Object.fromEntries(completions.map((t) => [t.taskId, t.completedAt.toISOString()])),
@@ -65,5 +70,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const { locale } = useLoaderData<typeof loader>();
+
+  if (i18n.locale !== locale) {
+    activateLocale(locale);
+  }
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  return (
+    <I18nProvider i18n={i18n}>
+      <Outlet />
+    </I18nProvider>
+  );
 }

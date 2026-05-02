@@ -16,7 +16,9 @@
     "db:studio": "pnpm withenv -- prisma studio",
     "withenv": "dotenv -e ../../.env",
     "measure-tokens": "dotenv -e ../../.env tsx scripts/measure-tokens.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "i18n:extract": "lingui extract",
+    "i18n:compile": "lingui compile --typescript"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
@@ -24,6 +26,8 @@
     "@cloudflare/kumo": "^1.19.0",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",
+    "@lingui/core": "^6.0.1",
+    "@lingui/react": "^6.0.1",
     "@phosphor-icons/react": "^2.1.10",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -34,6 +38,7 @@
     "better-auth": "^1.6.9",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv-cli": "^8.0.0",
     "hono": "^4.12.15",
     "isbot": "^5",
     "jsonrepair": "^3.14.0",
@@ -44,14 +49,17 @@
     "react-router": "^7.14.2",
     "streamdown": "^2.5.0",
     "zod": "^4.3.6",
-    "zustand": "^5.0.0",
-    "dotenv-cli": "^8.0.0"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@lingui/cli": "^6.0.1",
+    "@lingui/macro": "^5.9.5",
+    "@lingui/vite-plugin": "^6.0.1",
     "@react-router/dev": "^7.14.2",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "babel-plugin-macros": "^3.1.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.0",
