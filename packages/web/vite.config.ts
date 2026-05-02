@@ -12,7 +12,7 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     rollupOptions: {
-      external: ["@prisma/client-generated"],
+      external: ["@prisma/client-generated", "@opentelemetry/api"],
     },
   },
 }));
