@@ -1,6 +1,8 @@
 import { hc } from "hono/client";
 import { useCallback } from "react";
+import { useRootData } from "../../app/hooks/useRootData";
 import type { AppType } from "../server/app";
+import type { Locale } from "./i18n";
 
 const client = hc<AppType>("/");
 
@@ -27,6 +29,8 @@ async function* readSSEStream(body: ReadableStream<Uint8Array>): AsyncGenerator<
 }
 
 export function useClaude() {
+  const locale = (useRootData()?.locale ?? "en") as Locale;
+
   const streamAI = useCallback(
     async (
       system: string,
@@ -36,7 +40,7 @@ export function useClaude() {
       signal?: AbortSignal,
     ): Promise<string> => {
       const res = await client.api.chat.$post(
-        { json: { messages: [{ role: "user", content: message }], system, maxTokens } },
+        { json: { messages: [{ role: "user", content: message }], system, maxTokens, locale } },
         { init: { signal } },
       );
 
@@ -50,7 +54,7 @@ export function useClaude() {
       }
       return accumulated;
     },
-    [],
+    [locale],
   );
 
   const askAI = useCallback(

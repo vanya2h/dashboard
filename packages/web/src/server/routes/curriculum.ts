@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client-generated";
 import { Hono } from "hono";
 import { z } from "zod";
 import { PhaseSchema, SkillSchema } from "../../data/types";
+import { LOCALES, localizeSystem } from "../../lib/i18n";
 import { db } from "../db";
 import type { AuthEnv } from "../middleware/requireAuth";
 
@@ -49,6 +50,7 @@ Rules:
 const generateSchema = z.object({
   url: z.string().url(),
   feedback: z.string().optional(),
+  locale: z.enum(LOCALES).optional(),
 });
 
 const saveSchema = z.object({
@@ -61,7 +63,7 @@ const saveSchema = z.object({
 
 export const curriculumRoute = new Hono<AuthEnv>()
   .post("/curriculums/generate", zValidator("json", generateSchema), async (c) => {
-    const { url, feedback } = c.req.valid("json");
+    const { url, feedback, locale } = c.req.valid("json");
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return c.json({ error: "ANTHROPIC_API_KEY is not set" }, 500);
 
@@ -92,7 +94,7 @@ export const curriculumRoute = new Hono<AuthEnv>()
     const stream = anthropic.messages.stream({
       model: "claude-sonnet-4-6",
       max_tokens: 4000,
-      system: GENERATE_SYSTEM,
+      system: locale ? localizeSystem(locale, GENERATE_SYSTEM) : GENERATE_SYSTEM,
       messages: [{ role: "user", content: userMessage }],
     });
 

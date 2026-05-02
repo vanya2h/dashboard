@@ -7,8 +7,10 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { hc } from "hono/client";
 import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
+import { useRootData } from "../../app/hooks/useRootData";
 import type { CurriculumDef } from "../data/types";
 import { parseCurriculumDef } from "../data/types";
+import type { Locale } from "../lib/i18n";
 import { parseJSON } from "../lib/json";
 import type { AppType } from "../server/app";
 import { Curriculum } from "./Curriculum";
@@ -20,6 +22,7 @@ type BuilderState = "idle" | "generating" | "preview" | "saving";
 
 export function CurriculumBuilder() {
   const { t } = useLingui();
+  const locale = (useRootData()?.locale ?? "en") as Locale;
   const [url, setUrl] = useState("");
   const [feedback, setFeedback] = useState("");
   const [state, setState] = useState<BuilderState>("idle");
@@ -37,7 +40,7 @@ export function CurriculumBuilder() {
 
     try {
       const res = await client.api.curriculums.generate.$post({
-        json: { url, feedback: feedbackText },
+        json: { url, feedback: feedbackText, locale },
       });
 
       if (!res.ok) {

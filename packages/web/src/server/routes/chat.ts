@@ -2,15 +2,17 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import { LOCALES, localizeSystem } from "../../lib/i18n";
 
 const chatSchema = z.object({
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })),
   system: z.string().optional(),
   maxTokens: z.number().int().min(1).max(8000),
+  locale: z.enum(LOCALES).optional(),
 });
 
 export const chatRoute = new Hono().post("/chat", zValidator("json", chatSchema), async (c) => {
-  const { messages, system, maxTokens } = c.req.valid("json");
+  const { messages, system, maxTokens, locale } = c.req.valid("json");
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.error("[chat] ANTHROPIC_API_KEY is not set");
@@ -18,10 +20,12 @@ export const chatRoute = new Hono().post("/chat", zValidator("json", chatSchema)
   }
   const anthropic = new Anthropic({ apiKey });
 
+  const localizedSystem = system && locale ? localizeSystem(locale, system) : system;
+
   const stream = anthropic.messages.stream({
     model: "claude-sonnet-4-6",
     max_tokens: maxTokens,
-    system,
+    system: localizedSystem,
     messages,
   });
 
