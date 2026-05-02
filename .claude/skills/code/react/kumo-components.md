@@ -41,3 +41,19 @@ Use `LayerCard` idiomatically with its sub-components:
 - Loading state -> `Loader`
 - Notification -> `Toasty`
 - Status chip -> `Badge`
+
+## Button-styled navigation links
+
+`Kumo Button` renders a `<button>` element and cannot be used as a router link. For a button-styled React Router link, use `buttonVariants` with `Link`:
+
+```tsx
+import { buttonVariants } from "@cloudflare/kumo/components/button";
+import { Link } from "react-router";
+
+<Link to="/some/path" className={buttonVariants({ variant: "primary", size: "sm" })}>
+  Label
+</Link>
+```
+
+Never wrap `<Link>` around `<Button>` — that produces invalid HTML (`<a><button>`).
+Never use `onClick={() => navigate(...)}` on a `Button` for navigation — use `Link` instead.

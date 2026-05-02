@@ -1,4 +1,5 @@
 import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
+import { buttonVariants } from "@cloudflare/kumo/components/button";
 import { DropdownMenu } from "@cloudflare/kumo/components/dropdown";
 import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
@@ -74,6 +75,9 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-6 text-sm text-muted-foreground">
+        <Link to="/curriculum/new" className={buttonVariants({ variant: "primary", size: "sm" })}>
+          <Trans>New program</Trans>
+        </Link>
         <LanguageSwitcher />
         {user && (
           <DropdownMenu>
