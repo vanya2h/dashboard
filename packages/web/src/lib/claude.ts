@@ -1,4 +1,4 @@
-import { hc } from "hono/client";
+import { hc, parseResponse } from "hono/client";
 import { useCallback } from "react";
 import { useRootData } from "../../app/hooks/useRootData";
 import type { AppType } from "../server/app";
@@ -6,7 +6,7 @@ import type { Locale } from "./i18n";
 
 const client = hc<AppType>("/");
 
-async function* readSSEStream(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+export async function* readSSEStream(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -44,7 +44,7 @@ export function useClaude() {
         { init: { signal } },
       );
 
-      if (!res.ok) throw new Error(`API error ${res.status}`);
+      if (!res.ok) await parseResponse(Promise.resolve(res));
       if (!res.body) throw new Error("No response body");
 
       let accumulated = "";

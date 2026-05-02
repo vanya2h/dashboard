@@ -4,12 +4,13 @@ import { InputArea } from "@cloudflare/kumo/components/input";
 import { Loader } from "@cloudflare/kumo/components/loader";
 import { Text } from "@cloudflare/kumo/components/text";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { hc } from "hono/client";
+import { DetailedError, hc, parseResponse } from "hono/client";
 import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import type { CurriculumDef } from "../data/types";
 import { parseCurriculumDef } from "../data/types";
+import { readSSEStream } from "../lib/claude";
 import type { Locale } from "../lib/i18n";
 import { parseJSON } from "../lib/json";
 import type { AppType } from "../server/app";
@@ -42,14 +43,7 @@ export function CurriculumBuilder() {
       const res = await client.api.curriculums.generate.$post({
         json: { url, feedback: feedbackText, locale },
       });
-
-      if (!res.ok) {
-        const body = await res.json();
-        setError((body as { error?: string }).error ?? t`Generation failed`);
-        setState("idle");
-        return;
-      }
-
+      if (!res.ok) await parseResponse(Promise.resolve(res));
       if (!res.body) {
         setError(t`No response body`);
         setState("idle");
@@ -57,22 +51,9 @@ export function CurriculumBuilder() {
       }
 
       let accumulated = "";
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            accumulated += JSON.parse(line.slice(6)) as string;
-            setStreamText(accumulated);
-          }
-        }
+      for await (const delta of readSSEStream(res.body)) {
+        accumulated += delta;
+        setStreamText(accumulated);
       }
 
       const repaired = parseJSON<unknown>(accumulated);
@@ -84,8 +65,9 @@ export function CurriculumBuilder() {
       }
       setCurriculum(parsed);
       setState("preview");
-    } catch {
-      setError(t`Failed to generate curriculum`);
+    } catch (err) {
+      const data = err instanceof DetailedError ? (err.detail?.data as { error?: string } | undefined) : undefined;
+      setError(data?.error ?? t`Failed to generate curriculum`);
       setState("idle");
     }
   }
@@ -95,22 +77,17 @@ export function CurriculumBuilder() {
     setState("saving");
 
     try {
-      const res = await client.api.curriculums.$post({
-        json: {
-          name: curriculum.name,
-          description: curriculum.description,
-          jobUrl: url,
-          phases: curriculum.phases,
-          skills: curriculum.skills,
-        },
-      });
-
-      if (!res.ok) {
-        setError(t`Failed to save`);
-        setState("preview");
-        return;
-      }
-
+      await parseResponse(
+        client.api.curriculums.$post({
+          json: {
+            name: curriculum.name,
+            description: curriculum.description,
+            jobUrl: url,
+            phases: curriculum.phases,
+            skills: curriculum.skills,
+          },
+        }),
+      );
       revalidate();
       void navigate("/");
     } catch {

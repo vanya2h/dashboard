@@ -11,3 +11,4 @@
 | 7 | Exhaustive unions | Always add `default: never` branch when switching on unions | `exhaustive-unions.md` |
 | 8 | Zod as source of truth | Use Zod schemas + `z.infer` for runtime-parsed data | `zod-source-of-truth.md` |
 | 9 | React Router generated types | Import `Route.LoaderArgs` etc. from generated `+types/` files | `react-router-types.md` |
+| 10 | Hono RPC `parseResponse` | Use `parseResponse` from `hono/client` for RPC calls; guard for streaming endpoints | `hono-parse-response.md` |

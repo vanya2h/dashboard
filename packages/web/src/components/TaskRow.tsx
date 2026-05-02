@@ -1,6 +1,7 @@
 import { Button } from "@cloudflare/kumo/components/button";
 import { Trans, useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
+import { parseResponse } from "hono/client";
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
@@ -72,7 +73,7 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
               size="xs"
               variant="secondary"
               onClick={() => {
-                void apiClient.api["topic-sessions"][":taskId"].$delete({ param: { taskId: task.id } });
+                void parseResponse(apiClient.api["topic-sessions"][":taskId"].$delete({ param: { taskId: task.id } }));
                 navigate(`/topic/${curriculumId}/${task.id}`);
               }}
             >

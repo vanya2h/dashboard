@@ -1,3 +1,4 @@
+import { parseResponse } from "hono/client";
 import { useRevalidator } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import { apiClient } from "../lib/apiClient";
@@ -35,7 +36,7 @@ export function useProgress() {
   const progress = (data?.progress ?? EMPTY) as Progress;
 
   async function toggleTask(taskId: string) {
-    await apiClient.api.progress.tasks[":taskId"].toggle.$post({ param: { taskId } });
+    await parseResponse(apiClient.api.progress.tasks[":taskId"].toggle.$post({ param: { taskId } }));
     revalidate();
   }
 
