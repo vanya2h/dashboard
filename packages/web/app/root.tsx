@@ -40,7 +40,13 @@ export async function loader({ request }: Route.LoaderArgs) {
       ),
     },
     customCurriculums: customCurriculums
-      .map((c) => parseCurriculumDef({ ...c, description: c.description ?? undefined }))
+      .map((c) =>
+        parseCurriculumDef({
+          ...c,
+          description: c.description ?? undefined,
+          coverImage: c.coverImage ?? undefined,
+        }),
+      )
       .filter((c) => c !== null),
   };
 }

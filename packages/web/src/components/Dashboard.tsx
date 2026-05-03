@@ -2,59 +2,14 @@ import { Badge } from "@cloudflare/kumo/components/badge";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Meter } from "@cloudflare/kumo/components/meter";
 import { Text } from "@cloudflare/kumo/components/text";
-import { msg } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useMemo, useState } from "react";
+import clsx from "clsx";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import type { CurriculumDef, Skill } from "../data/types";
 import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useProgress } from "../hooks/useProgress";
 import { computeUnlockedSkills } from "../lib/skills";
-
-const QUOTES = [
-  msg`If you can't explain it cleanly in writing, you don't understand it.`,
-  msg`The expert in anything was once a beginner who refused to quit.`,
-  msg`Every hour of focused work today is an hour your future self doesn't have to dread.`,
-  msg`You don't rise to the level of your goals — you fall to the level of your systems.`,
-  msg`Discomfort is the price of admission to a meaningful career.`,
-  msg`The gap between where you are and where you want to be is closed one rep at a time.`,
-  msg`Ship something small today. Momentum is built, not found.`,
-  msg`Your skills compound like interest. The earlier you invest, the richer you become.`,
-  msg`A day of deep work done is a day you can defend.`,
-  msg`You are not behind. You are exactly where your effort has put you — and effort is still yours to give.`,
-];
-
-function QuoteSlider() {
-  const { i18n, t } = useLingui();
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * QUOTES.length));
-
-  const prev = () => setIndex((i) => (i - 1 + QUOTES.length) % QUOTES.length);
-  const next = () => setIndex((i) => (i + 1) % QUOTES.length);
-
-  return (
-    <section className="px-6 py-4 border-b border-border">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={prev}
-          aria-label={t`Previous quote`}
-          className="shrink-0 text-foreground/40 hover:text-foreground/70 transition-colors text-lg leading-none"
-        >
-          ‹
-        </button>
-        <blockquote className="flex-1 text-center text-sm italic text-muted-foreground leading-relaxed">
-          &ldquo;{i18n._(QUOTES[index]!)}&rdquo;
-        </blockquote>
-        <button
-          onClick={next}
-          aria-label={t`Next quote`}
-          className="shrink-0 text-foreground/40 hover:text-foreground/70 transition-colors text-lg leading-none"
-        >
-          ›
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function calcCurriculumProgress(curriculum: CurriculumDef, completedTaskIds: Record<string, string>) {
   let totalWeight = 0;
@@ -158,8 +113,6 @@ export function Dashboard() {
 
   return (
     <main>
-      <QuoteSlider />
-
       <section className="px-6 py-4 border-b border-border">
         <div className="mb-3">
           <Text variant="heading3" as="h2">
@@ -169,12 +122,30 @@ export function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {allCurriculums.map((curriculum) => {
             const pct = calcCurriculumProgress(curriculum, completedTaskIds);
+            const { coverImage } = curriculum;
             return (
               <LayerCard key={curriculum.id} render={<Link to={`/curriculum/${curriculum.id}`} />}>
-                <LayerCard.Secondary>{curriculum.name}</LayerCard.Secondary>
-                <LayerCard.Primary>
+                <LayerCard.Secondary
+                  className={clsx(
+                    "text-foreground",
+                    coverImage && "relative min-h-28 p-0 my-0 items-end overflow-hidden",
+                  )}
+                >
+                  {coverImage ? (
+                    <>
+                      <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/70" />
+                      <span className="relative z-10 p-3 text-white w-full text-base font-medium leading-snug">
+                        {curriculum.name}
+                      </span>
+                    </>
+                  ) : (
+                    curriculum.name
+                  )}
+                </LayerCard.Secondary>
+                <LayerCard.Primary className="h-full">
                   {curriculum.description && (
-                    <p className="text-sm text-muted-foreground mb-3">{curriculum.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{curriculum.description}</p>
                   )}
                   <Meter label={t`Progress`} value={pct} showValue />
                 </LayerCard.Primary>

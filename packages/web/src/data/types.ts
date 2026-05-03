@@ -27,6 +27,7 @@ export const CurriculumDefSchema = z.object({
   description: z.string().optional(),
   phases: z.array(PhaseSchema).min(1),
   skills: z.array(SkillSchema).optional(),
+  coverImage: z.string().optional(),
 });
 
 export type Task = z.infer<typeof TaskSchema>;

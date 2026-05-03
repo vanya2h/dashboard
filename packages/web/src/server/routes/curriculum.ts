@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client-generated";
 import { Hono } from "hono";
 import { extractText, getDocumentProxy } from "unpdf";
 import { z } from "zod";
+import { CUSTOM_CURRICULUM_COVER } from "../../data/cover-image";
 import { PhaseSchema, SkillSchema } from "../../data/types";
 import type { Locale } from "../../lib/i18n";
 import { LOCALES, localizeSystem } from "../../lib/i18n";
@@ -50,7 +51,7 @@ Rules:
 - If the user provides feedback, incorporate it into the revised curriculum.`;
 
 const generateSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   feedback: z.string().optional(),
   locale: z.enum(LOCALES).optional(),
 });
@@ -64,7 +65,7 @@ const generateFromPdfSchema = z.object({
 const saveSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  jobUrl: z.string().url().optional(),
+  jobUrl: z.url().optional(),
   phases: z.array(PhaseSchema).min(1),
   skills: z.array(SkillSchema).optional(),
 });
@@ -174,6 +175,7 @@ export const curriculumRoute = new Hono<AuthEnv>()
         name,
         description,
         jobUrl,
+        coverImage: CUSTOM_CURRICULUM_COVER,
         phases: phases as Prisma.InputJsonValue,
         skills: skills ? (skills as Prisma.InputJsonValue) : undefined,
       },

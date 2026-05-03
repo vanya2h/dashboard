@@ -123,7 +123,7 @@ model TopicSession {
   @@map("topic_sessions")
 }
 
-// ─── Custom curriculums ────────��─────────────────────────────────────────────
+// ─── Custom curriculums ───────────────────────────────────────────────────────
 
 model CustomCurriculum {
   id          String   @id @default(cuid())
@@ -132,6 +132,7 @@ model CustomCurriculum {
   name        String
   description String?
   jobUrl      String?
+  coverImage  String?
   phases      Json
   skills      Json?
   createdAt   DateTime @default(now())
