@@ -7,6 +7,13 @@ import { authClient } from "../../src/lib/authClient";
 import { auth } from "../../src/server/auth";
 import type { Route } from "./+types/sign-up";
 
+export function meta(): Route.MetaDescriptors {
+  return [
+    { title: "Sign Up — Learning Tracker" },
+    { name: "description", content: "Create your Learning Tracker account." },
+  ];
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({ headers: request.headers });
   if (session) throw redirect("/");

@@ -5,6 +5,13 @@ import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.new";
 
+export function meta(): Route.MetaDescriptors {
+  return [
+    { title: "New Program — Learning Tracker" },
+    { name: "description", content: "Build a custom learning curriculum powered by AI." },
+  ];
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   await requireSession(request);
   return {};

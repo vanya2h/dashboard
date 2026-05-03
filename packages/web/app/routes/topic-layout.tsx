@@ -14,6 +14,19 @@ import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic-layout";
 
+export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  const title = loaderData?.task?.title;
+  return [
+    { title: title ? `${title} — Learning Tracker` : "Topic — Learning Tracker" },
+    {
+      name: "description",
+      content: title
+        ? `Study ${title} with AI-generated material and hands-on practice.`
+        : "Study this topic with AI-generated material and hands-on practice.",
+    },
+  ];
+}
+
 function findTask(curriculums: CurriculumDef[], taskId: string) {
   for (const c of curriculums) {
     for (const p of c.phases) {
