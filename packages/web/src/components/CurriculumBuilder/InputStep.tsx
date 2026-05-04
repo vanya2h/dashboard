@@ -2,6 +2,40 @@ import { Button } from "@cloudflare/kumo/components/button";
 import { Input } from "@cloudflare/kumo/components/input";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Trans, useLingui } from "@lingui/react/macro";
+import clsx from "clsx";
+import type { Complexity } from "../../data/types";
+
+const COMPLEXITY_OPTIONS: { value: Complexity; label: string; description: string }[] = [
+  { value: "easy", label: "Easy", description: "2–3 key phases · Reading & essentials" },
+  { value: "medium", label: "Medium", description: "3–6 phases · Balanced reading & practice" },
+  { value: "deep", label: "Deep", description: "5–9 phases · Full depth with open-ended builds" },
+];
+
+function ComplexityPicker({ complexity, onChange }: { complexity: Complexity; onChange: (v: Complexity) => void }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-muted-foreground">
+        <Trans>Depth</Trans>
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {COMPLEXITY_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={clsx(
+              "flex flex-col gap-1 p-3 rounded-lg border text-left transition-colors cursor-pointer",
+              complexity === opt.value ? "border-foreground bg-muted" : "border-border hover:bg-muted/50",
+            )}
+          >
+            <span className="text-sm font-medium text-foreground">{opt.label}</span>
+            <span className="text-xs text-muted-foreground">{opt.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function InputModePicker({ onPick }: { onPick: (mode: "url" | "pdf") => void }) {
   return (
@@ -35,17 +69,21 @@ export function InputModePicker({ onPick }: { onPick: (mode: "url" | "pdf") => v
 export function UrlInput({
   url,
   setUrl,
+  complexity,
+  onComplexityChange,
   onGenerate,
   onBack,
 }: {
   url: string;
   setUrl: (v: string) => void;
+  complexity: Complexity;
+  onComplexityChange: (v: Complexity) => void;
   onGenerate: () => void;
   onBack: () => void;
 }) {
   const { t } = useLingui();
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="flex gap-3 w-full">
         <div className="flex-1 grow">
           <Input
@@ -57,18 +95,20 @@ export function UrlInput({
               if (e.key === "Enter" && url.trim()) onGenerate();
             }}
           />
+          <p className="text-xs text-muted-foreground mt-4">
+            <Trans>
+              * Some sites block direct access. If this fails, save as PDF and use the upload option instead.
+            </Trans>
+          </p>
         </div>
-        <Button onClick={onGenerate} disabled={!url.trim()}>
+      </div>
+      <ComplexityPicker complexity={complexity} onChange={onComplexityChange} />
+      <div className="flex items-center justify-between">
+        <BackLink onClick={onBack} />
+        <Button onClick={onGenerate} disabled={!url.trim()} className="shrink-0 ml-4">
           <Trans>Generate</Trans>
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        <Trans>
-          Some sites render their content with JavaScript and cannot be read this way. If generation fails, save the
-          page as a PDF in your browser and use the PDF upload option instead.
-        </Trans>
-      </p>
-      <BackLink onClick={onBack} />
     </div>
   );
 }
@@ -76,17 +116,21 @@ export function UrlInput({
 export function PdfInput({
   file,
   setFile,
+  complexity,
+  onComplexityChange,
   onGenerate,
   onBack,
 }: {
   file: File | null;
   setFile: (f: File | null) => void;
+  complexity: Complexity;
+  onComplexityChange: (v: Complexity) => void;
   onGenerate: () => void;
   onBack: () => void;
 }) {
   const { t } = useLingui();
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border border-dashed border-border hover:bg-muted/30 cursor-pointer transition-colors">
         <input
           type="file"
@@ -98,6 +142,7 @@ export function PdfInput({
           {file ? file.name : t`Click to choose a PDF file`}
         </span>
       </label>
+      <ComplexityPicker complexity={complexity} onChange={onComplexityChange} />
       <div className="flex justify-end">
         <Button onClick={onGenerate} disabled={!file}>
           <Trans>Generate</Trans>
@@ -110,12 +155,8 @@ export function PdfInput({
 
 export function BackLink({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="self-start text-xs text-muted-foreground hover:text-foreground transition-colors"
-    >
+    <Button type="button" onClick={onClick}>
       <Trans>← Choose another method</Trans>
-    </button>
+    </Button>
   );
 }

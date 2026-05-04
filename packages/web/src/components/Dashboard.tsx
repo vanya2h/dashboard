@@ -122,7 +122,7 @@ export function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {allCurriculums.map((curriculum) => {
             const pct = calcCurriculumProgress(curriculum, completedTaskIds);
-            const { coverImage } = curriculum;
+            const { coverImage, complexity } = curriculum;
             return (
               <LayerCard key={curriculum.id} render={<Link to={`/curriculum/${curriculum.id}`} />}>
                 <LayerCard.Secondary
@@ -135,6 +135,11 @@ export function Dashboard() {
                     <>
                       <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/70" />
+                      {complexity && (
+                        <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-black/50 text-white backdrop-blur-sm">
+                          {complexity}
+                        </span>
+                      )}
                       <span className="relative z-10 p-3 text-white w-full text-base font-medium leading-snug">
                         {curriculum.name}
                       </span>

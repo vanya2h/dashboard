@@ -3,7 +3,7 @@ import { DetailedError, hc, parseResponse } from "hono/client";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { useRootData } from "../../../app/hooks/useRootData";
-import type { CurriculumOutline, Phase, Task } from "../../data/types";
+import type { Complexity, CurriculumOutline, Phase, Task } from "../../data/types";
 import { parseCurriculumOutline, parsePhase } from "../../data/types";
 import { readSSEStream } from "../../lib/claude";
 import type { Locale } from "../../lib/i18n";
@@ -19,6 +19,7 @@ export type InputMode = "url" | "pdf" | null;
 // ─── persistence ────────────────────────────────────────────────────────────
 
 type PersistedBuilderState = {
+  complexity: Complexity;
   textContent: string;
   outline: CurriculumOutline;
   selectedPhaseIds: string[];
@@ -28,7 +29,7 @@ type PersistedBuilderState = {
   currentPageIndex: number;
 };
 
-const builderStorage = createVersionedStorage<PersistedBuilderState>("curriculum-builder:", 1);
+const builderStorage = createVersionedStorage<PersistedBuilderState>("curriculum-builder:", 2);
 
 async function computeIdentifier(inputMode: InputMode, url: string, pdfFile: File | null): Promise<string | null> {
   if (inputMode === "url" && url) return `url:${url}`;
@@ -57,6 +58,7 @@ export function useCurriculumBuilder() {
   const [generatedPhases, setGeneratedPhases] = useState<Record<string, Phase>>({});
   const [generatingPhaseId, setGeneratingPhaseId] = useState<string | null>(null);
   const [streamedTasks, setStreamedTasks] = useState<Task[]>([]);
+  const [complexity, setComplexity] = useState<Complexity>("medium");
   const [phaseFeedback, setPhaseFeedback] = useState("");
   const [deselectedTaskIds, setDeselectedTaskIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export function useCurriculumBuilder() {
     const id = identifierRef.current;
     if (!id || !outline || (step !== "outline-review" && step !== "phase-view")) return;
     builderStorage.set(id, {
+      complexity,
       textContent,
       outline,
       selectedPhaseIds,
@@ -78,7 +81,7 @@ export function useCurriculumBuilder() {
       step,
       currentPageIndex,
     });
-  }, [outline, selectedPhaseIds, generatedPhases, deselectedTaskIds, step, currentPageIndex, textContent]);
+  }, [complexity, outline, selectedPhaseIds, generatedPhases, deselectedTaskIds, step, currentPageIndex, textContent]);
 
   async function start() {
     setError(null);
@@ -89,6 +92,7 @@ export function useCurriculumBuilder() {
     if (id) {
       const saved = builderStorage.get(id);
       if (saved) {
+        setComplexity(saved.complexity);
         setTextContent(saved.textContent);
         setOutline(saved.outline);
         setSelectedPhaseIds(saved.selectedPhaseIds);
@@ -130,7 +134,7 @@ export function useCurriculumBuilder() {
 
     try {
       const res = await client.api.curriculums["generate-outline"].$post({
-        json: { textContent: text, feedback, locale },
+        json: { textContent: text, complexity, feedback, locale },
       });
       if (!res.ok) await parseResponse(res);
       if (!res.body) throw new Error("No response body");
@@ -184,6 +188,7 @@ export function useCurriculumBuilder() {
           outline,
           phaseIndex,
           completedPhases: completedPhasesForContext,
+          complexity,
           feedback,
           locale,
         },
@@ -279,6 +284,7 @@ export function useCurriculumBuilder() {
             jobUrl: inputMode === "url" ? url : undefined,
             phases: phasesToSave,
             skills: outline.skills,
+            complexity,
           },
         }),
       );
@@ -311,6 +317,8 @@ export function useCurriculumBuilder() {
 
   return {
     step,
+    complexity,
+    setComplexity,
     inputMode,
     url,
     setUrl,

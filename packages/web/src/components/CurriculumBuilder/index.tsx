@@ -34,6 +34,8 @@ function OutlineSkeleton() {
 export function CurriculumBuilder() {
   const {
     step,
+    complexity,
+    setComplexity,
     inputMode,
     url,
     setUrl,
@@ -74,13 +76,22 @@ export function CurriculumBuilder() {
       {step === "idle" && inputMode === null && <InputModePicker onPick={setInputMode} />}
 
       {step === "idle" && inputMode === "url" && (
-        <UrlInput url={url} setUrl={setUrl} onGenerate={() => void start()} onBack={() => setInputMode(null)} />
+        <UrlInput
+          url={url}
+          setUrl={setUrl}
+          complexity={complexity}
+          onComplexityChange={setComplexity}
+          onGenerate={() => void start()}
+          onBack={() => setInputMode(null)}
+        />
       )}
 
       {step === "idle" && inputMode === "pdf" && (
         <PdfInput
           file={pdfFile}
           setFile={setPdfFile}
+          complexity={complexity}
+          onComplexityChange={setComplexity}
           onGenerate={() => void start()}
           onBack={() => setInputMode(null)}
         />

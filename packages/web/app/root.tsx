@@ -1,6 +1,7 @@
 import { I18nProvider } from "@lingui/react";
 import { useEffect } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router";
+import type { Complexity } from "../src/data/types";
 import { parseCurriculumDef } from "../src/data/types";
 import type { ActiveSession } from "../src/hooks/useProgress";
 import { activateLocale, getLocaleFromRequest, i18n } from "../src/lib/i18n";
@@ -45,6 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           ...c,
           description: c.description ?? undefined,
           coverImage: c.coverImage ?? undefined,
+          complexity: (c.complexity as Complexity) ?? "deep",
         }),
       )
       .filter((c) => c !== null),

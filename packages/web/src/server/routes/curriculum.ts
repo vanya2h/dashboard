@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { extractText, getDocumentProxy } from "unpdf";
 import { z } from "zod";
 import { CUSTOM_CURRICULUM_COVER } from "../../data/cover-image";
-import { OutlinePhaseSchema, PhaseSchema, SkillSchema } from "../../data/types";
+import { COMPLEXITY_LEVELS, OutlinePhaseSchema, PhaseSchema, SkillSchema } from "../../data/types";
 import type { Locale } from "../../lib/i18n";
 import { LOCALES, localizeSystem } from "../../lib/i18n";
 import { db } from "../db";
@@ -52,14 +52,14 @@ Rules:
 
 const OUTLINE_SYSTEM = `You generate interview-prep curriculum outlines from job postings.
 
-The user will provide a job posting's text content. Analyze it and produce a JSON object matching this TypeScript type:
+The user will provide a job posting's text content and a complexity mode. Analyze the posting and produce a JSON object matching this TypeScript type:
 
 \`\`\`ts
 type CurriculumOutline = {
   id: string;          // kebab-case slug, e.g. "stripe-senior-frontend"
   name: string;        // "Company — Role Prep"
   description: string; // one-sentence summary
-  phases: PhaseOutline[];  // 4-7 phases, ordered: foundations → domain → advanced → mock interviews
+  phases: PhaseOutline[];  // count depends on complexity mode (see rules)
   skills: Skill[];     // one skill unlocked per phase
 };
 type PhaseOutline = {
@@ -81,11 +81,16 @@ Rules:
 - All IDs must be unique and kebab-case.
 - Always end with a "mock interview + practice" phase and a "company research" phase.
 - Output ONLY valid JSON — no markdown fences, no commentary.
-- If the user provides feedback, incorporate it into the revised outline.`;
+- If the user provides feedback, incorporate it into the revised outline.
+
+Complexity mode rules (the mode is specified in the user message):
+- easy: 2–3 phases total. Pick only the highest-impact topics. Skip anything supplementary or advanced.
+- medium: 3–6 phases. Cover core requirements plus key supporting topics.
+- deep: 5–9 phases. Comprehensive coverage including advanced topics, system design depth, and exploratory areas.`;
 
 const PHASE_SYSTEM = `You generate the tasks for one specific phase of an interview-prep curriculum.
 
-The user provides the job posting, the full curriculum outline, any already-generated phases (for context), and which phase index to generate.
+The user provides the job posting, the full curriculum outline, any already-generated phases (for context), the complexity mode, and which phase index to generate.
 
 Produce a JSON object for JUST that one phase:
 
@@ -94,7 +99,7 @@ type Phase = {
   id: string;         // match the id from the outline exactly
   title: string;      // match the title from the outline exactly
   subtitle: string;   // match the subtitle from the outline exactly
-  tasks: Task[];      // 4-8 tasks
+  tasks: Task[];      // count depends on complexity mode (see rules)
 };
 type Task = {
   id: string;         // kebab-case, use the phase id as a prefix (e.g. "fe-basics-read-docs")
@@ -108,7 +113,12 @@ Rules:
 - Tasks must be concrete and actionable — not vague. Each scoped to a single sitting.
 - Do not duplicate tasks that appear in already-generated phases.
 - Output ONLY valid JSON — no markdown fences, no commentary.
-- If the user provides feedback, incorporate it.`;
+- If the user provides feedback, incorporate it.
+
+Complexity mode rules (the mode is specified in the user message):
+- easy: 3–5 tasks. Prefer reading and watching (30–90 min each). No open-ended builds or research.
+- medium: 5–7 tasks. Mix of reading and structured hands-on exercises (45–150 min each).
+- deep: 6–8 tasks. Include reading, guided builds, and open-ended research or project challenges (60–240 min each).`;
 
 const PDF_FALLBACK_HINT =
   "Couldn't read the job posting from this URL — many sites render content with JavaScript and aren't readable as plain HTML. Try opening the page in your browser, saving it as a PDF, and using the PDF upload option instead.";
@@ -180,6 +190,7 @@ const extractPdfSchema = z.object({ file: z.instanceof(File) });
 
 const generateOutlineSchema = z.object({
   textContent: z.string().min(100),
+  complexity: z.enum(COMPLEXITY_LEVELS).optional(),
   feedback: z.string().optional(),
   locale: z.enum(LOCALES).optional(),
 });
@@ -195,6 +206,7 @@ const generatePhaseSchema = z.object({
   }),
   phaseIndex: z.number().int().min(0),
   completedPhases: z.array(PhaseSchema).optional(),
+  complexity: z.enum(COMPLEXITY_LEVELS).optional(),
   feedback: z.string().optional(),
   locale: z.enum(LOCALES).optional(),
 });
@@ -205,6 +217,7 @@ const saveSchema = z.object({
   jobUrl: z.url().optional(),
   phases: z.array(PhaseSchema).min(1),
   skills: z.array(SkillSchema).optional(),
+  complexity: z.enum(COMPLEXITY_LEVELS).optional(),
 });
 
 export const curriculumRoute = new Hono<AuthEnv>()
@@ -246,17 +259,19 @@ export const curriculumRoute = new Hono<AuthEnv>()
   })
   .post("/curriculums/generate-outline", zValidator("json", generateOutlineSchema), async (c) => {
     if (!process.env.ANTHROPIC_API_KEY) return c.json({ error: "ANTHROPIC_API_KEY is not set" }, 500);
-    const { textContent, feedback, locale } = c.req.valid("json");
+    const { textContent, complexity, feedback, locale } = c.req.valid("json");
 
-    const userMessage = feedback
-      ? `Job posting:\n\n${textContent}\n\nFeedback on previous outline:\n${feedback}`
-      : `Job posting:\n\n${textContent}`;
+    const userMessage = [
+      `Job posting:\n\n${textContent}`,
+      `\n\nComplexity: ${complexity ?? "medium"}`,
+      feedback ? `\n\nFeedback on previous outline:\n${feedback}` : "",
+    ].join("");
 
     return streamLLM(OUTLINE_SYSTEM, userMessage, locale, 2000);
   })
   .post("/curriculums/generate-phase", zValidator("json", generatePhaseSchema), async (c) => {
     if (!process.env.ANTHROPIC_API_KEY) return c.json({ error: "ANTHROPIC_API_KEY is not set" }, 500);
-    const { textContent, outline, phaseIndex, completedPhases, feedback, locale } = c.req.valid("json");
+    const { textContent, outline, phaseIndex, completedPhases, complexity, feedback, locale } = c.req.valid("json");
 
     if (phaseIndex >= outline.phases.length) return c.json({ error: "Invalid phase index" }, 400);
 
@@ -268,6 +283,7 @@ export const curriculumRoute = new Hono<AuthEnv>()
 
     const userMessage = [
       `Job posting:\n\n${textContent}`,
+      `\n\nComplexity: ${complexity ?? "medium"}`,
       `\n\nCurriculum outline:\n${JSON.stringify(outline, null, 2)}`,
       completedSection,
       `\n\nGenerate tasks for phase ${phaseIndex + 1} of ${outline.phases.length}: "${phase.title}" (id: "${phase.id}")`,
@@ -326,7 +342,7 @@ export const curriculumRoute = new Hono<AuthEnv>()
   })
   .post("/curriculums", zValidator("json", saveSchema), async (c) => {
     const userId = c.get("user").id;
-    const { name, description, jobUrl, phases, skills } = c.req.valid("json");
+    const { name, description, jobUrl, phases, skills, complexity } = c.req.valid("json");
 
     const record = await db.customCurriculum.create({
       data: {
@@ -337,6 +353,7 @@ export const curriculumRoute = new Hono<AuthEnv>()
         coverImage: CUSTOM_CURRICULUM_COVER,
         phases: phases as Prisma.InputJsonValue,
         skills: skills ? (skills as Prisma.InputJsonValue) : undefined,
+        complexity: complexity ?? "deep",
       },
     });
 

@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const COMPLEXITY_LEVELS = ["easy", "medium", "deep"] as const;
+export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
+
 export const TaskSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -34,6 +37,7 @@ export const CurriculumDefSchema = z.object({
   phases: z.array(PhaseSchema).min(1),
   skills: z.array(SkillSchema).optional(),
   coverImage: z.string().optional(),
+  complexity: z.enum(COMPLEXITY_LEVELS).optional(),
 });
 
 export const CurriculumOutlineSchema = z.object({
