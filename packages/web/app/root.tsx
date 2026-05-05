@@ -69,7 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         />
       </head>
-      <body className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+      <body className="min-h-screen bg-background text-foreground">
         {children}
         <ScrollRestoration />
         <Scripts />

@@ -2,6 +2,7 @@ import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Meter } from "@cloudflare/kumo/components/meter";
 import { Text } from "@cloudflare/kumo/components/text";
 import { useLingui } from "@lingui/react/macro";
+import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
@@ -43,7 +44,7 @@ export function PhaseCard({ phase, curriculumId }: Props) {
             <div className="w-52">
               <Meter value={pct} label={t`Progress`} showValue />
             </div>
-            <span className="text-foreground/40 text-xs">{open ? "▲" : "▼"}</span>
+            <span className="text-foreground/40">{open ? <CaretUpIcon size={14} /> : <CaretDownIcon size={14} />}</span>
           </div>
         </button>
       </LayerCard.Secondary>

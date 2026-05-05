@@ -3,7 +3,7 @@ import { buttonVariants } from "@cloudflare/kumo/components/button";
 import { DropdownMenu } from "@cloudflare/kumo/components/dropdown";
 import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
-import { MoonIcon } from "@phosphor-icons/react";
+import { MoonIcon, SunIcon } from "@phosphor-icons/react";
 import { Fragment } from "react";
 import { Link, useMatches, useNavigate } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
@@ -46,7 +46,7 @@ function UserAvatar({ user }: { user: AuthUser }) {
 
 export function Header() {
   const user = (useRootData()?.user ?? null) as AuthUser | null;
-  const { toggle } = useTheme();
+  const { toggle, theme } = useTheme();
   const navigate = useNavigate();
 
   const matches = useMatches();
@@ -55,55 +55,59 @@ export function Header() {
     .filter((b): b is BreadcrumbHandle["breadcrumb"] => typeof b === "function");
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 border-b border-border">
-      <div className="flex items-center gap-4">
-        <Text variant="heading2" as="h1">
-          <Link to="/" className="text-foreground hover:opacity-75 transition-opacity">
-            <Trans>Learning Tracker</Trans>
-          </Link>
-        </Text>
-        {crumbs.length > 0 && (
-          <Breadcrumbs size="sm">
-            {crumbs.map((crumb, i) => (
-              <Fragment key={i}>
-                <Breadcrumbs.Separator />
-                {crumb()}
-              </Fragment>
-            ))}
-          </Breadcrumbs>
-        )}
-      </div>
+    <header className="sticky top-0 z-50 border-b border-border bg-background/50 backdrop-blur-md">
+      <div className="px-6 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <div className="shrink-0">
+            <Text variant="heading2" as="h1">
+              <Link to="/" className="text-foreground hover:opacity-75 transition-opacity whitespace-nowrap">
+                <Trans>Learning Tracker</Trans>
+              </Link>
+            </Text>
+          </div>
+          {crumbs.length > 0 && (
+            <Breadcrumbs size="sm">
+              {crumbs.map((crumb, i) => (
+                <Fragment key={i}>
+                  <Breadcrumbs.Separator />
+                  {crumb()}
+                </Fragment>
+              ))}
+            </Breadcrumbs>
+          )}
+        </div>
 
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-        <Link to="/curriculum/new" className={buttonVariants({ variant: "primary", size: "sm" })}>
-          <Trans>New program</Trans>
-        </Link>
-        <LanguageSwitcher />
-        {user && (
-          <DropdownMenu>
-            <DropdownMenu.Trigger
-              render={<button className="rounded-full focus:outline-none focus:ring-2 focus:ring-foreground/40" />}
-            >
-              <UserAvatar user={user} />
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content>
-              <DropdownMenu.Group>
-                <DropdownMenu.Label>
-                  <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </DropdownMenu.Label>
-              </DropdownMenu.Group>
-              <DropdownMenu.Separator />
-              <DropdownMenu.Item onClick={toggle}>
-                <MoonIcon size={14} />
-                <Trans>Toggle theme</Trans>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
-                <Trans>Sign out</Trans>
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu>
-        )}
+        <div className="flex items-center gap-6 text-sm text-muted-foreground shrink-0">
+          <Link to="/curriculum/new" className={buttonVariants({ variant: "primary", size: "sm" })}>
+            <Trans>New program</Trans>
+          </Link>
+          <LanguageSwitcher />
+          {user && (
+            <DropdownMenu>
+              <DropdownMenu.Trigger
+                render={<button className="rounded-full focus:outline-none focus:ring-2 focus:ring-foreground/40" />}
+              >
+                <UserAvatar user={user} />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                <DropdownMenu.Group>
+                  <DropdownMenu.Label>
+                    <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </DropdownMenu.Label>
+                </DropdownMenu.Group>
+                <DropdownMenu.Separator />
+                <DropdownMenu.Item onClick={toggle}>
+                  {theme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
+                  <Trans>Toggle theme</Trans>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
+                  <Trans>Sign out</Trans>
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </header>
   );

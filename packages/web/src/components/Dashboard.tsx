@@ -1,6 +1,4 @@
 import { Badge } from "@cloudflare/kumo/components/badge";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { Meter } from "@cloudflare/kumo/components/meter";
 import { Text } from "@cloudflare/kumo/components/text";
 import { Trans, useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
@@ -10,6 +8,9 @@ import type { CurriculumDef, Skill } from "../data/types";
 import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useProgress } from "../hooks/useProgress";
 import { computeUnlockedSkills } from "../lib/skills";
+import { AnimatedText } from "./AnimatedText";
+import { GradientBackground } from "./GradientBg";
+import { ProgramCard } from "./ProgramCard";
 
 function calcCurriculumProgress(curriculum: CurriculumDef, completedTaskIds: Record<string, string>) {
   let totalWeight = 0;
@@ -67,19 +68,32 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   if (curriculumsWithUnlockedSkills.length === 0) return null;
 
   return (
-    <section className="px-6 py-4 border-b border-border">
-      <div className="mb-4">
+    <section className="border-b border-border">
+      <div className="px-6 py-4 border-b border-border">
         <Text variant="heading3" as="h2">
           <Trans>Skills</Trans>
         </Text>
       </div>
-      <div className="flex flex-col gap-6">
-        {curriculumsWithUnlockedSkills.map((curriculum) => (
-          <div key={curriculum.id}>
-            <h3 className="text-xs font-medium text-foreground/40 mb-2">{curriculum.name}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {curriculum.unlockedSkills.map((skill) => (
-                <SkillBadge key={skill.id} skill={skill} recentlyUnlocked={recentIds.has(skill.id)} />
+      <div className="flex flex-col">
+        {curriculumsWithUnlockedSkills.map((curriculum, idx) => (
+          <div key={curriculum.id} className={clsx(idx > 0 && "border-t border-border")}>
+            <h3 className="px-6 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground border-b border-border">
+              {curriculum.name}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {curriculum.unlockedSkills.map((skill, i) => (
+                <div
+                  key={skill.id}
+                  className={clsx(
+                    "border-b border-border last:border-b-0 p-4",
+                    "sm:max-lg:odd:border-r",
+                    "lg:not-nth-[3n]:border-r",
+                    i >= curriculum.unlockedSkills.length - (curriculum.unlockedSkills.length % 3 || 3) &&
+                      "lg:border-b-0",
+                  )}
+                >
+                  <SkillBadge skill={skill} recentlyUnlocked={recentIds.has(skill.id)} />
+                </div>
               ))}
             </div>
           </div>
@@ -89,6 +103,8 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   );
 }
 
+const CELL_BORDERS = clsx("border-b border-border", "sm:max-lg:odd:border-r", "lg:not-nth-[3n]:border-r");
+
 export function Dashboard() {
   const { t } = useLingui();
   const { completedTaskIds } = useProgress();
@@ -96,53 +112,55 @@ export function Dashboard() {
 
   return (
     <main>
-      <section className="px-6 py-4 border-b border-border">
-        <div className="mb-3">
+      <section className="relative isolate overflow-hidden border-b border-border">
+        <GradientBackground />
+        <div className="relative flex flex-col items-center justify-center text-center px-6 py-24 sm:py-32">
+          <AnimatedText
+            as="h1"
+            text={t`Learn Everything`}
+            split="char"
+            animation="animate-soft-blur-in"
+            stagger={25}
+            className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-white max-w-3xl"
+          />
+          <AnimatedText
+            as="p"
+            text={t`Turn any topic into a focused study plan. Track tasks, build skills, and stay consistent.`}
+            split="word"
+            animation="animate-word-rise"
+            stagger={70}
+            delay={500}
+            className="mt-6 text-lg sm:text-xl lg:text-2xl text-white/70 max-w-2xl"
+          />
+          <Link
+            to="/curriculum/new"
+            className="mt-10 inline-flex items-center justify-center px-5 py-2.5 bg-white text-neutral-900 text-sm font-medium rounded-md hover:bg-white/90 active:scale-[0.98] transition-all animate-fade-rise [animation-delay:1500ms]"
+          >
+            <Trans>New Program</Trans>
+          </Link>
+        </div>
+      </section>
+      <section className="border-b border-border">
+        <div className="px-6 py-4 border-b border-border">
           <Text variant="heading3" as="h2">
             <Trans>Programs</Trans>
           </Text>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {allCurriculums.map((curriculum) => {
-            const pct = calcCurriculumProgress(curriculum, completedTaskIds);
-            const { coverImage, complexity } = curriculum;
-            return (
-              <LayerCard key={curriculum.id} render={<Link to={`/curriculum/${curriculum.id}`} />}>
-                <LayerCard.Secondary
-                  className={clsx(
-                    "text-foreground",
-                    coverImage && "relative min-h-28 p-0 my-0 items-end overflow-hidden",
-                  )}
-                >
-                  {coverImage ? (
-                    <>
-                      <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/70" />
-                      {complexity && (
-                        <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-black/50 text-white backdrop-blur-sm">
-                          {complexity}
-                        </span>
-                      )}
-                      <span className="relative z-10 p-3 text-white w-full text-base font-medium leading-snug">
-                        {curriculum.name}
-                      </span>
-                    </>
-                  ) : (
-                    curriculum.name
-                  )}
-                </LayerCard.Secondary>
-                <LayerCard.Primary className="h-full">
-                  {curriculum.description && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{curriculum.description}</p>
-                  )}
-                  <Meter label={t`Progress`} value={pct} showValue />
-                </LayerCard.Primary>
-              </LayerCard>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {allCurriculums.map((curriculum) => (
+            <ProgramCard
+              key={curriculum.id}
+              curriculum={curriculum}
+              progress={calcCurriculumProgress(curriculum, completedTaskIds)}
+              className={CELL_BORDERS}
+            />
+          ))}
           <Link
             to="/curriculum/new"
-            className="flex items-center justify-center rounded-lg border-2 border-dashed border-border hover:border-foreground/30 transition-colors min-h-25 text-muted-foreground hover:text-foreground/60"
+            className={clsx(
+              CELL_BORDERS,
+              "flex items-center justify-center min-h-50 text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors",
+            )}
           >
             <span className="text-sm font-medium">
               <Trans>+ Create new program</Trans>

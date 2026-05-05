@@ -3,7 +3,7 @@ import { Button } from "@cloudflare/kumo/components/button";
 import { Dialog } from "@cloudflare/kumo/components/dialog";
 import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
-import { Outlet, useLoaderData, useNavigate, useParams } from "react-router";
+import { Outlet, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { redirect } from "react-router";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import type { CurriculumDef } from "../../src/data/types";
@@ -32,7 +32,9 @@ function findTask(curriculums: CurriculumDef[], taskId: string) {
   for (const c of curriculums) {
     for (const p of c.phases) {
       for (const t of p.tasks) {
-        if (t.id === taskId) return { task: t, curriculumName: c.name, complexity: c.complexity };
+        if (t.id === taskId) {
+          return { task: t, curriculumName: c.name, phaseTitle: p.title, complexity: c.complexity };
+        }
       }
     }
   }
@@ -61,15 +63,17 @@ export const handle: BreadcrumbHandle = {
 };
 
 function TopicBreadcrumb() {
-  const data = useLoaderData<typeof loader>();
+  const data = useRouteLoaderData<typeof loader>("routes/topic-layout");
   const { curriculumId } = useParams<{ curriculumId: string }>();
   if (!data) return null;
-  const { task, curriculumName } = data;
+  const { curriculumName, phaseTitle } = data;
   return (
     <>
       <Breadcrumbs.Link href={`/curriculum/${curriculumId}`}>{curriculumName}</Breadcrumbs.Link>
       <Breadcrumbs.Separator />
-      <Breadcrumbs.Current>{task.title}</Breadcrumbs.Current>
+      <span className="flex min-w-0 max-w-full items-center text-muted-foreground">
+        <span className="truncate">{phaseTitle}</span>
+      </span>
     </>
   );
 }

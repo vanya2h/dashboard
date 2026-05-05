@@ -110,3 +110,47 @@ Learning content is defined statically in `src/data/curriculum.ts` and `src/data
 ### Type-generated files
 
 `react-router typegen` writes to `.react-router/types/` — these are committed-ignored but required for type-checking. Always run `typecheck` (which runs `typegen` first) rather than bare `tsc`.
+
+## UI Layout — Border-Sliced Grid
+
+Vercel-style layout: a single bordered column, horizontal section dividers, and bordered grids where cells share borders (no `gap-*`, no rounded chrome). Inspired by [DESIGN.md](DESIGN.md).
+
+**Column wrapper** lives in `app/routes/app-layout.tsx` and wraps `<Header />` + `<Outlet />`. Pages do **not** add their own `max-w-*` or `border-x` — they render full-width inside the column:
+
+```tsx
+<div className="max-w-360 mx-auto border-x border-border min-h-screen">
+  <Header />
+  <Outlet />
+</div>
+```
+
+**Section pattern** — a heading row with `border-b` separating it from the content, and a `border-b` on the section to separate from the next section:
+
+```tsx
+<section className="border-b border-border">
+  <div className="px-6 py-4 border-b border-border">
+    <Text variant="heading3" as="h2">Title</Text>
+  </div>
+  {/* content */}
+</section>
+```
+
+**Bordered grid cells** — use `nth-child` variants to draw exactly one shared line per cell boundary. Always `border-b`; `border-r` is conditional on column position. The column's `border-x` provides the outer left/right edges, so rightmost cells get no `border-r`:
+
+```tsx
+const CELL_BORDERS = clsx(
+  "border-b border-border",
+  "sm:max-lg:odd:border-r",    // 2-col: only col 1 has right border
+  "lg:not-nth-[3n]:border-r",  // 3-col: cols 1 and 2 have right border
+);
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+  {items.map(item => (
+    <div key={item.id} className={clsx(CELL_BORDERS, "bg-background hover:bg-muted/40 transition-colors")}>
+      {/* cell content */}
+    </div>
+  ))}
+</div>
+```
+
+Cells are flat — no rounded corners, no inner `border` chrome, no `gap-*` between them. Hover lifts use `bg-muted/40`. Semantic states (success/error coloring) keep their own borders since they encode meaning.
