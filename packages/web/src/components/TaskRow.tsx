@@ -1,11 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import clsx from "clsx";
 import { parseResponse } from "hono/client";
 import { useNavigate } from "react-router";
 import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
+import { cn } from "../lib/cn";
 import { Button } from "./ui/Button";
 
 function useSessionLabel(session: ActiveSession): string {
@@ -63,7 +63,7 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
       </label>
       {!checked && (
         <div
-          className={clsx(
+          className={cn(
             "shrink-0 flex gap-1 transition-opacity",
             !activeSession && "opacity-0 group-hover:opacity-100",
           )}

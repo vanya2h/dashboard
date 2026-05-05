@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import clsx from "clsx";
 import type { Complexity } from "../../data/types";
+import { cn } from "../../lib/cn";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -22,7 +22,7 @@ function ComplexityPicker({ complexity, onChange }: { complexity: Complexity; on
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={clsx(
+            className={cn(
               "flex flex-col gap-1 p-3 border text-left transition-colors cursor-pointer",
               complexity === opt.value ? "border-foreground bg-muted" : "border-border hover:bg-muted/50",
             )}

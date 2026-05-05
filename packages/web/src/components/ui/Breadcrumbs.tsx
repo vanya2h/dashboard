@@ -1,12 +1,12 @@
-import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
+import { cn } from "../../lib/cn";
 
 function Root({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <nav
       aria-label="breadcrumb"
-      className={clsx("flex min-w-0 grow items-center gap-1 overflow-hidden whitespace-nowrap text-sm", className)}
+      className={cn("flex min-w-0 grow items-center gap-1 overflow-hidden whitespace-nowrap text-sm", className)}
     >
       {children}
     </nav>

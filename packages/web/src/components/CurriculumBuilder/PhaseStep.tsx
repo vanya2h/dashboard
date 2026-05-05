@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import type { OutlinePhase, Phase, Task } from "../../data/types";
+import { cn } from "../../lib/cn";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
 import { BuilderTaskRow } from "./BuilderTaskRow";
@@ -149,7 +149,7 @@ function NavButton({ align = "left", className, children, ...rest }: NavButtonPr
     <button
       type="button"
       {...rest}
-      className={clsx(
+      className={cn(
         "flex flex-col gap-1 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed",
         align === "right" ? "items-end text-right" : "text-left",
         className,

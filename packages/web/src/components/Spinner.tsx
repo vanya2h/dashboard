@@ -1,7 +1,7 @@
 "use client";
 
-import clsx from "clsx";
 import { ComponentProps, useCallback, useEffect, useRef } from "react";
+import { cn } from "../lib/cn";
 
 const game = [
   [14, 7, 0, 8, 6, 13, 20],
@@ -92,11 +92,11 @@ export const DotLoader = ({
   }, [frames, isPlaying, applyFrameToDots, duration, repeatCount, onComplete]);
 
   return (
-    <div {...props} ref={gridRef} className={clsx("grid w-fit grid-cols-7 gap-0.5", className)}>
+    <div {...props} ref={gridRef} className={cn("grid w-fit grid-cols-7 gap-0.5", className)}>
       {Array.from({ length: 49 }).map((_, i) => (
         <div
           key={i}
-          className={clsx(
+          className={cn(
             "h-1.5 w-1.5 rounded-sm bg-foreground/15 [&.active]:bg-foreground transition-colors",
             dotClassName,
           )}

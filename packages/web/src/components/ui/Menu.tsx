@@ -1,6 +1,6 @@
 import { Menu as BaseMenu } from "@base-ui-components/react/menu";
-import clsx from "clsx";
 import type { ComponentProps } from "react";
+import { cn } from "../../lib/cn";
 
 const Root = BaseMenu.Root;
 const Trigger = BaseMenu.Trigger;
@@ -10,7 +10,7 @@ function Popup({ children, className, ...props }: ComponentProps<typeof BaseMenu
     <BaseMenu.Portal>
       <BaseMenu.Positioner sideOffset={6} className="z-50 outline-none">
         <BaseMenu.Popup
-          className={clsx(
+          className={cn(
             "min-w-[200px] bg-background border border-border p-1",
             "shadow-lg",
             "transition-all duration-150",
@@ -31,7 +31,7 @@ function Popup({ children, className, ...props }: ComponentProps<typeof BaseMenu
 function Item({ className, ...props }: ComponentProps<typeof BaseMenu.Item>) {
   return (
     <BaseMenu.Item
-      className={clsx(
+      className={cn(
         "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer select-none outline-none",
         "data-[highlighted]:bg-muted/60",
         "data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed",
@@ -43,15 +43,15 @@ function Item({ className, ...props }: ComponentProps<typeof BaseMenu.Item>) {
 }
 
 function Group({ className, ...props }: ComponentProps<typeof BaseMenu.Group>) {
-  return <BaseMenu.Group className={clsx("flex flex-col", className)} {...props} />;
+  return <BaseMenu.Group className={cn("flex flex-col", className)} {...props} />;
 }
 
 function GroupLabel({ className, ...props }: ComponentProps<typeof BaseMenu.GroupLabel>) {
-  return <BaseMenu.GroupLabel className={clsx("px-3 py-2", className)} {...props} />;
+  return <BaseMenu.GroupLabel className={cn("px-3 py-2", className)} {...props} />;
 }
 
 function Separator({ className, ...props }: ComponentProps<typeof BaseMenu.Separator>) {
-  return <BaseMenu.Separator className={clsx("my-1 h-px bg-border", className)} {...props} />;
+  return <BaseMenu.Separator className={cn("my-1 h-px bg-border", className)} {...props} />;
 }
 
 export const Menu = { Root, Trigger, Popup, Item, Group, GroupLabel, Separator };

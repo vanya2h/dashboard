@@ -1,6 +1,6 @@
 import { Button as BaseButton } from "@base-ui-components/react/button";
-import clsx from "clsx";
 import type { ComponentProps } from "react";
+import { cn } from "../../lib/cn";
 
 type Variant = "primary" | "secondary" | "destructive" | "ghost" | "on-dark";
 type Size = "xs" | "sm" | "base";
@@ -27,7 +27,7 @@ const SIZES: Record<Size, string> = {
 export function Button({ variant = "secondary", size = "sm", className, ...props }: Props) {
   return (
     <BaseButton
-      className={clsx(
+      className={cn(
         "inline-flex items-center justify-center gap-2 font-medium transition-colors cursor-pointer select-none",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:opacity-50 disabled:cursor-not-allowed",

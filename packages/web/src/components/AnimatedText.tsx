@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import type { ElementType } from "react";
+import { cn } from "../lib/cn";
 
 type AnimatedTextProps = {
   text: string;
@@ -39,7 +39,7 @@ export function AnimatedText({
             <span
               key={i}
               aria-hidden="true"
-              className={clsx("inline-block", animation)}
+              className={cn("inline-block", animation)}
               style={{ animationDelay: `${delay + idx * stagger}ms` }}
             >
               {word}
@@ -53,7 +53,7 @@ export function AnimatedText({
               return (
                 <span
                   key={j}
-                  className={clsx("inline-block", animation)}
+                  className={cn("inline-block", animation)}
                   style={{ animationDelay: `${delay + idx * stagger}ms` }}
                 >
                   {ch}

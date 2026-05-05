@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "../../lib/cn";
 
 type Size = "xs" | "sm" | "base" | "lg";
 
@@ -12,7 +12,7 @@ const SIZES: Record<Size, string> = {
 export function Spinner({ size = "base", className }: { size?: Size; className?: string }) {
   return (
     <span
-      className={clsx(
+      className={cn(
         "inline-block rounded-full border-foreground/20 border-t-foreground animate-spin",
         SIZES[size],
         className,

@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import type { CurriculumOutline } from "../../data/types";
+import { cn } from "../../lib/cn";
 import { Button } from "../ui/Button";
 
 export function OutlineReviewStep({
@@ -41,7 +41,7 @@ export function OutlineReviewStep({
             return (
               <label
                 key={phase.id}
-                className={clsx(
+                className={cn(
                   "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
                   selected ? "border-border" : "border-border/40 opacity-50",
                 )}

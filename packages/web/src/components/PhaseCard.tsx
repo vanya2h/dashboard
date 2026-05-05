@@ -1,9 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 import { CaretDownIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
+import { cn } from "../lib/cn";
 import { Meter } from "./ui/Meter";
 import { TaskRow } from "./TaskRow";
 
@@ -41,7 +41,7 @@ export function PhaseCard({ phase, curriculumId, index }: Props) {
             <Meter value={pct} label={t`Progress`} showValue />
           </div>
           <span
-            className={clsx("text-foreground/40 transition-transform duration-300", open && "rotate-180")}
+            className={cn("text-foreground/40 transition-transform duration-300", open && "rotate-180")}
             aria-hidden
           >
             <CaretDownIcon size={18} weight="bold" />

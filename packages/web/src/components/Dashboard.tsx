@@ -1,11 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { PlusIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { useMemo } from "react";
 import { Link } from "react-router";
 import type { CurriculumDef, Skill } from "../data/types";
 import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useProgress } from "../hooks/useProgress";
+import { cn } from "../lib/cn";
 import { computeUnlockedSkills } from "../lib/skills";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -26,7 +26,7 @@ function calcCurriculumProgress(curriculum: CurriculumDef, completedTaskIds: Rec
 function SkillBadge({ skill, recentlyUnlocked }: { skill: Skill; recentlyUnlocked: boolean }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded-lg border p-3 flex flex-col gap-1 transition-colors",
         recentlyUnlocked
           ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/60 ring-2 ring-green-400 dark:ring-green-600 ring-offset-1 ring-offset-background"
@@ -77,7 +77,7 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
       </div>
       <div className="flex flex-col">
         {curriculumsWithUnlockedSkills.map((curriculum, idx) => (
-          <div key={curriculum.id} className={clsx(idx > 0 && "border-t border-border")}>
+          <div key={curriculum.id} className={cn(idx > 0 && "border-t border-border")}>
             <h3 className="px-6 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground border-b border-border">
               {curriculum.name}
             </h3>
@@ -85,7 +85,7 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
               {curriculum.unlockedSkills.map((skill, i) => (
                 <div
                   key={skill.id}
-                  className={clsx(
+                  className={cn(
                     "border-b border-border last:border-b-0 p-4",
                     "sm:max-lg:odd:border-r",
                     "lg:not-nth-[3n]:border-r",
@@ -104,7 +104,7 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   );
 }
 
-const CELL_BORDERS = clsx("border-b border-border", "sm:max-lg:odd:border-r", "lg:not-nth-[3n]:border-r");
+const CELL_BORDERS = cn("border-b border-border", "sm:max-lg:odd:border-r", "lg:not-nth-[3n]:border-r");
 
 export function Dashboard() {
   const { t } = useLingui();
@@ -160,7 +160,7 @@ export function Dashboard() {
           ))}
           <Link
             to="/curriculum/new"
-            className={clsx(
+            className={cn(
               CELL_BORDERS,
               "group flex flex-col items-center justify-center gap-4 min-h-60 text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors",
             )}

@@ -1,12 +1,12 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
 import { Spinner } from "../../src/components/ui/Spinner";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
+import { cn } from "../../src/lib/cn";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
 import { parsePart, parsePersistedPhase, parsePlan, PART_SYSTEM, PLAN_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
@@ -278,7 +278,7 @@ function NavButton({ align = "left", className, children, ...rest }: NavButtonPr
     <button
       type="button"
       {...rest}
-      className={clsx(
+      className={cn(
         "flex flex-col gap-1 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden",
         align === "right" ? "items-end text-right" : "text-left",
         className,

@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
-import clsx from "clsx";
 import { Link, LinkProps } from "react-router";
 import type { CurriculumDef } from "../data/types";
+import { cn } from "../lib/cn";
 import { Meter } from "./ui/Meter";
 
 export type ProgramCardProps = Omit<LinkProps, "to"> & {
@@ -16,7 +16,7 @@ export function ProgramCard({ curriculum, progress, className, ...restProps }: P
   return (
     <Link
       to={`/curriculum/${id}`}
-      className={clsx(
+      className={cn(
         "group relative flex flex-col bg-background overflow-hidden",
         "transition-colors duration-300 hover:bg-muted/40",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30",
@@ -24,12 +24,20 @@ export function ProgramCard({ curriculum, progress, className, ...restProps }: P
       )}
       {...restProps}
     >
+      {coverImage && (
+        <img
+          src={coverImage}
+          alt=""
+          aria-hidden
+          className="pointer-events-none hidden dark:block absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-20"
+        />
+      )}
       {coverImage ? (
         <div className="relative aspect-video overflow-hidden">
           <img
             src={coverImage}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.04]"
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.04] "
           />
           <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/80" />
           {complexity && (
@@ -42,11 +50,11 @@ export function ProgramCard({ curriculum, progress, className, ...restProps }: P
           </h3>
         </div>
       ) : (
-        <div className="px-6 pt-6 pb-2">
+        <div className="relative px-6 pt-6 pb-2">
           <h3 className="text-2xl font-semibold text-foreground leading-tight">{name}</h3>
         </div>
       )}
-      <div className="px-6 py-5 flex-1 flex flex-col justify-between gap-5">
+      <div className="relative px-6 py-5 flex-1 flex flex-col justify-between gap-5">
         {description && <p className="text-base text-muted-foreground leading-relaxed line-clamp-2">{description}</p>}
         <Meter label={t`Progress`} value={progress} showValue />
       </div>

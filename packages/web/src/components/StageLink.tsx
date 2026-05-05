@@ -1,6 +1,6 @@
-import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "../lib/cn";
 
 type Props = {
   prefix: ReactNode;
@@ -25,13 +25,13 @@ export function StageLink({ prefix, label, to, onClick, active, disabled }: Prop
 
   if (disabled) {
     return (
-      <div className={clsx(BASE, "text-foreground/30 cursor-not-allowed select-none")} aria-disabled>
+      <div className={cn(BASE, "text-foreground/30 cursor-not-allowed select-none")} aria-disabled>
         {inner}
       </div>
     );
   }
 
-  const interactive = clsx(
+  const interactive = cn(
     BASE,
     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30",
     active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
@@ -46,7 +46,7 @@ export function StageLink({ prefix, label, to, onClick, active, disabled }: Prop
   }
 
   return (
-    <button type="button" onClick={onClick} className={clsx(interactive, "w-full text-left cursor-pointer")}>
+    <button type="button" onClick={onClick} className={cn(interactive, "w-full text-left cursor-pointer")}>
       {inner}
     </button>
   );

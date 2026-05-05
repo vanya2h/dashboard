@@ -1,14 +1,15 @@
 import { Trans } from "@lingui/react/macro";
 import { MoonIcon, SunIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { Fragment, useEffect, useState } from "react";
 import { Link, useMatches, useNavigate } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
 import type { BreadcrumbHandle } from "../lib/breadcrumbs";
+import { cn } from "../lib/cn";
 import type { AuthUser } from "../server/auth";
 import { Breadcrumbs } from "./ui/Breadcrumbs";
+import { Button } from "./ui/Button";
 import { Menu } from "./ui/Menu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -63,7 +64,7 @@ export function Header() {
 
   return (
     <header
-      className={clsx(
+      className={cn(
         "sticky top-0 z-50 border-b border-border transition-colors duration-200",
         scrolled ? "bg-background/50 backdrop-blur-md" : "bg-transparent",
       )}
@@ -90,11 +91,10 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
-          <Link
-            to="/curriculum/new"
-            className="inline-flex items-center justify-center h-9 px-3.5 text-sm font-medium bg-foreground text-background hover:opacity-90 transition-colors"
-          >
-            <Trans>New program</Trans>
+          <Link to="/curriculum/new">
+            <Button variant="secondary">
+              <Trans>New program</Trans>
+            </Button>
           </Link>
           <LanguageSwitcher />
           {user && (

@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import type { ComponentProps } from "react";
+import { cn } from "../../lib/cn";
 
 type Variant = "neutral" | "success" | "warning" | "danger";
 
@@ -15,7 +15,7 @@ type Props = ComponentProps<"span"> & { variant?: Variant };
 export function Badge({ variant = "neutral", className, ...props }: Props) {
   return (
     <span
-      className={clsx(
+      className={cn(
         "inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-[0.15em] border",
         VARIANTS[variant],
         className,
