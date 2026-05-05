@@ -2,8 +2,14 @@ import { GlobeIcon } from "@phosphor-icons/react";
 import { useRouteLoaderData } from "react-router";
 import type { loader } from "../../app/root";
 import type { Locale } from "../lib/i18n";
-import { Button } from "./ui/Button";
-import { Menu } from "./ui/Menu";
+
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
@@ -20,19 +26,19 @@ export function LanguageSwitcher() {
   const current = data?.locale ?? "en";
 
   return (
-    <Menu.Root>
-      <Menu.Trigger render={<Button />}>
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="secondary" />}>
         <GlobeIcon size={16} />
         {LOCALE_LABELS[current]}
-      </Menu.Trigger>
-      <Menu.Popup>
-        <Menu.Item disabled={current === "en"} onClick={() => switchLocale("en")}>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem disabled={current === "en"} onClick={() => switchLocale("en")}>
           English
-        </Menu.Item>
-        <Menu.Item disabled={current === "ru"} onClick={() => switchLocale("ru")}>
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={current === "ru"} onClick={() => switchLocale("ru")}>
           Русский
-        </Menu.Item>
-      </Menu.Popup>
-    </Menu.Root>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

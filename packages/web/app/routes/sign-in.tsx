@@ -4,11 +4,12 @@ import { useForm } from "react-hook-form";
 import { Link, redirect, useNavigate } from "react-router";
 import { z } from "zod";
 import { AuthLayout } from "../../src/components/AuthLayout";
-import { Button } from "../../src/components/ui/Button";
-import { Input } from "../../src/components/ui/Input";
 import { authClient } from "../../src/lib/authClient";
 import { auth } from "../../src/server/auth";
 import type { Route } from "./+types/sign-in";
+
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 export function meta(): Route.MetaDescriptors {
   return [
@@ -113,7 +114,7 @@ export default function SignIn() {
           )}
         </div>
 
-        <Button type="submit" variant="primary" size="base" disabled={isSubmitting} className="w-full">
+        <Button type="submit" variant="default" disabled={isSubmitting} className="w-full">
           {isSubmitting ? <Trans>Signing in…</Trans> : <Trans>Sign in</Trans>}
         </Button>
       </form>

@@ -1,8 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { Complexity } from "../../data/types";
-import { cn } from "../../lib/cn";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
+
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { cn } from "~/lib/utils";
 
 const COMPLEXITY_OPTIONS: { value: Complexity; label: string; description: string }[] = [
   { value: "easy", label: "Easy", description: "2–3 key phases · Reading & essentials" },

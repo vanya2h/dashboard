@@ -5,8 +5,9 @@ import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
-import { cn } from "../lib/cn";
-import { Button } from "./ui/Button";
+
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 function useSessionLabel(session: ActiveSession): string {
   const { t } = useLingui();
@@ -80,7 +81,7 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
               <Trans>Start over</Trans>
             </Button>
           )}
-          <Button size="xs" variant="primary" onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}>
+          <Button size="xs" variant="default" onClick={() => navigate(`/topic/${curriculumId}/${task.id}`)}>
             {activeSession ? <Trans>Continue</Trans> : <Trans>Start</Trans>}
           </Button>
         </div>

@@ -2,8 +2,6 @@ import { Trans } from "@lingui/react/macro";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { LoadingState } from "../../src/components/LoadingState";
-import { Badge } from "../../src/components/ui/Badge";
-import { Button } from "../../src/components/ui/Button";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { parseJSON } from "../../src/lib/json";
@@ -12,6 +10,9 @@ import { ASSESSMENT_EVAL_SYSTEM, parsePersistedPhase } from "../../src/lib/phase
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.gaps";
+
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 
 const TOKENS_ASSESSMENT_EVAL = 300;
 
@@ -93,7 +94,7 @@ export default function GapsPage() {
           <ul className="flex flex-wrap gap-2">
             {review.gaps.map((gap) => (
               <li key={gap}>
-                <Badge variant="warning">{gap}</Badge>
+                <Badge variant="secondary">{gap}</Badge>
               </li>
             ))}
           </ul>
@@ -104,7 +105,7 @@ export default function GapsPage() {
         </div>
       )}
 
-      <Button variant="primary" onClick={() => void navigate("../study", { relative: "path" })}>
+      <Button variant="default" onClick={() => void navigate("../study", { relative: "path" })}>
         <Trans>Start studying</Trans>
       </Button>
     </div>

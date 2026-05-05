@@ -1,6 +1,14 @@
 import { Trans } from "@lingui/react/macro";
-import { Button } from "./ui/Button";
-import { Dialog } from "./ui/Dialog";
+
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 type Props = {
   taskTitle: string;
@@ -16,46 +24,27 @@ export function TopicHeader({ taskTitle, curriculumName, onStartOver }: Props) {
         <p className="text-xs text-muted-foreground truncate">{curriculumName}</p>
       </div>
       <div className="ml-auto shrink-0">
-        <Dialog.Root>
-          <Dialog.Trigger
-            render={(p) => (
-              <Button {...p}>
-                <Trans>Start over</Trans>
-              </Button>
-            )}
-          />
-          <Dialog.Popup>
-            <Dialog.Title>
+        <Dialog>
+          <DialogTrigger render={<Button variant="secondary" />}>
+            <Trans>Start over</Trans>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>
               <Trans>Start over?</Trans>
-            </Dialog.Title>
-            <Dialog.Description>
+            </DialogTitle>
+            <DialogDescription>
               <Trans>Your current progress on this topic will be reset.</Trans>
-            </Dialog.Description>
+            </DialogDescription>
             <div className="mt-6 flex justify-end gap-2">
-              <Dialog.Close
-                render={(p) => (
-                  <Button {...p}>
-                    <Trans>Cancel</Trans>
-                  </Button>
-                )}
-              />
-              <Dialog.Close
-                render={(p) => (
-                  <Button
-                    variant="destructive"
-                    {...p}
-                    onClick={(e) => {
-                      onStartOver();
-                      p.onClick?.(e);
-                    }}
-                  >
-                    <Trans>Start over</Trans>
-                  </Button>
-                )}
-              />
+              <DialogClose render={<Button variant="ghost" />}>
+                <Trans>Cancel</Trans>
+              </DialogClose>
+              <DialogClose render={<Button variant="destructive" />} onClick={onStartOver}>
+                <Trans>Start over</Trans>
+              </DialogClose>
             </div>
-          </Dialog.Popup>
-        </Dialog.Root>
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );

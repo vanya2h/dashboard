@@ -1,6 +1,5 @@
 import { useParams } from "react-router";
 import { CurriculumView } from "../../src/components/CurriculumView";
-import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import { useAllCurriculums } from "../../src/hooks/useAllCurriculums";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
@@ -8,6 +7,8 @@ import { getLocaleFromRequest } from "../../src/lib/i18n";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.$curriculumId";
+
+import { BreadcrumbItem, BreadcrumbPage } from "~/components/ui/breadcrumb";
 
 export function meta({ data }: Route.MetaArgs): Route.MetaDescriptors {
   const name = data?.curriculumName;
@@ -48,5 +49,9 @@ function CurriculumBreadcrumb() {
   const { curriculumId } = useParams<{ curriculumId: string }>();
   const all = useAllCurriculums();
   const name = all.find((c) => c.id === curriculumId)?.name ?? "";
-  return <Breadcrumbs.Current>{name}</Breadcrumbs.Current>;
+  return (
+    <BreadcrumbItem>
+      <BreadcrumbPage>{name}</BreadcrumbPage>
+    </BreadcrumbItem>
+  );
 }

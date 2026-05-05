@@ -2,8 +2,6 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { LoadingState } from "../../src/components/LoadingState";
-import { Button } from "../../src/components/ui/Button";
-import { Textarea } from "../../src/components/ui/Input";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import { parseJSON } from "../../src/lib/json";
@@ -12,6 +10,9 @@ import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.assess";
 import type { loader as layoutLoader } from "./topic-layout";
+
+import { Button } from "~/components/ui/button";
+import { Textarea } from "~/components/ui/textarea";
 
 const TOKENS_ASSESSMENT = 300;
 
@@ -126,7 +127,7 @@ export default function AssessPage() {
         ))}
       </div>
       <div className="mt-8">
-        <Button variant="primary" size="base" disabled={!allAnswered} onClick={() => void handleSubmit()}>
+        <Button variant="default" disabled={!allAnswered} onClick={() => void handleSubmit()}>
           <Trans>Submit answers →</Trans>
         </Button>
       </div>

@@ -1,5 +1,6 @@
 import type { Task } from "../../data/types";
-import { cn } from "../../lib/cn";
+
+import { cn } from "~/lib/utils";
 
 export function BuilderTaskRow({
   task,

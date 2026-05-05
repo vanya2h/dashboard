@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { GithubLogoIcon } from "@phosphor-icons/react";
-import { Button } from "./ui/Button";
+
+import { Button } from "~/components/ui/button";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -26,11 +27,9 @@ export function Footer() {
           >
             <GithubLogoIcon size={20} />
           </a>
-          <a href="mailto:hi@vanya2h.me">
-            <Button variant="secondary">
-              <Trans>Send feedback</Trans>
-            </Button>
-          </a>
+          <Button variant="secondary" render={<a href="mailto:hi@vanya2h.me" />}>
+            <Trans>Send feedback</Trans>
+          </Button>
         </div>
       </div>
     </footer>

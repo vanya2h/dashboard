@@ -1,8 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 import { Link, LinkProps } from "react-router";
 import type { CurriculumDef } from "../data/types";
-import { cn } from "../lib/cn";
-import { Meter } from "./ui/Meter";
+
+import { Progress, ProgressLabel, ProgressValue } from "~/components/ui/progress";
+import { cn } from "~/lib/utils";
 
 export type ProgramCardProps = Omit<LinkProps, "to"> & {
   curriculum: CurriculumDef;
@@ -56,7 +57,10 @@ export function ProgramCard({ curriculum, progress, className, ...restProps }: P
       )}
       <div className="relative px-6 py-5 flex-1 flex flex-col justify-between gap-5">
         {description && <p className="text-base text-muted-foreground leading-relaxed line-clamp-2">{description}</p>}
-        <Meter label={t`Progress`} value={progress} showValue />
+        <Progress value={progress}>
+          <ProgressLabel>{t`Progress`}</ProgressLabel>
+          <ProgressValue />
+        </Progress>
       </div>
     </Link>
   );

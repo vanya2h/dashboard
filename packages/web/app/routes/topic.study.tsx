@@ -3,16 +3,17 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
-import { Spinner } from "../../src/components/ui/Spinner";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
-import { cn } from "../../src/lib/cn";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
 import { parsePart, parsePersistedPhase, parsePlan, PART_SYSTEM, PLAN_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.study";
 import type { loader as layoutLoader } from "./topic-layout";
+
+import { Spinner } from "~/components/ui/spinner";
+import { cn } from "~/lib/utils";
 
 const TOKENS_PLAN = 600;
 const TOKENS_PART = 3000;
@@ -223,7 +224,7 @@ export default function StudyPage() {
       {!part && (
         <>
           <div className="flex items-center gap-2 mb-6 text-foreground/40">
-            <Spinner size="sm" />
+            <Spinner />
             <p className="text-sm">
               <Trans>Preparing study material…</Trans>
             </p>

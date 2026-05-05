@@ -2,9 +2,6 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
-import { Button } from "../../src/components/ui/Button";
-import { Textarea } from "../../src/components/ui/Input";
-import { Spinner } from "../../src/components/ui/Spinner";
 import { useProgress } from "../../src/hooks/useProgress";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
@@ -12,6 +9,10 @@ import { parsePersistedPhase, WRITEUP_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.write-up";
+
+import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/ui/spinner";
+import { Textarea } from "~/components/ui/textarea";
 
 const TOKENS_WRITEUP = 250;
 
@@ -95,7 +96,7 @@ export default function WriteUpPage() {
             aria-label={t`Text input`}
           />
           <div className="mt-4">
-            <Button variant="primary" onClick={() => void handleSubmit()} disabled={text.trim().length < 20}>
+            <Button variant="default" onClick={() => void handleSubmit()} disabled={text.trim().length < 20}>
               <Trans>Submit reflection</Trans>
             </Button>
           </div>
@@ -114,14 +115,14 @@ export default function WriteUpPage() {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 <Trans>Tutor feedback</Trans>
               </p>
-              {streaming && <Spinner size="sm" />}
+              {streaming && <Spinner />}
             </div>
             <Markdown isAnimating={streaming}>{feedback}</Markdown>
           </div>
 
           {!streaming && (
             <div className="mt-6">
-              <Button variant="primary" onClick={() => void handleComplete()}>
+              <Button variant="default" onClick={() => void handleComplete()}>
                 <Trans>Complete →</Trans>
               </Button>
             </div>

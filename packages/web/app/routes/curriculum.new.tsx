@@ -1,9 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { CurriculumBuilder } from "../../src/components/CurriculumBuilder";
-import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.new";
+
+import { BreadcrumbItem, BreadcrumbPage } from "~/components/ui/breadcrumb";
 
 export function meta(): Route.MetaDescriptors {
   return [
@@ -19,9 +20,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export const handle: BreadcrumbHandle = {
   breadcrumb: () => (
-    <Breadcrumbs.Current>
-      <Trans>New program</Trans>
-    </Breadcrumbs.Current>
+    <BreadcrumbItem>
+      <BreadcrumbPage>
+        <Trans>New program</Trans>
+      </BreadcrumbPage>
+    </BreadcrumbItem>
   ),
 };
 

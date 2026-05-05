@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { cn } from "../lib/cn";
+
+import { cn } from "~/lib/utils";
 
 type Props = {
   prefix: ReactNode;

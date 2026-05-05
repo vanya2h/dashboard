@@ -1,7 +1,8 @@
 import { Trans } from "@lingui/react/macro";
 import { useNavigate, useParams, useRouteLoaderData } from "react-router";
-import { Button } from "../../src/components/ui/Button";
 import type { loader as layoutLoader } from "./topic-layout";
+
+import { Button } from "~/components/ui/button";
 
 export default function CompletePage() {
   const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
@@ -26,7 +27,7 @@ export default function CompletePage() {
         <Button onClick={() => void navigate(`/curriculum/${curriculumId}`)}>
           <Trans>Back to curriculum</Trans>
         </Button>
-        <Button variant="primary" onClick={() => void navigate("../choice", { relative: "path" })}>
+        <Button variant="default" onClick={() => void navigate("../choice", { relative: "path" })}>
           <Trans>Start over</Trans>
         </Button>
       </div>

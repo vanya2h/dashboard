@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
 import { DotLoader } from "../../src/components/Spinner";
-import { Button } from "../../src/components/ui/Button";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { PhaseByKey } from "../../src/lib/phase";
@@ -11,6 +10,8 @@ import { HANDS_ON_EVAL_SYSTEM, parsePersistedPhase } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.feedback";
+
+import { Button } from "~/components/ui/button";
 
 const TOKENS_HANDS_ON_EVAL = 500;
 
@@ -95,7 +96,7 @@ export default function FeedbackPage() {
 
       {!streaming && feedback && (
         <div className="mt-6">
-          <Button variant="primary" onClick={handleContinue}>
+          <Button variant="default" onClick={handleContinue}>
             <Trans>Move to reflection →</Trans>
           </Button>
         </div>

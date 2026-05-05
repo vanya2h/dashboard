@@ -1,6 +1,6 @@
 # Conditional class names — use cn
 
-Use the `cn` helper (`src/lib/cn.ts`) for any class name composition. It wraps `clsx` with `tailwind-merge`, so conflicting Tailwind utilities later in the list win — letting callers override defaults via `className` cleanly.
+Use the `cn` helper (`src/lib/utils.ts`) for any class name composition. It wraps `clsx` with `tailwind-merge`, so conflicting Tailwind utilities later in the list win — letting callers override defaults via `className` cleanly.
 
 Never use template-literal ternaries for conditional Tailwind classes. Never import `clsx` directly in components — always go through `cn`.
 
@@ -15,4 +15,4 @@ className={cn("base-classes", !condition && "hidden")}
 className={cn("px-4 py-2", className)} // caller's `px-6` overrides default `px-4`
 ```
 
-Import: `import { cn } from "<relative-path>/lib/cn";`
+Import: `import { cn } from "~/lib/utils";`

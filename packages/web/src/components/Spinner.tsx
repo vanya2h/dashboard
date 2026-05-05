@@ -1,7 +1,8 @@
 "use client";
 
 import { ComponentProps, useCallback, useEffect, useRef } from "react";
-import { cn } from "../lib/cn";
+
+import { cn } from "~/lib/utils";
 
 const game = [
   [14, 7, 0, 8, 6, 13, 20],

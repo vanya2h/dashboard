@@ -1,17 +1,26 @@
 import { Trans } from "@lingui/react/macro";
-import { MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { DoorOpenIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
 import { Fragment, useEffect, useState } from "react";
 import { Link, useMatches, useNavigate } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
 import type { BreadcrumbHandle } from "../lib/breadcrumbs";
-import { cn } from "../lib/cn";
 import type { AuthUser } from "../server/auth";
-import { Breadcrumbs } from "./ui/Breadcrumbs";
-import { Button } from "./ui/Button";
-import { Menu } from "./ui/Menu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+
+import { Breadcrumb, BreadcrumbList, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { cn } from "~/lib/utils";
 
 function hashToHue(id: string): number {
   let h = 0;
@@ -29,12 +38,12 @@ function UserAvatar({ user }: { user: AuthUser }) {
   const hue = hashToHue(user.id);
 
   if (user.image) {
-    return <img src={user.image} alt={user.name} className="w-8 h-8 rounded-full object-cover" />;
+    return <img src={user.image} alt={user.name} className="size-8 rounded-full object-cover" />;
   }
 
   return (
     <div
-      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+      className="size-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
       style={{
         background: `linear-gradient(135deg, hsl(${hue}, 65%, 55%), hsl(${(hue + 60) % 360}, 65%, 40%))`,
       }}
@@ -72,55 +81,57 @@ export function Header() {
       <div className="px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <div className="shrink-0">
-            <h1 className="text-lg font-semibold leading-none">
+            <h1 className="text-2xl font-semibold leading-none">
               <Link to="/" className="text-foreground hover:opacity-75 transition-opacity whitespace-nowrap">
                 <Trans>Learning Tracker</Trans>
               </Link>
             </h1>
           </div>
           {crumbs.length > 0 && (
-            <Breadcrumbs.Root>
-              {crumbs.map((crumb, i) => (
-                <Fragment key={i}>
-                  <Breadcrumbs.Separator />
-                  {crumb()}
-                </Fragment>
-              ))}
-            </Breadcrumbs.Root>
+            <Breadcrumb>
+              <BreadcrumbList>
+                {crumbs.map((crumb, i) => (
+                  <Fragment key={i}>
+                    <BreadcrumbSeparator />
+                    {crumb()}
+                  </Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           )}
         </div>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
-          <Link to="/curriculum/new">
-            <Button variant="secondary">
+          <div className="flex items-center gap-2 shrink-0">
+            <Button render={<Link to="/curriculum/new" />}>
               <Trans>New program</Trans>
             </Button>
-          </Link>
-          <LanguageSwitcher />
+            <LanguageSwitcher />
+          </div>
           {user && (
-            <Menu.Root>
-              <Menu.Trigger
+            <DropdownMenu>
+              <DropdownMenuTrigger
                 render={<button className="rounded-full focus:outline-none focus:ring-2 focus:ring-foreground/40" />}
               >
                 <UserAvatar user={user} />
-              </Menu.Trigger>
-              <Menu.Popup>
-                <Menu.Group>
-                  <Menu.GroupLabel>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>
                     <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  </Menu.GroupLabel>
-                </Menu.Group>
-                <Menu.Separator />
-                <Menu.Item onClick={toggle}>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggle} className="whitespace-nowrap">
                   {theme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
                   <Trans>Toggle theme</Trans>
-                </Menu.Item>
-                <Menu.Item onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
+                  <DoorOpenIcon size={14} />
                   <Trans>Sign out</Trans>
-                </Menu.Item>
-              </Menu.Popup>
-            </Menu.Root>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

@@ -5,13 +5,14 @@ import { Link } from "react-router";
 import type { CurriculumDef, Skill } from "../data/types";
 import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useProgress } from "../hooks/useProgress";
-import { cn } from "../lib/cn";
 import { computeUnlockedSkills } from "../lib/skills";
-import { Badge } from "./ui/Badge";
-import { Button } from "./ui/Button";
 import { AnimatedText } from "./AnimatedText";
 import { GradientBackground } from "./GradientBg";
 import { ProgramCard } from "./ProgramCard";
+
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 function calcCurriculumProgress(curriculum: CurriculumDef, completedTaskIds: Record<string, string>) {
   let totalWeight = 0;
@@ -37,7 +38,7 @@ function SkillBadge({ skill, recentlyUnlocked }: { skill: Skill; recentlyUnlocke
         <span className="text-xs font-bold text-green-600 dark:text-green-400">✓</span>
         <span className="text-sm font-semibold leading-snug text-foreground">{skill.name}</span>
         {recentlyUnlocked && (
-          <Badge variant="success" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto">
             <Trans>New</Trans>
           </Badge>
         )}
@@ -134,8 +135,8 @@ export function Dashboard() {
             className="mt-6 text-lg sm:text-xl lg:text-2xl text-foreground/70 max-w-2xl"
           />
           <Button
-            variant="primary"
-            size="base"
+            size="lg"
+            variant="default"
             render={<Link to="/curriculum/new" />}
             className="mt-10 active:scale-[0.98] transition-all animate-fade-rise [animation-delay:1500ms]"
           >
@@ -145,7 +146,7 @@ export function Dashboard() {
       </section>
       <section className="border-b border-border">
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-base font-semibold text-foreground">
+          <h2 className="text-2xl font-semibold text-foreground">
             <Trans>Programs</Trans>
           </h2>
         </div>

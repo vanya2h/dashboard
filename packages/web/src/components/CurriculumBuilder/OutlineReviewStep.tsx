@@ -1,8 +1,9 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import type { CurriculumOutline } from "../../data/types";
-import { cn } from "../../lib/cn";
-import { Button } from "../ui/Button";
+
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 export function OutlineReviewStep({
   outline,

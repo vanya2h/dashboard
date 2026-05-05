@@ -3,9 +3,10 @@ import { CaretDownIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
-import { cn } from "../lib/cn";
-import { Meter } from "./ui/Meter";
 import { TaskRow } from "./TaskRow";
+
+import { Progress, ProgressLabel, ProgressValue } from "~/components/ui/progress";
+import { cn } from "~/lib/utils";
 
 type Props = { phase: Phase; curriculumId: string; index: number };
 
@@ -38,7 +39,10 @@ export function PhaseCard({ phase, curriculumId, index }: Props) {
         </div>
         <div className="flex items-center gap-5 shrink-0">
           <div className="hidden sm:block w-52">
-            <Meter value={pct} label={t`Progress`} showValue />
+            <Progress value={pct}>
+              <ProgressLabel>{t`Progress`}</ProgressLabel>
+              <ProgressValue />
+            </Progress>
           </div>
           <span
             className={cn("text-foreground/40 transition-transform duration-300", open && "rotate-180")}

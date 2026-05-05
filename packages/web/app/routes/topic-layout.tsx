@@ -1,8 +1,6 @@
-import { Outlet, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
-import { redirect } from "react-router";
+import { Link, Outlet, redirect, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { TopicHeader } from "../../src/components/TopicHeader";
 import { TopicSidebar } from "../../src/components/TopicSidebar";
-import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import type { CurriculumDef } from "../../src/data/types";
 import { parseCurriculumDef } from "../../src/data/types";
@@ -14,6 +12,8 @@ import { parsePersistedPhase } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic-layout";
+
+import { BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 
 const PHASE_TO_STAGE_INDEX: Record<string, number> = {
   assessing: 1,
@@ -86,11 +86,13 @@ function TopicBreadcrumb() {
   const { curriculumName, phaseTitle } = data;
   return (
     <>
-      <Breadcrumbs.Link to={`/curriculum/${curriculumId}`}>{curriculumName}</Breadcrumbs.Link>
-      <Breadcrumbs.Separator />
-      <span className="flex min-w-0 max-w-full items-center text-muted-foreground">
+      <BreadcrumbItem>
+        <BreadcrumbLink render={<Link to={`/curriculum/${curriculumId}`} />}>{curriculumName}</BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem className="text-muted-foreground">
         <span className="truncate">{phaseTitle}</span>
-      </span>
+      </BreadcrumbItem>
     </>
   );
 }

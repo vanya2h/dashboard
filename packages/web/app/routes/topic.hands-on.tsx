@@ -3,14 +3,15 @@ import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
 import { DotLoader } from "../../src/components/Spinner";
-import { Button } from "../../src/components/ui/Button";
-import { Textarea } from "../../src/components/ui/Input";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { parsePersistedPhase, TASK_SOLUTION_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.hands-on";
+
+import { Button } from "~/components/ui/button";
+import { Textarea } from "~/components/ui/textarea";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireSession(request);
@@ -132,7 +133,7 @@ export default function HandsOnPage() {
         ))}
 
         <div>
-          <Button variant="primary" disabled={!allAnswered} onClick={() => void handleSubmit()}>
+          <Button variant="default" disabled={!allAnswered} onClick={() => void handleSubmit()}>
             <Trans>Submit for feedback →</Trans>
           </Button>
         </div>

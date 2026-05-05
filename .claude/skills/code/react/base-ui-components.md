@@ -1,75 +1,51 @@
-# Use Base UI components
+# Use shadcn/ui components
 
-UI primitives come from [Base UI](https://base-ui.com) — unstyled, accessible React headless components. The package is `@base-ui-components/react` (note: not `@base-ui/react` as some older docs show).
+UI primitives come from **shadcn/ui** with the `base-nova` style — built on top of [Base UI](https://base-ui.com) (`@base-ui/react`). Components live in `packages/web/src/components/ui/` as kebab-case files (`button.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, etc.).
 
-## Step 1 — check for an existing local wrapper
+## Step 1 — check for an existing component
 
-Local styled wrappers live in [packages/web/src/components/ui/](packages/web/src/components/ui/). Always check there first:
+Look in [packages/web/src/components/ui/](packages/web/src/components/ui/) first. The components currently installed are:
 
 ```
-Badge, Breadcrumbs, Button, Dialog, Input, Menu, Meter, Spinner
+badge, breadcrumb, button, dialog, dropdown-menu, input, progress, spinner, textarea
 ```
 
-Prefer these over importing Base UI directly — they encode the project's Tailwind theme (focus rings, borders, transitions, dark/light tokens).
+Run `pnpm dlx shadcn@latest info -c packages/web --json` to see the live list.
 
-## Step 2 — if no wrapper exists, add one
+## Step 2 — adding a new component
 
-Don't sprinkle raw `@base-ui-components/react/*` imports across feature components. Add a thin wrapper under `src/components/ui/<Name>.tsx` that:
+Use the shadcn CLI scoped to the workspace:
 
-- Imports the primitive from its sub-path: `import { Dialog as BaseDialog } from "@base-ui-components/react/dialog"`
-- Exports a single object grouping the sub-components, or a single component for atomic primitives
-- Uses `clsx("base classes", className)` to merge incoming `className`
-- Spreads `...props` (and types props as `ComponentProps<typeof BasePrimitive.X>`) so callers can pass any Base UI prop
-
-Example pattern (atomic — `Button.tsx`):
-
-```tsx
-import { Button as BaseButton } from "@base-ui-components/react/button";
-import clsx from "clsx";
-import type { ComponentProps } from "react";
-
-type ButtonProps = ComponentProps<typeof BaseButton> & { variant?: Variant; size?: Size };
-
-export function Button({ variant = "secondary", size = "sm", className, ...props }: ButtonProps) {
-  return <BaseButton className={clsx("base", VARIANTS[variant], SIZES[size], className)} {...props} />;
-}
+```bash
+pnpm dlx shadcn@latest add <component> -c packages/web
 ```
 
-Example pattern (composite — `Dialog.tsx`):
+The CLI writes to `~/components/ui/<component>.tsx`, uses `~/lib/utils` for `cn`, and resolves icons from `lucide-react`. It also installs any required dependencies.
 
-```tsx
-import { Dialog as BaseDialog } from "@base-ui-components/react/dialog";
+After adding, **read the generated file** and verify it follows the project's conventions before using it. Replace icon imports if the registry-default doesn't match the project (we use `lucide-react`).
 
-const Root = BaseDialog.Root;
-const Trigger = BaseDialog.Trigger;
-const Close = BaseDialog.Close;
+## Step 3 — never write a wrapper around a shadcn component
 
-function Popup({ children, className, ...props }: ComponentProps<typeof BaseDialog.Popup>) {
-  return (
-    <BaseDialog.Portal>
-      <BaseDialog.Backdrop className="..." />
-      <BaseDialog.Popup className={clsx("base classes", className)} {...props}>{children}</BaseDialog.Popup>
-    </BaseDialog.Portal>
-  );
-}
+Use shadcn components directly from feature files. Do not create thin wrappers in `src/components/ui/` — that's the shadcn folder, owned by the CLI. If you need to extend a component:
 
-export const Dialog = { Root, Trigger, Close, Popup, Title, Description };
-```
+- For class overrides, pass `className` at the call site (it merges via `cn`).
+- For variants the registry doesn't ship, edit the component's CVA `variants` block in place — that's how shadcn is meant to be customized.
 
 ## Polymorphism — use the `render` prop, not wrapping
 
-Every Base UI component (and our wrappers built on top) accepts a `render` prop. To turn a `Button` into a router link, pass a React Router `<Link>` to `render`:
+Every shadcn component built on Base UI accepts a `render` prop. To turn a `Button` into a router link, pass a React Router `<Link>` to `render`:
 
 ```tsx
-<Button variant="primary" render={<Link to="/curriculum/new" />}>
+<Button variant="default" render={<Link to="/curriculum/new" />}>
   <Trans>New Program</Trans>
 </Button>
 ```
 
-Use the same pattern for `Menu.Trigger`, `Tabs.Tab`, `Dialog.Trigger`, etc. when you need them rendered as a different element/component:
+Use the same pattern for `DropdownMenuTrigger`, `Tabs.Tab`, `DialogTrigger`, etc. when you need them rendered as a different element/component:
 
 ```tsx
-<Menu.Trigger render={<Button />}>Open</Menu.Trigger>
+<DropdownMenuTrigger render={<Button variant="ghost" />}>Open</DropdownMenuTrigger>
+<DialogTrigger render={<Button variant="secondary" />}>Open dialog</DialogTrigger>
 ```
 
 For dynamic render based on internal state, pass a function:
@@ -78,19 +54,27 @@ For dynamic render based on internal state, pass a function:
 <Tabs.Tab render={(p) => <Link to="/foo" {...p} />} />
 ```
 
-**Never** wrap `<Link>` around `<Button>` — that produces invalid HTML (`<a><button>`). **Never** use `onClick={() => navigate(...)}` on a button for navigation — use `render={<Link />}` instead.
+**Never** wrap `<Link>` (or `<a>`) around a `<Button>` — that produces invalid HTML (`<a><button>`). **Never** use `onClick={() => navigate(...)}` on a button for navigation — use `render={<Link />}` instead.
 
-## Available Base UI primitives
+## Component variants
 
-If a primitive doesn't exist locally yet, check Base UI before building from scratch. Available components:
+Default shadcn variants the project uses today:
 
-- **Forms:** Button, Checkbox, Checkbox Group, Input, Radio, Switch, Toggle, Toggle Group, OTP Field, Number Field, Field, Fieldset, Form
-- **Selection:** Select, Combobox, Autocomplete, Slider
-- **Indicators:** Progress, Meter, Avatar, Separator, Tooltip, Preview Card
-- **Containers:** Accordion, Collapsible, Tabs, Toolbar, Scroll Area
-- **Overlays:** Dialog, Alert Dialog, Drawer, Popover, Toast, Menu, Context Menu, Menubar, Navigation Menu
+- **Button**: `variant` = `default | destructive | outline | secondary | ghost | link`; `size` = `default | xs | sm | lg | icon | icon-xs | icon-sm | icon-lg`
+- **Badge**: `variant` = `default | secondary | destructive | outline | ghost | link`
 
-Docs: `https://base-ui.com/react/components/<name>` — e.g. `/dialog`, `/menu`, `/meter`.
+Use `default` (not `primary`) for the main call-to-action; use `secondary` for non-primary actions; use `destructive` for irreversible actions.
+
+## Available registry components
+
+If a component isn't installed yet, browse the registry first:
+
+```bash
+pnpm dlx shadcn@latest search -c packages/web -q "<keyword>"
+pnpm dlx shadcn@latest docs -c packages/web <component>
+```
+
+Categories: Button, Checkbox, Input, Select, Combobox, Switch, Toggle, OTP Field, Number Field, Field, Fieldset, Form, Slider, Progress, Avatar, Separator, Tooltip, Hover Card, Accordion, Collapsible, Tabs, Toolbar, Scroll Area, Dialog, Alert Dialog, Drawer, Popover, Toast, Dropdown Menu, Context Menu, Menubar, Navigation Menu, Breadcrumb, Pagination, Sidebar, Card, Table, Chart, Empty, Skeleton, Spinner, Alert.
 
 ## Animation states
 
@@ -98,5 +82,6 @@ Base UI exposes lifecycle data attributes on portaled/animated parts. Use these 
 
 - `data-[starting-style]` — applied while the element is mounting
 - `data-[ending-style]` — applied while the element is closing
+- `data-open` / `data-closed` — open/closed state for overlays
 
-Example: `data-[ending-style]:opacity-0 data-[starting-style]:opacity-0` on `Backdrop` / `Popup`.
+shadcn components ship with these wired up. If you need to tweak the animation, edit the classes in the shadcn component file directly.

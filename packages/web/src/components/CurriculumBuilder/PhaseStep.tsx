@@ -1,10 +1,11 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import type { OutlinePhase, Phase, Task } from "../../data/types";
-import { cn } from "../../lib/cn";
-import { Button } from "../ui/Button";
-import { Spinner } from "../ui/Spinner";
 import { BuilderTaskRow } from "./BuilderTaskRow";
+
+import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/ui/spinner";
+import { cn } from "~/lib/utils";
 
 export function PhaseStep({
   selectedPhases,
@@ -64,7 +65,7 @@ export function PhaseStep({
       {isGeneratingThis && !generatedPhase && (
         <>
           <div className="flex items-center gap-2 mb-4 text-foreground/40">
-            <Spinner size="sm" />
+            <Spinner />
             <p className="text-sm">
               <Trans>Generating phase...</Trans>
             </p>
