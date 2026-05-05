@@ -43,6 +43,7 @@ export default function StudyPage() {
 
   const task = layoutData?.task;
   const curriculumName = layoutData?.curriculumName;
+  const complexity = layoutData?.complexity;
 
   const [material, setMaterial] = useState<Material | null>(loaderData.name === "study" ? loaderData.material : null);
   const [partIdx, setPartIdx] = useState(loaderData.name === "study" ? loaderData.partIdx : 0);
@@ -64,6 +65,7 @@ export default function StudyPage() {
     const userMsg = [
       `Topic: "${task?.title}"`,
       `Curriculum: ${curriculumName}`,
+      complexity ? `Complexity: ${complexity}` : null,
       mat.assessmentContext ? `Assessment context: ${mat.assessmentContext}` : null,
       ``,
       `Generate part ${idx + 1} of ${mat.plan.partPlans.length}: "${partPlan.title}"`,
@@ -116,9 +118,10 @@ export default function StudyPage() {
     const ctrl = newAbort();
     const assessmentContext = loaderData.name === "gaps-review" ? loaderData.context : undefined;
 
+    const complexityLine = complexity ? `\nComplexity: ${complexity}` : "";
     const userMsg = assessmentContext
-      ? `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}\n\nAssessment context: ${assessmentContext}`
-      : `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}`;
+      ? `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}${complexityLine}\n\nAssessment context: ${assessmentContext}`
+      : `Plan a study session for: "${task.title}"\nCurriculum: ${curriculumName}${complexityLine}`;
 
     try {
       const text = await streamAI(PLAN_SYSTEM, userMsg, () => {}, TOKENS_PLAN, ctrl.signal);

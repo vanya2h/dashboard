@@ -32,7 +32,7 @@ function findTask(curriculums: CurriculumDef[], taskId: string) {
   for (const c of curriculums) {
     for (const p of c.phases) {
       for (const t of p.tasks) {
-        if (t.id === taskId) return { task: t, curriculumName: c.name };
+        if (t.id === taskId) return { task: t, curriculumName: c.name, complexity: c.complexity };
       }
     }
   }

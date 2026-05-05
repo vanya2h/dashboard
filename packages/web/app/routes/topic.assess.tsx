@@ -44,6 +44,7 @@ export default function AssessPage() {
 
   const task = layoutData?.task;
   const curriculumName = layoutData?.curriculumName;
+  const complexity = layoutData?.complexity;
 
   async function generateQuestions() {
     if (!task) return;
@@ -56,7 +57,7 @@ export default function AssessPage() {
     try {
       const text = await askAI(
         ASSESSMENT_SYSTEM,
-        `Topic: "${task.title}"\nCurriculum: ${curriculumName}`,
+        `Topic: "${task.title}"\nCurriculum: ${curriculumName}${complexity ? `\nComplexity: ${complexity}` : ""}`,
         TOKENS_ASSESSMENT,
         ctrl.signal,
       );
