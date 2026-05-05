@@ -1,10 +1,7 @@
 import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
-import { Button } from "@cloudflare/kumo/components/button";
-import { Dialog } from "@cloudflare/kumo/components/dialog";
-import { Text } from "@cloudflare/kumo/components/text";
-import { Trans } from "@lingui/react/macro";
 import { Outlet, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { redirect } from "react-router";
+import { TopicHeader } from "../../src/components/TopicHeader";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import type { CurriculumDef } from "../../src/data/types";
 import { parseCurriculumDef } from "../../src/data/types";
@@ -95,61 +92,7 @@ export default function TopicLayout() {
 
   return (
     <>
-      <header className="flex items-center gap-4 px-6 py-4 border-b border-border bg-background">
-        <Button size="sm" onClick={goBack}>
-          <Trans>← Back</Trans>
-        </Button>
-        <div className="min-w-0">
-          <Text variant="heading3" as="h1">
-            {task.title}
-          </Text>
-          <p className="text-xs text-muted-foreground">{curriculumName}</p>
-        </div>
-        <div className="ml-auto shrink-0">
-          <Dialog.Root>
-            <Dialog.Trigger
-              render={(p) => (
-                <Button size="sm" {...p}>
-                  <Trans>Start over</Trans>
-                </Button>
-              )}
-            />
-            <Dialog size="sm" className="p-8">
-              <div className="mb-4">
-                <Dialog.Title className="text-xl font-semibold">
-                  <Trans>Start over?</Trans>
-                </Dialog.Title>
-              </div>
-              <Dialog.Description className="text-muted-foreground">
-                <Trans>Your current progress on this topic will be reset.</Trans>
-              </Dialog.Description>
-              <div className="mt-6 flex justify-end gap-2">
-                <Dialog.Close
-                  render={(props) => (
-                    <Button variant="secondary" {...props}>
-                      <Trans>Cancel</Trans>
-                    </Button>
-                  )}
-                />
-                <Dialog.Close
-                  render={(props) => (
-                    <Button
-                      variant="destructive"
-                      {...props}
-                      onClick={(e) => {
-                        startOver();
-                        props.onClick?.(e);
-                      }}
-                    >
-                      <Trans>Start over</Trans>
-                    </Button>
-                  )}
-                />
-              </div>
-            </Dialog>
-          </Dialog.Root>
-        </div>
-      </header>
+      <TopicHeader taskTitle={task.title} curriculumName={curriculumName} onBack={goBack} onStartOver={startOver} />
       <Outlet />
     </>
   );

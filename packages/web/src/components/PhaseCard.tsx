@@ -1,14 +1,13 @@
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Meter } from "@cloudflare/kumo/components/meter";
-import { Text } from "@cloudflare/kumo/components/text";
 import { useLingui } from "@lingui/react/macro";
-import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react";
+import clsx from "clsx";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
 import { TaskRow } from "./TaskRow";
 
-type Props = { phase: Phase; curriculumId: string };
+type Props = { phase: Phase; curriculumId: string; index: number };
 
 function phaseProgress(tasks: Task[], completedTaskIds: Record<string, string>) {
   const total = tasks.reduce((s, t) => s + (t.estMinutes ?? 60), 0);
@@ -17,7 +16,7 @@ function phaseProgress(tasks: Task[], completedTaskIds: Record<string, string>) 
   return Math.round((done / total) * 100);
 }
 
-export function PhaseCard({ phase, curriculumId }: Props) {
+export function PhaseCard({ phase, curriculumId, index }: Props) {
   const [open, setOpen] = useState(true);
   const { completedTaskIds } = useProgress();
   const { t } = useLingui();
@@ -25,39 +24,41 @@ export function PhaseCard({ phase, curriculumId }: Props) {
   const pct = phaseProgress(phase.tasks, completedTaskIds);
 
   return (
-    <LayerCard className="overflow-hidden">
-      <LayerCard.Secondary>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="w-full flex items-center justify-between px-4 py-3 text-left transition-colors cursor-pointer"
-          aria-expanded={open}
-        >
-          <div className="flex-1 min-w-0">
-            <Text variant="heading3">{phase.title}</Text>
-            <div className="mt-1">
-              <Text variant="secondary" size="xs">
-                {phase.subtitle}
-              </Text>
-            </div>
+    <div className="border-b border-border">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="group w-full flex items-center justify-between gap-6 px-6 py-6 text-left transition-colors cursor-pointer hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30"
+        aria-expanded={open}
+      >
+        <div className="flex-1 min-w-0">
+          <h3 className="text-2xl font-semibold text-foreground leading-tight">
+            <span className="text-foreground/50">{formatIndex(++index)}</span>. {phase.title}
+          </h3>
+          <p className="mt-1.5 text-base text-muted-foreground leading-relaxed">{phase.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-5 shrink-0">
+          <div className="hidden sm:block w-52">
+            <Meter value={pct} label={t`Progress`} showValue />
           </div>
-          <div className="flex items-center gap-3 ml-4">
-            <div className="w-52">
-              <Meter value={pct} label={t`Progress`} showValue />
-            </div>
-            <span className="text-foreground/40">{open ? <CaretUpIcon size={14} /> : <CaretDownIcon size={14} />}</span>
-          </div>
-        </button>
-      </LayerCard.Secondary>
-
+          <span
+            className={clsx("text-foreground/40 transition-transform duration-300", open && "rotate-180")}
+            aria-hidden
+          >
+            <CaretDownIcon size={18} weight="bold" />
+          </span>
+        </div>
+      </button>
       {open && (
-        <LayerCard.Primary>
-          <div className="px-4 pb-3">
-            {phase.tasks.map((task) => (
-              <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
-            ))}
-          </div>
-        </LayerCard.Primary>
+        <div className="border-t border-border px-6 pt-2 pb-4">
+          {phase.tasks.map((task) => (
+            <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
+          ))}
+        </div>
       )}
-    </LayerCard>
+    </div>
   );
+}
+
+function formatIndex(index: number) {
+  return index < 10 ? `0${index}` : `${index}`;
 }
