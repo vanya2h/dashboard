@@ -18,7 +18,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-4">
           <a
-            href="https://github.com/vanya2h/dashboard"
+            href="https://github.com/vanya2h/learn"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
