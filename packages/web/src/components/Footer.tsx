@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { GithubLogoIcon } from "@phosphor-icons/react";
 import { Button } from "./ui/Button";
 
 export function Footer() {
@@ -15,11 +16,22 @@ export function Footer() {
             <Trans>Beta</Trans>
           </span>
         </div>
-        <a href="mailto:hi@vanya2h.me">
-          <Button variant="secondary">
-            <Trans>Send feedback</Trans>
-          </Button>
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://github.com/vanya2h/dashboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <GithubLogoIcon size={20} />
+          </a>
+          <a href="mailto:hi@vanya2h.me">
+            <Button variant="secondary">
+              <Trans>Send feedback</Trans>
+            </Button>
+          </a>
+        </div>
       </div>
     </footer>
   );

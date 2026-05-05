@@ -39,15 +39,13 @@ pnpm --filter web run db:studio   # Prisma Studio UI
 
 ## Monorepo Structure
 
-Turborepo + pnpm workspaces. Three packages under `packages/`:
+Turborepo + pnpm workspaces. One package under `packages/`:
 
-| Package      | Purpose                                                     |
-| ------------ | ----------------------------------------------------------- |
-| `web`        | Full-stack app — React Router v7 (SSR) + Hono API + Prisma  |
-| `job-search` | CLI — fetches job leads from TheirStack API                 |
-| `cv`         | CLI — generates PDF CV/cover letters via React PDF Renderer |
+| Package | Purpose                                                    |
+| ------- | ---------------------------------------------------------- |
+| `web`   | Full-stack app — React Router v7 (SSR) + Hono API + Prisma |
 
-Environment variables are loaded from a root `.env` file (see `.env.example`). Required vars: `DATABASE_URL`, `BETTER_AUTH_API_KEY`, `BETTER_AUTH_URL`, `ANTHROPIC_API_KEY`, `THEIRSTACK_API_KEY`.
+Environment variables are loaded from a root `.env` file (see `.env.example`). Required vars: `DATABASE_URL`, `BETTER_AUTH_API_KEY`, `BETTER_AUTH_URL`, `ANTHROPIC_API_KEY`.
 
 ## Web Package Architecture
 
