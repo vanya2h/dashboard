@@ -1,6 +1,6 @@
-import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
 import { Trans } from "@lingui/react/macro";
 import { CurriculumBuilder } from "../../src/components/CurriculumBuilder";
+import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.new";

@@ -1,10 +1,9 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { Loader } from "@cloudflare/kumo/components/loader";
 import { Trans } from "@lingui/react/macro";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
+import { Button } from "../../src/components/ui/Button";
+import { Spinner } from "../../src/components/ui/Spinner";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { PhaseByKey } from "../../src/lib/phase";
@@ -75,24 +74,24 @@ export default function FeedbackPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      <LayerCard className="p-4">
+      <div className="border border-border bg-background p-4">
         <div className="flex items-center gap-2 mb-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             <Trans>Feedback</Trans>
           </p>
-          {streaming && <Loader size="sm" />}
+          {streaming && <Spinner size="sm" />}
         </div>
         {feedback || streaming ? (
           <Markdown isAnimating={streaming}>{feedback}</Markdown>
         ) : (
           <div className="flex items-center gap-2 text-foreground/40">
-            <Loader size="sm" />
+            <Spinner size="sm" />
             <p className="text-sm">
               <Trans>Evaluating your answers…</Trans>
             </p>
           </div>
         )}
-      </LayerCard>
+      </div>
 
       {!streaming && feedback && (
         <div className="mt-6">

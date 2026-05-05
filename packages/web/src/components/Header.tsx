@@ -1,7 +1,3 @@
-import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
-import { buttonVariants } from "@cloudflare/kumo/components/button";
-import { DropdownMenu } from "@cloudflare/kumo/components/dropdown";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
 import { MoonIcon, SunIcon } from "@phosphor-icons/react";
 import { Fragment } from "react";
@@ -11,6 +7,8 @@ import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
 import type { BreadcrumbHandle } from "../lib/breadcrumbs";
 import type { AuthUser } from "../server/auth";
+import { Breadcrumbs } from "./ui/Breadcrumbs";
+import { Menu } from "./ui/Menu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 function hashToHue(id: string): number {
@@ -59,53 +57,56 @@ export function Header() {
       <div className="px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <div className="shrink-0">
-            <Text variant="heading2" as="h1">
+            <h1 className="text-lg font-semibold leading-none">
               <Link to="/" className="text-foreground hover:opacity-75 transition-opacity whitespace-nowrap">
                 <Trans>Learning Tracker</Trans>
               </Link>
-            </Text>
+            </h1>
           </div>
           {crumbs.length > 0 && (
-            <Breadcrumbs size="sm">
+            <Breadcrumbs.Root>
               {crumbs.map((crumb, i) => (
                 <Fragment key={i}>
                   <Breadcrumbs.Separator />
                   {crumb()}
                 </Fragment>
               ))}
-            </Breadcrumbs>
+            </Breadcrumbs.Root>
           )}
         </div>
 
-        <div className="flex items-center gap-6 text-sm text-muted-foreground shrink-0">
-          <Link to="/curriculum/new" className={buttonVariants({ variant: "primary", size: "sm" })}>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
+          <Link
+            to="/curriculum/new"
+            className="inline-flex items-center justify-center h-9 px-3.5 text-sm font-medium bg-foreground text-background hover:opacity-90 transition-colors"
+          >
             <Trans>New program</Trans>
           </Link>
           <LanguageSwitcher />
           {user && (
-            <DropdownMenu>
-              <DropdownMenu.Trigger
+            <Menu.Root>
+              <Menu.Trigger
                 render={<button className="rounded-full focus:outline-none focus:ring-2 focus:ring-foreground/40" />}
               >
                 <UserAvatar user={user} />
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
-                <DropdownMenu.Group>
-                  <DropdownMenu.Label>
+              </Menu.Trigger>
+              <Menu.Popup>
+                <Menu.Group>
+                  <Menu.GroupLabel>
                     <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  </DropdownMenu.Label>
-                </DropdownMenu.Group>
-                <DropdownMenu.Separator />
-                <DropdownMenu.Item onClick={toggle}>
+                  </Menu.GroupLabel>
+                </Menu.Group>
+                <Menu.Separator />
+                <Menu.Item onClick={toggle}>
                   {theme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
                   <Trans>Toggle theme</Trans>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
+                </Menu.Item>
+                <Menu.Item onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
                   <Trans>Sign out</Trans>
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu>
+                </Menu.Item>
+              </Menu.Popup>
+            </Menu.Root>
           )}
         </div>
       </div>

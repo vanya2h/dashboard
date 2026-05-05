@@ -1,7 +1,7 @@
-import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
 import { Outlet, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { redirect } from "react-router";
 import { TopicHeader } from "../../src/components/TopicHeader";
+import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import type { CurriculumDef } from "../../src/data/types";
 import { parseCurriculumDef } from "../../src/data/types";
@@ -66,7 +66,7 @@ function TopicBreadcrumb() {
   const { curriculumName, phaseTitle } = data;
   return (
     <>
-      <Breadcrumbs.Link href={`/curriculum/${curriculumId}`}>{curriculumName}</Breadcrumbs.Link>
+      <Breadcrumbs.Link to={`/curriculum/${curriculumId}`}>{curriculumName}</Breadcrumbs.Link>
       <Breadcrumbs.Separator />
       <span className="flex min-w-0 max-w-full items-center text-muted-foreground">
         <span className="truncate">{phaseTitle}</span>

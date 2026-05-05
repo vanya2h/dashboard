@@ -1,10 +1,9 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { Loader } from "@cloudflare/kumo/components/loader";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import type { OutlinePhase, Phase, Task } from "../../data/types";
+import { Button } from "../ui/Button";
+import { Spinner } from "../ui/Spinner";
 import { BuilderTaskRow } from "./BuilderTaskRow";
 
 export function PhaseStep({
@@ -57,17 +56,13 @@ export function PhaseStep({
         </Button>
       </div>
 
-      <div className="mb-1">
-        <Text variant="heading2" as="h2">
-          {outlinePhase.title}
-        </Text>
-      </div>
+      <h2 className="text-2xl font-semibold text-foreground mb-1">{outlinePhase.title}</h2>
       <p className="text-sm text-muted-foreground mb-6">{outlinePhase.subtitle}</p>
 
       {isGeneratingThis && !generatedPhase && (
         <>
           <div className="flex items-center gap-2 mb-4 text-foreground/40">
-            <Loader size="sm" />
+            <Spinner size="sm" />
             <p className="text-sm">
               <Trans>Generating phase...</Trans>
             </p>

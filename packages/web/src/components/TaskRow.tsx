@@ -1,4 +1,3 @@
-import { Button } from "@cloudflare/kumo/components/button";
 import { Trans, useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
 import { parseResponse } from "hono/client";
@@ -7,6 +6,7 @@ import type { Task } from "../data/curriculum";
 import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
+import { Button } from "./ui/Button";
 
 function useSessionLabel(session: ActiveSession): string {
   const { t } = useLingui();

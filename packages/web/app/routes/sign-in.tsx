@@ -1,4 +1,3 @@
-import { Text } from "@cloudflare/kumo/components/text";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "react-hook-form";
@@ -57,9 +56,9 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          <Text variant="heading1" as="h1">
+          <h1 className="text-3xl font-semibold text-foreground">
             <Trans>Learning Tracker</Trans>
-          </Text>
+          </h1>
           <p className="mt-2 text-sm text-foreground/40">
             <Trans>Sign in to your account</Trans>
           </p>

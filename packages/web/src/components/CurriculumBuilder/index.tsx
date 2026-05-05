@@ -1,6 +1,5 @@
-import { Loader } from "@cloudflare/kumo/components/loader";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
+import { Spinner } from "../ui/Spinner";
 import { InputModePicker, PdfInput, UrlInput } from "./InputStep";
 import { OutlineReviewStep } from "./OutlineReviewStep";
 import { PhaseStep } from "./PhaseStep";
@@ -62,11 +61,9 @@ export function CurriculumBuilder() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <div className="mb-6">
-        <Text variant="heading2" as="h1">
-          <Trans>Create new program</Trans>
-        </Text>
-      </div>
+      <h1 className="text-2xl font-semibold text-foreground mb-6">
+        <Trans>Create new program</Trans>
+      </h1>
 
       {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
@@ -123,7 +120,7 @@ export function CurriculumBuilder() {
 
       {step === "saving" && (
         <div className="mt-6 flex items-center gap-2">
-          <Loader size="sm" />
+          <Spinner size="sm" />
           <span className="text-sm text-muted-foreground">
             <Trans>Saving...</Trans>
           </span>

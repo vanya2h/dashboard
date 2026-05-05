@@ -1,8 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap");
-@source "../node_modules/@cloudflare/kumo/dist/**/*.{js,jsx,ts,tsx}";
 @source "../node_modules/streamdown/dist/*.js";
 @source "../node_modules/@streamdown/code/dist/*.js";
-@import "@cloudflare/kumo/styles/tailwind";
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 @import "streamdown/styles.css";

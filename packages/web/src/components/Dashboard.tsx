@@ -1,5 +1,3 @@
-import { Badge } from "@cloudflare/kumo/components/badge";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans, useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
 import { useMemo } from "react";
@@ -8,6 +6,8 @@ import type { CurriculumDef, Skill } from "../data/types";
 import { useAllCurriculums } from "../hooks/useAllCurriculums";
 import { useProgress } from "../hooks/useProgress";
 import { computeUnlockedSkills } from "../lib/skills";
+import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
 import { AnimatedText } from "./AnimatedText";
 import { GradientBackground } from "./GradientBg";
 import { ProgramCard } from "./ProgramCard";
@@ -70,9 +70,9 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   return (
     <section className="border-b border-border">
       <div className="px-6 py-4 border-b border-border">
-        <Text variant="heading3" as="h2">
+        <h2 className="text-base font-semibold text-foreground">
           <Trans>Skills</Trans>
-        </Text>
+        </h2>
       </div>
       <div className="flex flex-col">
         {curriculumsWithUnlockedSkills.map((curriculum, idx) => (
@@ -132,19 +132,21 @@ export function Dashboard() {
             delay={500}
             className="mt-6 text-lg sm:text-xl lg:text-2xl text-white/70 max-w-2xl"
           />
-          <Link
-            to="/curriculum/new"
-            className="mt-10 inline-flex items-center justify-center px-5 py-2.5 bg-white text-neutral-900 text-sm font-medium rounded-md hover:bg-white/90 active:scale-[0.98] transition-all animate-fade-rise [animation-delay:1500ms]"
+          <Button
+            variant="on-dark"
+            size="base"
+            render={<Link to="/curriculum/new" />}
+            className="mt-10 active:scale-[0.98] transition-all animate-fade-rise [animation-delay:1500ms]"
           >
             <Trans>New Program</Trans>
-          </Link>
+          </Button>
         </div>
       </section>
       <section className="border-b border-border">
         <div className="px-6 py-4 border-b border-border">
-          <Text variant="heading3" as="h2">
+          <h2 className="text-base font-semibold text-foreground">
             <Trans>Programs</Trans>
-          </Text>
+          </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {allCurriculums.map((curriculum) => (

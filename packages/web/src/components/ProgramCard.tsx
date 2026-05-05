@@ -1,8 +1,8 @@
-import { Meter } from "@cloudflare/kumo/components/meter";
 import { useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
 import { Link } from "react-router";
 import type { CurriculumDef } from "../data/types";
+import { Meter } from "./ui/Meter";
 
 type Props = {
   curriculum: CurriculumDef;

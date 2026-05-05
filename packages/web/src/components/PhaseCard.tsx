@@ -1,10 +1,10 @@
-import { Meter } from "@cloudflare/kumo/components/meter";
 import { useLingui } from "@lingui/react/macro";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useState } from "react";
 import type { Phase, Task } from "../data/curriculum";
 import { useProgress } from "../hooks/useProgress";
+import { Meter } from "./ui/Meter";
 import { TaskRow } from "./TaskRow";
 
 type Props = { phase: Phase; curriculumId: string; index: number };

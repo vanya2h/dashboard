@@ -1,11 +1,10 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { InputArea } from "@cloudflare/kumo/components/input";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { Loader } from "@cloudflare/kumo/components/loader";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
+import { Button } from "../../src/components/ui/Button";
+import { Textarea } from "../../src/components/ui/Input";
+import { Spinner } from "../../src/components/ui/Spinner";
 import { useProgress } from "../../src/hooks/useProgress";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
@@ -88,13 +87,12 @@ export default function WriteUpPage() {
 
       {!feedback && !streaming && (
         <>
-          <InputArea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t`Write your reflection in your own words…`}
             rows={5}
             aria-label={t`Text input`}
-            className="w-full"
           />
           <div className="mt-4">
             <Button variant="primary" onClick={() => void handleSubmit()} disabled={text.trim().length < 20}>
@@ -111,15 +109,15 @@ export default function WriteUpPage() {
           </div>
           <p className="text-sm text-muted-foreground mb-4 whitespace-pre-wrap">{text}</p>
 
-          <LayerCard className="p-4">
+          <div className="border border-border bg-background p-4">
             <div className="flex items-center gap-2 mb-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 <Trans>Tutor feedback</Trans>
               </p>
-              {streaming && <Loader size="sm" />}
+              {streaming && <Spinner size="sm" />}
             </div>
             <Markdown isAnimating={streaming}>{feedback}</Markdown>
-          </LayerCard>
+          </div>
 
           {!streaming && (
             <div className="mt-6">

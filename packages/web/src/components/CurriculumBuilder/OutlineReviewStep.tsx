@@ -1,9 +1,8 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import type { CurriculumOutline } from "../../data/types";
+import { Button } from "../ui/Button";
 
 export function OutlineReviewStep({
   outline,
@@ -22,11 +21,7 @@ export function OutlineReviewStep({
     <div className="mt-6 flex flex-col gap-6">
       <div className="flex items-start justify-between">
         <div>
-          <div className="mb-1">
-            <Text variant="heading3" as="h2">
-              {outline.name}
-            </Text>
-          </div>
+          <h2 className="text-lg font-semibold text-foreground mb-1">{outline.name}</h2>
           {outline.description && <p className="text-sm text-muted-foreground">{outline.description}</p>}
         </div>
         <Button size="sm" type="button" onClick={onStartOver}>

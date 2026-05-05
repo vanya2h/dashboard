@@ -1,11 +1,10 @@
-import { Loader } from "@cloudflare/kumo/components/loader";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
+import { Spinner } from "../../src/components/ui/Spinner";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
@@ -219,16 +218,12 @@ export default function StudyPage() {
         </p>
       </div>
 
-      <div className="mb-6">
-        <Text variant="heading2" as="h2">
-          {partPlan?.title ?? ""}
-        </Text>
-      </div>
+      <h2 className="text-2xl font-semibold text-foreground mb-6">{partPlan?.title ?? ""}</h2>
 
       {!part && (
         <>
           <div className="flex items-center gap-2 mb-6 text-foreground/40">
-            <Loader size="sm" />
+            <Spinner size="sm" />
             <p className="text-sm">
               <Trans>Preparing study material…</Trans>
             </p>

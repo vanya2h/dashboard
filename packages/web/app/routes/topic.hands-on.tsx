@@ -1,11 +1,10 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { InputArea } from "@cloudflare/kumo/components/input";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { Loader } from "@cloudflare/kumo/components/loader";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
+import { Button } from "../../src/components/ui/Button";
+import { Textarea } from "../../src/components/ui/Input";
+import { Spinner } from "../../src/components/ui/Spinner";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { parsePersistedPhase, TASK_SOLUTION_SYSTEM } from "../../src/lib/phase";
@@ -91,7 +90,7 @@ export default function HandsOnPage() {
       <div className="flex flex-col gap-6">
         {part.handsOn.map((taskItem, i) => (
           <div key={i} className="flex flex-col gap-3">
-            <LayerCard className="p-4">
+            <div className="border border-border bg-background p-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 <Trans>Task {i + 1}</Trans>
               </p>
@@ -104,15 +103,14 @@ export default function HandsOnPage() {
               <div className="mt-3 flex items-center gap-2">
                 <Button
                   size="xs"
-                  variant="secondary"
                   disabled={solutions[i]?.streaming}
                   onClick={() => void handleSolution(i, taskItem.task, taskItem.hint)}
                 >
                   <Trans>See solution</Trans>
                 </Button>
-                {solutions[i]?.streaming && <Loader size="sm" />}
+                {solutions[i]?.streaming && <Spinner size="sm" />}
               </div>
-            </LayerCard>
+            </div>
 
             {solutions[i] && (
               <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
@@ -123,13 +121,12 @@ export default function HandsOnPage() {
               </div>
             )}
 
-            <InputArea
+            <Textarea
               value={answers[i] ?? ""}
               onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
               placeholder={t`Your answer, code, or reasoning…`}
               rows={4}
               aria-label={t`Text input`}
-              className="w-full"
             />
           </div>
         ))}

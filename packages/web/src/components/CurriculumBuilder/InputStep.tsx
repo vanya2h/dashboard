@@ -1,9 +1,8 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { Input } from "@cloudflare/kumo/components/input";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Trans, useLingui } from "@lingui/react/macro";
 import clsx from "clsx";
 import type { Complexity } from "../../data/types";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 
 const COMPLEXITY_OPTIONS: { value: Complexity; label: string; description: string }[] = [
   { value: "easy", label: "Easy", description: "2–3 key phases · Reading & essentials" },
@@ -24,7 +23,7 @@ function ComplexityPicker({ complexity, onChange }: { complexity: Complexity; on
             type="button"
             onClick={() => onChange(opt.value)}
             className={clsx(
-              "flex flex-col gap-1 p-3 rounded-lg border text-left transition-colors cursor-pointer",
+              "flex flex-col gap-1 p-3 border text-left transition-colors cursor-pointer",
               complexity === opt.value ? "border-foreground bg-muted" : "border-border hover:bg-muted/50",
             )}
           >
@@ -39,10 +38,10 @@ function ComplexityPicker({ complexity, onChange }: { complexity: Complexity; on
 
 export function InputModePicker({ onPick }: { onPick: (mode: "url" | "pdf") => void }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-      <LayerCard
-        render={<button onClick={() => onPick("url")} className="text-left cursor-pointer" />}
-        className="flex flex-col items-start gap-2 rounded-xl p-5 hover:bg-muted/50 transition-colors"
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border border border-border w-full">
+      <button
+        onClick={() => onPick("url")}
+        className="flex flex-col items-start gap-2 p-5 text-left bg-background hover:bg-muted/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30"
       >
         <span className="font-semibold text-foreground">
           <Trans>Paste a URL</Trans>
@@ -50,10 +49,10 @@ export function InputModePicker({ onPick }: { onPick: (mode: "url" | "pdf") => v
         <span className="text-xs text-muted-foreground">
           <Trans>Use a link to the job posting on its company or job-board page</Trans>
         </span>
-      </LayerCard>
-      <LayerCard
-        render={<button onClick={() => onPick("pdf")} className="text-left cursor-pointer" />}
-        className="flex flex-col items-start gap-2 rounded-xl p-5 hover:bg-muted/50 transition-colors"
+      </button>
+      <button
+        onClick={() => onPick("pdf")}
+        className="flex flex-col items-start gap-2 p-5 text-left bg-background hover:bg-muted/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30"
       >
         <span className="font-semibold text-foreground">
           <Trans>Upload a PDF</Trans>
@@ -61,7 +60,7 @@ export function InputModePicker({ onPick }: { onPick: (mode: "url" | "pdf") => v
         <span className="text-xs text-muted-foreground">
           <Trans>Pick a saved PDF of the job description from your computer</Trans>
         </span>
-      </LayerCard>
+      </button>
     </div>
   );
 }
@@ -89,7 +88,6 @@ export function UrlInput({
           <Input
             placeholder={t`Paste job posting URL...`}
             value={url}
-            className="w-full"
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && url.trim()) onGenerate();
@@ -131,7 +129,7 @@ export function PdfInput({
   const { t } = useLingui();
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border border-dashed border-border hover:bg-muted/30 cursor-pointer transition-colors">
+      <label className="flex items-center justify-center w-full px-4 py-8 border border-dashed border-border hover:bg-muted/30 cursor-pointer transition-colors">
         <input
           type="file"
           accept="application/pdf"

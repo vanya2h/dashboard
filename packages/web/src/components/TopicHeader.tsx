@@ -1,7 +1,6 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { Dialog } from "@cloudflare/kumo/components/dialog";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans } from "@lingui/react/macro";
+import { Button } from "./ui/Button";
+import { Dialog } from "./ui/Dialog";
 
 type Props = {
   taskTitle: string;
@@ -12,50 +11,46 @@ type Props = {
 
 export function TopicHeader({ taskTitle, curriculumName, onBack, onStartOver }: Props) {
   return (
-    <header className="flex items-center gap-4 px-6 py-4 border-b border-border bg-background">
-      <Button size="sm" onClick={onBack}>
+    <header className="flex items-center gap-4 px-6 py-4 border-b border-border">
+      <Button onClick={onBack}>
         <Trans>← Back</Trans>
       </Button>
       <div className="min-w-0">
-        <Text variant="heading3" as="h1">
-          {taskTitle}
-        </Text>
-        <p className="text-xs text-muted-foreground">{curriculumName}</p>
+        <h1 className="text-lg font-semibold text-foreground truncate">{taskTitle}</h1>
+        <p className="text-xs text-muted-foreground truncate">{curriculumName}</p>
       </div>
       <div className="ml-auto shrink-0">
         <Dialog.Root>
           <Dialog.Trigger
             render={(p) => (
-              <Button size="sm" {...p}>
+              <Button {...p}>
                 <Trans>Start over</Trans>
               </Button>
             )}
           />
-          <Dialog size="sm" className="p-8">
-            <div className="mb-4">
-              <Dialog.Title className="text-xl font-semibold">
-                <Trans>Start over?</Trans>
-              </Dialog.Title>
-            </div>
-            <Dialog.Description className="text-muted-foreground">
+          <Dialog.Popup>
+            <Dialog.Title>
+              <Trans>Start over?</Trans>
+            </Dialog.Title>
+            <Dialog.Description>
               <Trans>Your current progress on this topic will be reset.</Trans>
             </Dialog.Description>
             <div className="mt-6 flex justify-end gap-2">
               <Dialog.Close
-                render={(props) => (
-                  <Button variant="secondary" {...props}>
+                render={(p) => (
+                  <Button {...p}>
                     <Trans>Cancel</Trans>
                   </Button>
                 )}
               />
               <Dialog.Close
-                render={(props) => (
+                render={(p) => (
                   <Button
                     variant="destructive"
-                    {...props}
+                    {...p}
                     onClick={(e) => {
                       onStartOver();
-                      props.onClick?.(e);
+                      p.onClick?.(e);
                     }}
                   >
                     <Trans>Start over</Trans>
@@ -63,7 +58,7 @@ export function TopicHeader({ taskTitle, curriculumName, onBack, onStartOver }: 
                 )}
               />
             </div>
-          </Dialog>
+          </Dialog.Popup>
         </Dialog.Root>
       </div>
     </header>

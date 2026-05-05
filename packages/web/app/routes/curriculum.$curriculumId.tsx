@@ -1,6 +1,6 @@
-import { Breadcrumbs } from "@cloudflare/kumo/components/breadcrumbs";
 import { useParams } from "react-router";
 import { CurriculumView } from "../../src/components/CurriculumView";
+import { Breadcrumbs } from "../../src/components/ui/Breadcrumbs";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
 import { useAllCurriculums } from "../../src/hooks/useAllCurriculums";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";

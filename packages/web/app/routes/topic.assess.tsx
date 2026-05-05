@@ -1,10 +1,9 @@
-import { Button } from "@cloudflare/kumo/components/button";
-import { InputArea } from "@cloudflare/kumo/components/input";
-import { Loader } from "@cloudflare/kumo/components/loader";
-import { Text } from "@cloudflare/kumo/components/text";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import { Button } from "../../src/components/ui/Button";
+import { Textarea } from "../../src/components/ui/Input";
+import { Spinner } from "../../src/components/ui/Spinner";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import { parseJSON } from "../../src/lib/json";
@@ -90,7 +89,7 @@ export default function AssessPage() {
   if (loading || !questions) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader size="sm" />
+        <Spinner size="sm" />
         <p className="text-sm text-muted-foreground">
           <Trans>Preparing assessment questions…</Trans>
         </p>
@@ -103,10 +102,10 @@ export default function AssessPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-1">
-        <Text variant="heading2" as="h2">
+        <h2 className="text-2xl font-semibold text-foreground">
           <Trans>Quick Assessment</Trans>
-        </Text>
-        <Button size="xs" variant="secondary" onClick={() => void generateQuestions()} disabled={loading}>
+        </h2>
+        <Button size="xs" onClick={() => void generateQuestions()} disabled={loading}>
           <Trans>Regenerate</Trans>
         </Button>
       </div>
@@ -119,19 +118,18 @@ export default function AssessPage() {
             <p className="text-sm font-medium text-foreground mb-2">
               {i + 1}. {q}
             </p>
-            <InputArea
+            <Textarea
               value={answers[i] ?? ""}
               onChange={(e) => handleAnswerChange(i, e.target.value)}
               placeholder={t`Your answer…`}
               rows={3}
               aria-label={t`Text input`}
-              className="w-full"
             />
           </div>
         ))}
       </div>
       <div className="mt-8">
-        <Button variant="primary" disabled={!allAnswered} onClick={() => void handleSubmit()}>
+        <Button variant="primary" size="base" disabled={!allAnswered} onClick={() => void handleSubmit()}>
           <Trans>Submit answers →</Trans>
         </Button>
       </div>
