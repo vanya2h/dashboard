@@ -1,7 +1,0 @@
-{
-  "extends": "@vanya2h/typescript-config/react",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": ["src", "eslint.config.ts"]
-}

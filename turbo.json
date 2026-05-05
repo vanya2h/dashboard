@@ -1,9 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "generate": {
-      "outputs": ["dist/**"]
-    },
     "dev": {
       "cache": false,
       "persistent": true
@@ -17,16 +14,9 @@
     "lint:fix": {
       "cache": false,
       "outputs": []
-    },
-    "fetch": {
-      "cache": false
-    },
-    "count": {
-      "cache": false
     }
   },
   "globalEnv": [
-    "THEIRSTACK_API_KEY",
     "ANTHROPIC_API_KEY",
     "NODE_ENV",
     "DATABASE_URL",
