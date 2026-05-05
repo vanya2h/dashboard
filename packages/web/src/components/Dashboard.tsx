@@ -21,41 +21,26 @@ function calcCurriculumProgress(curriculum: CurriculumDef, completedTaskIds: Rec
   return totalWeight === 0 ? 0 : Math.round((doneWeight / totalWeight) * 100);
 }
 
-function SkillBadge({
-  skill,
-  unlocked,
-  recentlyUnlocked,
-}: {
-  skill: Skill;
-  unlocked: boolean;
-  recentlyUnlocked: boolean;
-}) {
+function SkillBadge({ skill, recentlyUnlocked }: { skill: Skill; recentlyUnlocked: boolean }) {
   return (
     <div
-      className={`rounded-lg border p-3 flex flex-col gap-1 transition-colors ${
-        unlocked
-          ? recentlyUnlocked
-            ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/60 ring-2 ring-green-400 dark:ring-green-600 ring-offset-1 ring-offset-background"
-            : "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40"
-          : "border-border bg-muted/50"
-      }`}
+      className={clsx(
+        "rounded-lg border p-3 flex flex-col gap-1 transition-colors",
+        recentlyUnlocked
+          ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/60 ring-2 ring-green-400 dark:ring-green-600 ring-offset-1 ring-offset-background"
+          : "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40",
+      )}
     >
       <div className="flex items-center gap-1.5">
-        <span className={`text-xs font-bold ${unlocked ? "text-green-600 dark:text-green-400" : "text-foreground/20"}`}>
-          {unlocked ? "✓" : "○"}
-        </span>
-        <span className={`text-sm font-semibold leading-snug ${unlocked ? "text-foreground" : "text-foreground/40"}`}>
-          {skill.name}
-        </span>
+        <span className="text-xs font-bold text-green-600 dark:text-green-400">✓</span>
+        <span className="text-sm font-semibold leading-snug text-foreground">{skill.name}</span>
         {recentlyUnlocked && (
           <Badge variant="success" className="ml-auto">
             <Trans>New</Trans>
           </Badge>
         )}
       </div>
-      <p className={`text-xs leading-snug ${unlocked ? "text-muted-foreground" : "text-foreground/20"}`}>
-        {skill.description}
-      </p>
+      <p className="text-xs leading-snug text-muted-foreground">{skill.description}</p>
     </div>
   );
 }
@@ -75,8 +60,11 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
     };
   }, [unlockedSkills]);
 
-  const curriculumsWithSkills = allCurriculums.filter((c) => (c.skills?.length ?? 0) > 0);
-  if (curriculumsWithSkills.length === 0) return null;
+  const curriculumsWithUnlockedSkills = allCurriculums
+    .map((c) => ({ ...c, unlockedSkills: (c.skills ?? []).filter((s) => unlockedIds.has(s.id)) }))
+    .filter((c) => c.unlockedSkills.length > 0);
+
+  if (curriculumsWithUnlockedSkills.length === 0) return null;
 
   return (
     <section className="px-6 py-4 border-b border-border">
@@ -86,17 +74,12 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
         </Text>
       </div>
       <div className="flex flex-col gap-6">
-        {curriculumsWithSkills.map((curriculum) => (
+        {curriculumsWithUnlockedSkills.map((curriculum) => (
           <div key={curriculum.id}>
             <h3 className="text-xs font-medium text-foreground/40 mb-2">{curriculum.name}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {(curriculum.skills ?? []).map((skill) => (
-                <SkillBadge
-                  key={skill.id}
-                  skill={skill}
-                  unlocked={unlockedIds.has(skill.id)}
-                  recentlyUnlocked={recentIds.has(skill.id)}
-                />
+              {curriculum.unlockedSkills.map((skill) => (
+                <SkillBadge key={skill.id} skill={skill} recentlyUnlocked={recentIds.has(skill.id)} />
               ))}
             </div>
           </div>
