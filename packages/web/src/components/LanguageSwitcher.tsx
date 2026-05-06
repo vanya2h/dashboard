@@ -29,7 +29,7 @@ export function LanguageSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="secondary" />}>
         <GlobeIcon size={16} />
-        {LOCALE_LABELS[current]}
+        <span className="hidden sm:inline">{LOCALE_LABELS[current]}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem disabled={current === "en"} onClick={() => switchLocale("en")}>

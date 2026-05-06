@@ -1,4 +1,5 @@
 import { Link, Outlet, redirect, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import { ProgramCover } from "../../src/components/ProgramCover";
 import { TopicHeader } from "../../src/components/TopicHeader";
 import { TopicSidebar } from "../../src/components/TopicSidebar";
 import { CURRICULUMS_BY_LOCALE } from "../../src/data/curriculum";
@@ -42,7 +43,7 @@ function findTask(curriculums: CurriculumDef[], taskId: string) {
     for (const p of c.phases) {
       for (const t of p.tasks) {
         if (t.id === taskId) {
-          return { task: t, curriculumName: c.name, phaseTitle: p.title, complexity: c.complexity };
+          return { task: t, curriculumName: c.name, phaseTitle: p.title, complexity: c.complexity, cover: c.cover };
         }
       }
     }
@@ -98,7 +99,7 @@ function TopicBreadcrumb() {
 }
 
 export default function TopicLayout() {
-  const { task, curriculumName, highestStage } = useLoaderData<typeof loader>();
+  const { task, curriculumName, highestStage, cover } = useLoaderData<typeof loader>();
   const { taskId } = useParams<{ curriculumId: string; taskId: string }>();
   const navigate = useNavigate();
   const { deleteSession } = useTopicSession(taskId!);
@@ -116,8 +117,15 @@ export default function TopicLayout() {
       <TopicHeader taskTitle={task.title} curriculumName={curriculumName} onStartOver={startOver} />
       <div className="flex flex-1">
         <TopicSidebar highestStage={highestStage} taskCompleted={taskCompleted} />
-        <div className="flex-1 min-w-0 border-l border-border">
-          <Outlet />
+        <div className="flex-1 min-w-0 border-l border-border flex flex-col relative">
+          {cover && (
+            <div className="absolute inset-0">
+              <ProgramCover shape="wave" cover={cover} />
+            </div>
+          )}
+          <div className="relative grow backdrop-blur-xl bg-background/90 flex flex-col">
+            <Outlet />
+          </div>
         </div>
       </div>
     </>

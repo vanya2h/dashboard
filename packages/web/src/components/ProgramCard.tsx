@@ -3,6 +3,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 import { type ReactNode, useState } from "react";
 import { Link, type LinkProps } from "react-router";
 import type { CurriculumDef } from "../data/types";
+import { GridBackground } from "./GridBg";
 import { ProgramCover } from "./ProgramCover";
 
 import { cn } from "~/lib/utils";
@@ -105,6 +106,7 @@ export function CardShell({ to, art, title, description, extra, className, ...re
       {...restProps}
     >
       <div className="absolute inset-0 overflow-hidden">{art}</div>
+      <GridBackground className="z-0" />
 
       <div
         className={cn(

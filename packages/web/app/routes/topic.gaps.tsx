@@ -69,12 +69,6 @@ export default function GapsPage() {
     return (
       <LoadingState>
         <Trans>Evaluating your answers…</Trans>
-        {evalStream && (
-          <p className="mt-2 text-xs text-foreground/40 max-w-sm italic">
-            {evalStream.slice(0, 120)}
-            {evalStream.length > 120 ? "…" : ""}
-          </p>
-        )}
       </LoadingState>
     );
   }

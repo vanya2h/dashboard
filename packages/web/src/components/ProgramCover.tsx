@@ -10,7 +10,7 @@ export function ProgramCover({ cover, shape = "blob" }: { cover: GradientCover; 
       style={{ width: "100%", height: "100%" }}
       shape={shape}
       rotation={cover.rotation}
-      colorBack={theme === "dark" ? "#000" : "#fff"}
+      colorBack={theme === "dark" ? "#0e0b0c" : "#fff"}
       colors={cover.colors}
       softness={0.76}
       intensity={0.5}

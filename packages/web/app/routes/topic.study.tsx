@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
+import { NavButton } from "../../src/components/NavButton";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
@@ -12,8 +13,8 @@ import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.study";
 import type { loader as layoutLoader } from "./topic-layout";
 
+import { LoadingState } from "~/components/LoadingState";
 import { Spinner } from "~/components/ui/spinner";
-import { cn } from "~/lib/utils";
 
 const TOKENS_PLAN = 600;
 const TOKENS_PART = 3000;
@@ -186,19 +187,9 @@ export default function StudyPage() {
 
   if (!material) {
     return (
-      <div className="max-w-2xl mx-auto px-6 py-8 animate-pulse">
-        <div className="h-3 w-16 bg-muted rounded mb-2" />
-        <div className="h-7 w-1/2 bg-muted rounded mb-8" />
-        <div className="space-y-3">
-          <div className="h-4 bg-muted rounded" />
-          <div className="h-4 bg-muted rounded w-11/12" />
-          <div className="h-4 bg-muted rounded w-4/5" />
-          <div className="h-4 bg-muted rounded" />
-          <div className="h-4 bg-muted rounded w-3/4" />
-          <div className="h-4 bg-muted rounded w-11/12" />
-          <div className="h-4 bg-muted rounded w-5/6" />
-        </div>
-      </div>
+      <LoadingState>
+        <Trans>Preparing your study material…</Trans>
+      </LoadingState>
     );
   }
 
@@ -210,7 +201,7 @@ export default function StudyPage() {
   const nextPlan = !isLastPart ? plan.partPlans[partIdx + 1] : null;
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
+    <div className="max-w-2xl w-full mx-auto px-6 py-8">
       <div>
         <p className="text-xs text-muted-foreground mb-2">
           <Trans>
@@ -269,23 +260,5 @@ export default function StudyPage() {
         </>
       )}
     </div>
-  );
-}
-
-type NavButtonProps = React.ComponentProps<"button"> & { align?: "left" | "right" };
-
-function NavButton({ align = "left", className, children, ...rest }: NavButtonProps) {
-  return (
-    <button
-      type="button"
-      {...rest}
-      className={cn(
-        "flex flex-col gap-1 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden",
-        align === "right" ? "items-end text-right" : "text-left",
-        className,
-      )}
-    >
-      {children}
-    </button>
   );
 }

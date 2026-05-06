@@ -1,11 +1,11 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import type { OutlinePhase, Phase, Task } from "../../data/types";
+import { NavButton } from "../NavButton";
 import { SelectableCard } from "./SelectableCard";
 
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
-import { cn } from "~/lib/utils";
 
 export function PhaseStep({
   selectedPhases,
@@ -158,23 +158,5 @@ function TaskTitle({ task }: { task: Task }) {
         </span>
       )}
     </span>
-  );
-}
-
-type NavButtonProps = React.ComponentProps<"button"> & { align?: "left" | "right" };
-
-function NavButton({ align = "left", className, children, ...rest }: NavButtonProps) {
-  return (
-    <button
-      type="button"
-      {...rest}
-      className={cn(
-        "flex flex-col gap-1 p-4 rounded-xl border border-border bg-background-layer hover:bg-background-active hover:border-border-hover transition-colors cursor-pointer overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed",
-        align === "right" ? "items-end text-right" : "text-left",
-        className,
-      )}
-    >
-      {children}
-    </button>
   );
 }

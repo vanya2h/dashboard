@@ -48,6 +48,7 @@
     "dotenv-cli": "^8.0.0",
     "hono": "^4.12.15",
     "isbot": "^5",
+    "jotai": "^2.20.0",
     "jsonrepair": "^3.14.0",
     "lucide-react": "^1.14.0",
     "pg": "^8.20.0",

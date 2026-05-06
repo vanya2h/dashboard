@@ -23,7 +23,7 @@ export function GradientBackground() {
       <div className="absolute inset-0 hidden dark:block">
         <GrainGradient
           {...COMMON}
-          colorBack="hsl(0, 0%, 0%)"
+          colorBack="#0e0b0c"
           intensity={0.45}
           colors={["hsl(14, 100%, 57%)", "hsl(45, 100%, 51%)", "hsl(340, 82%, 52%)"]}
         />

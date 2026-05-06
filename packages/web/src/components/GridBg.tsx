@@ -1,6 +1,10 @@
-export function GridBackground() {
+import { cn } from "~/lib/utils";
+
+export type GridBackgroundProps = React.ComponentProps<"div">;
+
+export function GridBackground({ className, ...restProps }: GridBackgroundProps) {
   return (
-    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div {...restProps} className={cn("absolute inset-0 -z-10 overflow-hidden pointer-events-none", className)}>
       <svg className="absolute inset-0 w-full h-full text-muted-foreground" aria-hidden>
         <defs>
           <pattern id="grid-bg-dots" width="14" height="14" patternUnits="userSpaceOnUse">

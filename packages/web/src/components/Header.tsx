@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { DoorOpenIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { DoorOpenIcon, MoonIcon, PlusIcon, SunIcon } from "@phosphor-icons/react";
 import { Fragment, useEffect, useState } from "react";
 import { Link, useMatches, useNavigate } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
@@ -78,17 +78,17 @@ export function Header() {
         scrolled ? "bg-background/50 backdrop-blur-md" : "bg-background",
       )}
     >
-      <div className="px-6 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 min-w-0 flex-1">
+      <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <div className="shrink-0">
-            <h1 className="text-2xl font-semibold leading-none">
+            <h1 className="text-lg sm:text-2xl font-semibold leading-none">
               <Link to="/" className="text-foreground hover:opacity-75 transition-opacity whitespace-nowrap">
                 <Trans>Learning Tracker</Trans>
               </Link>
             </h1>
           </div>
           {crumbs.length > 0 && (
-            <Breadcrumb>
+            <Breadcrumb className="hidden md:block">
               <BreadcrumbList>
                 {crumbs.map((crumb, i) => (
                   <Fragment key={i}>
@@ -101,10 +101,13 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 text-sm text-muted-foreground shrink-0">
           <div className="flex items-center gap-2 shrink-0">
             <Button render={<Link to="/curriculum/new" />}>
-              <Trans>New program</Trans>
+              <PlusIcon className="sm:hidden" />
+              <span className="hidden sm:inline">
+                <Trans>New program</Trans>
+              </span>
             </Button>
             <LanguageSwitcher />
           </div>

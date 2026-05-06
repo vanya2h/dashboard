@@ -7,6 +7,7 @@ import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
 
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import { cn } from "~/lib/utils";
 
 function useSessionLabel(session: ActiveSession): string {
@@ -44,24 +45,20 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
   const activeSession = activeSessions[task.id];
 
   return (
-    <div className="group flex items-center gap-3 py-1.5 px-2 rounded transition-colors hover:bg-foreground/10">
+    <div className="group flex items-center gap-3 py-2 px-4 rounded-md transition-colors hover:bg-foreground/10">
       <label className="flex items-center gap-3 flex-1 min-w-0">
-        <input
-          type="checkbox"
-          checked={checked}
-          readOnly
-          className="mt-0.5 h-4 w-4 shrink-0 accent-green-600 pointer-events-none"
-        />
-        <span className={`text-sm leading-snug ${checked ? "line-through text-foreground/40" : "text-foreground"}`}>
-          {task.title}
-          {task.estMinutes && (
-            <span className="ml-2 text-xs text-muted-foreground">
-              ~{task.estMinutes >= 60 ? `${Math.round(task.estMinutes / 60)}h` : `${task.estMinutes}m`}
-            </span>
+        <Checkbox checked={checked} readOnly className="pointer-events-none shrink-0" />
+        <span
+          className={cn(
+            "text-sm leading-snug line-clamp-2",
+            checked ? "line-through text-foreground/40" : "text-foreground",
           )}
+        >
+          {task.title}
           {activeSession && <ActiveSessionLabel session={activeSession} />}
         </span>
       </label>
+
       {!checked && (
         <div
           className={cn(
@@ -85,6 +82,11 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
             {activeSession ? <Trans>Continue</Trans> : <Trans>Start</Trans>}
           </Button>
         </div>
+      )}
+      {task.estMinutes && (
+        <span className="shrink-0 text-xs text-muted-foreground">
+          ~{task.estMinutes >= 60 ? `${Math.round(task.estMinutes / 60)}h` : `${task.estMinutes}m`}
+        </span>
       )}
     </div>
   );

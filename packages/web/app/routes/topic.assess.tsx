@@ -103,11 +103,11 @@ export default function AssessPage() {
         <h2 className="text-2xl font-semibold text-foreground">
           <Trans>Quick Assessment</Trans>
         </h2>
-        <Button size="xs" onClick={() => void generateQuestions()} disabled={loading}>
+        <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
           <Trans>Regenerate</Trans>
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
       </p>
       <div className="flex flex-col gap-6">

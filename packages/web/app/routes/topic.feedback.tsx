@@ -1,8 +1,9 @@
 import { Trans } from "@lingui/react/macro";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
 import { Markdown } from "../../src/components/Markdown";
-import { DotLoader } from "../../src/components/Spinner";
+import { NavButton } from "../../src/components/NavButton";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { PhaseByKey } from "../../src/lib/phase";
@@ -11,7 +12,7 @@ import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.feedback";
 
-import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/ui/spinner";
 
 const TOKENS_HANDS_ON_EVAL = 500;
 
@@ -44,8 +45,9 @@ export default function FeedbackPage() {
   const [feedback, setFeedback] = useState(data.name === "feedback" ? data.feedback : "");
 
   const { material, partIdx, answers } = data;
-  const { parts } = material;
+  const { parts, plan } = material;
   const part = parts[partIdx]!;
+  const partPlan = plan.partPlans[partIdx];
 
   useEffect(() => {
     if (data.name === "feedback") return;
@@ -74,32 +76,42 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
-      <div className="border border-border bg-background p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            <Trans>Feedback</Trans>
-          </p>
-          {streaming && <DotLoader />}
-        </div>
-        {feedback || streaming ? (
-          <Markdown isAnimating={streaming}>{feedback}</Markdown>
-        ) : (
-          <div className="flex items-center justify-center gap-2 text-foreground/40">
-            <DotLoader />
+    <div className="max-w-2xl w-full mx-auto px-6 py-8">
+      <div>
+        <p className="text-xs text-muted-foreground mb-2">
+          <Trans>Feedback</Trans>
+        </p>
+      </div>
+
+      <h2 className="text-2xl font-semibold text-foreground mb-6">{partPlan?.title ?? ""}</h2>
+
+      {streaming && (
+        <>
+          <div className="flex items-center gap-2 mb-6 text-foreground/40">
+            <Spinner />
             <p className="text-sm">
               <Trans>Evaluating your answers…</Trans>
             </p>
           </div>
-        )}
-      </div>
+          {feedback && <Markdown isAnimating>{feedback}</Markdown>}
+        </>
+      )}
 
       {!streaming && feedback && (
-        <div className="mt-6">
-          <Button variant="default" onClick={handleContinue}>
-            <Trans>Move to reflection →</Trans>
-          </Button>
-        </div>
+        <>
+          <Markdown>{feedback}</Markdown>
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            <div />
+            <NavButton onClick={handleContinue} align="right">
+              <span className="text-xs text-muted-foreground">
+                <Trans>next</Trans> <ArrowRightIcon className="inline" />
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                <Trans>Reflection</Trans>
+              </span>
+            </NavButton>
+          </div>
+        </>
       )}
     </div>
   );

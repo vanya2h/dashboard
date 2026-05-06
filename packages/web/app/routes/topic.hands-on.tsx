@@ -91,7 +91,7 @@ export default function HandsOnPage() {
       <div className="flex flex-col gap-6">
         {part.handsOn.map((taskItem, i) => (
           <div key={i} className="flex flex-col gap-3">
-            <div className="border border-border bg-background p-4">
+            <div className="border border-border bg-background-layer/50 rounded-lg p-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 <Trans>Task {i + 1}</Trans>
               </p>
