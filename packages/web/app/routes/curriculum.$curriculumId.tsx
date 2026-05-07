@@ -1,14 +1,16 @@
-import { useParams } from "react-router";
+import { Trans } from "@lingui/react/macro";
+import { isRouteErrorResponse, Link, useParams } from "react-router";
 import { CurriculumView } from "../../src/components/CurriculumView";
 import { getCurriculum } from "../../src/data/curriculum";
 import { useAllCurriculums } from "../../src/hooks/useAllCurriculums";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { getLocaleFromRequest } from "../../src/lib/i18n";
+import { auth } from "../../src/server/auth";
 import { db } from "../../src/server/db";
-import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.$curriculumId";
 
 import { BreadcrumbItem, BreadcrumbPage } from "~/components/ui/breadcrumb";
+import { Button } from "~/components/ui/button";
 
 export function meta({ data }: Route.MetaArgs): Route.MetaDescriptors {
   const name = data?.curriculumName;
@@ -24,17 +26,19 @@ export function meta({ data }: Route.MetaArgs): Route.MetaDescriptors {
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const session = await requireSession(request);
-
   const locale = getLocaleFromRequest(request);
   const staticCurriculum = getCurriculum(params.curriculumId, locale);
   if (staticCurriculum) return { curriculumName: staticCurriculum.name };
+
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) throw new Response(null, { status: 404 });
 
   const custom = await db.customCurriculum.findFirst({
     where: { id: params.curriculumId, userId: session.user.id },
     select: { name: true },
   });
-  return { curriculumName: custom?.name ?? null };
+  if (!custom) throw new Response(null, { status: 404 });
+  return { curriculumName: custom.name };
 }
 
 export const handle: BreadcrumbHandle = {
@@ -43,6 +47,32 @@ export const handle: BreadcrumbHandle = {
 
 export default function CurriculumPage() {
   return <CurriculumView />;
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const isNotFound = isRouteErrorResponse(error) && error.status === 404;
+  return (
+    <main className="flex grow flex-col items-center justify-center px-6 py-32 text-center">
+      <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-foreground/40">
+        {isNotFound ? "404" : "Error"}
+      </div>
+      <h1 className="mt-4 text-4xl font-semibold tracking-[-0.02em] text-foreground">
+        {isNotFound ? <Trans>Curriculum not found</Trans> : <Trans>Something went wrong</Trans>}
+      </h1>
+      <p className="mt-3 max-w-md text-muted-foreground">
+        {isNotFound ? (
+          <Trans>
+            This program doesn&apos;t exist or you don&apos;t have access. Browse available programs from the home page.
+          </Trans>
+        ) : (
+          <Trans>An unexpected error occurred. Please try again.</Trans>
+        )}
+      </p>
+      <Button size="lg" render={<Link to="/" />} className="mt-8">
+        <Trans>Back to home</Trans>
+      </Button>
+    </main>
+  );
 }
 
 function CurriculumBreadcrumb() {

@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "react-hook-form";
-import { Link, redirect, useNavigate } from "react-router";
+import { Link, redirect, useLoaderData, useNavigate } from "react-router";
 import { z } from "zod";
 import { AuthLayout } from "../../src/components/AuthLayout";
 import { authClient } from "../../src/lib/authClient";
+import { safeRedirectPath } from "../../src/lib/redirect";
 import { auth } from "../../src/server/auth";
 import type { Route } from "./+types/sign-up";
 
@@ -19,9 +20,11 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const redirectTo = safeRedirectPath(url.searchParams.get("redirect"));
   const session = await auth.api.getSession({ headers: request.headers });
-  if (session) throw redirect("/");
-  return {};
+  if (session) throw redirect(redirectTo);
+  return { redirectTo };
 }
 
 const schema = z.object({
@@ -33,6 +36,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function SignUp() {
+  const { redirectTo } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { t } = useLingui();
 
@@ -54,9 +58,11 @@ export default function SignUp() {
     if (error) {
       setError("root", { message: error.message ?? t`Failed to create account` });
     } else {
-      navigate("/");
+      navigate(redirectTo);
     }
   };
+
+  const signInHref = redirectTo === "/" ? "/sign-in" : `/sign-in?redirect=${encodeURIComponent(redirectTo)}`;
 
   return (
     <AuthLayout>
@@ -144,7 +150,7 @@ export default function SignUp() {
       <p className="text-center text-muted-foreground">
         <Trans>
           Already have an account?{" "}
-          <Link to="/sign-in" className="font-medium text-foreground hover:underline">
+          <Link to={signInHref} className="font-medium text-foreground hover:underline">
             Sign in
           </Link>
         </Trans>

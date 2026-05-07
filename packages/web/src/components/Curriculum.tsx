@@ -44,7 +44,7 @@ export function Curriculum({ curriculum, className, ...restProps }: CurriculumPr
           <ProgramCover shape="wave" preset={curriculum.cover} />
         </div>
       )}
-      <div className="relative grow flex flex-col py-8">
+      <div className="relative max-w-6xl w-full mx-auto grow flex flex-col py-8">
         <div className="px-6 sm:px-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
           <NextUpCard curriculum={curriculum} nextUp={nextUp} />
           <ProgressRingCard percent={completionPercent} remainingMinutes={remainingMinutes} />

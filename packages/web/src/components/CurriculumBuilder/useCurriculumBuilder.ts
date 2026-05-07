@@ -46,7 +46,9 @@ async function computeIdentifier(inputMode: InputMode, url: string, pdfFile: Fil
 
 export function useCurriculumBuilder() {
   const { t } = useLingui();
-  const locale = (useRootData()?.locale ?? "en") as Locale;
+  const rootData = useRootData();
+  const locale = (rootData?.locale ?? "en") as Locale;
+  const user = rootData?.user ?? null;
   const [step, setStep] = useState<BuilderStep>("idle");
   const [inputMode, setInputMode] = useState<InputMode>(null);
   const [url, setUrl] = useState("");
@@ -84,6 +86,11 @@ export function useCurriculumBuilder() {
 
   async function start() {
     setError(null);
+
+    if (!user) {
+      void navigate("/sign-in?redirect=%2Fcurriculum%2Fnew");
+      return;
+    }
 
     const id = await computeIdentifier(inputMode, url, pdfFile);
     identifierRef.current = id;

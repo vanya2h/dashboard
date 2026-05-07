@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "react-hook-form";
-import { Link, redirect, useNavigate } from "react-router";
+import { Link, redirect, useLoaderData, useNavigate } from "react-router";
 import { z } from "zod";
 import { AuthLayout } from "../../src/components/AuthLayout";
 import { authClient } from "../../src/lib/authClient";
+import { safeRedirectPath } from "../../src/lib/redirect";
 import { auth } from "../../src/server/auth";
 import type { Route } from "./+types/sign-in";
 
@@ -19,9 +20,11 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const redirectTo = safeRedirectPath(url.searchParams.get("redirect"));
   const session = await auth.api.getSession({ headers: request.headers });
-  if (session) throw redirect("/");
-  return {};
+  if (session) throw redirect(redirectTo);
+  return { redirectTo };
 }
 
 const schema = z.object({
@@ -32,6 +35,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function SignIn() {
+  const { redirectTo } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { t } = useLingui();
 
@@ -52,9 +56,11 @@ export default function SignIn() {
     if (error) {
       setError("root", { message: error.message ?? t`Invalid email or password` });
     } else {
-      navigate("/");
+      navigate(redirectTo);
     }
   };
+
+  const signUpHref = redirectTo === "/" ? "/sign-up" : `/sign-up?redirect=${encodeURIComponent(redirectTo)}`;
 
   return (
     <AuthLayout>
@@ -122,7 +128,7 @@ export default function SignIn() {
       <p className="text-center text-muted-foreground">
         <Trans>
           No account?{" "}
-          <Link to="/sign-up" className="font-medium text-foreground hover:underline">
+          <Link to={signUpHref} className="font-medium text-foreground hover:underline">
             Sign up
           </Link>
         </Trans>

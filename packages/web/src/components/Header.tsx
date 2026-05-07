@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { DoorOpenIcon, MoonIcon, PlusIcon, SunIcon } from "@phosphor-icons/react";
 import { Fragment, useEffect, useState } from "react";
-import { Link, useMatches, useNavigate } from "react-router";
+import { Link, useLocation, useMatches, useNavigate } from "react-router";
 import { useRootData } from "../../app/hooks/useRootData";
 import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
@@ -56,7 +56,10 @@ export function Header() {
   const user = (useRootData()?.user ?? null) as AuthUser | null;
   const { toggle, theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+
+  const signInHref = `/sign-in?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 0);
@@ -107,7 +110,7 @@ export function Header() {
               <Trans>New program</Trans>
             </span>
           </Button>
-          {user && (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={<button className="rounded-full focus:outline-none focus:ring-2 focus:ring-foreground/40" />}
@@ -125,12 +128,16 @@ export function Header() {
                   {theme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
                   <Trans>Toggle theme</Trans>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => authClient.signOut().then(() => navigate("/sign-in"))}>
+                <DropdownMenuItem onClick={() => authClient.signOut().then(() => navigate("/"))}>
                   <DoorOpenIcon size={14} />
                   <Trans>Sign out</Trans>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <Button variant="secondary" render={<Link to={signInHref} />}>
+              <Trans>Sign in</Trans>
+            </Button>
           )}
         </div>
       </div>

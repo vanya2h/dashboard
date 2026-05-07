@@ -1,7 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { CurriculumBuilder } from "../../src/components/CurriculumBuilder";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
-import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.new";
 
 import { BreadcrumbItem, BreadcrumbPage } from "~/components/ui/breadcrumb";
@@ -11,11 +10,6 @@ export function meta(): Route.MetaDescriptors {
     { title: "New Program — Learning Tracker" },
     { name: "description", content: "Build a custom learning curriculum powered by AI." },
   ];
-}
-
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireSession(request);
-  return {};
 }
 
 export const handle: BreadcrumbHandle = {
