@@ -137,8 +137,19 @@ export function InputStep({
 
   const urlError = touchedFields.url ? errors.url?.message : undefined;
 
+  const submit = handleSubmit(() => onGenerate());
+
   return (
-    <form onSubmit={handleSubmit(() => onGenerate())} className="flex w-full flex-col gap-4 mt-[8vh]">
+    <form
+      onSubmit={submit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.shiftKey && (e.target as HTMLElement).tagName === "INPUT") {
+          e.preventDefault();
+          void submit();
+        }
+      }}
+      className="flex w-full flex-col gap-4 mt-[8vh]"
+    >
       <MethodPicker
         url={watchedUrl}
         onUrlChange={handleUrlChange}
@@ -151,7 +162,7 @@ export function InputStep({
       <DepthRow depth={watchedComplexity} setDepth={handleComplexityChange} enabled={isValid} />
 
       <BuilderActionBar>
-        <Button className="ml-auto" type="submit" disabled={!isValid}>
+        <Button className="ml-auto" type="button" onClick={() => void submit()} disabled={!isValid}>
           <Trans>Generate program →</Trans>
         </Button>
       </BuilderActionBar>

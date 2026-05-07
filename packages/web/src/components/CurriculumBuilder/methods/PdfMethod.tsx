@@ -9,7 +9,7 @@ export type PdfMethodCardProps = MethodCardProps & {
   onFileChange: (f: File | null) => void;
 };
 
-export function PdfMethodCard({ file, onFileChange, active, ...restProps }: PdfMethodCardProps) {
+export function PdfMethodCard({ file, onFileChange, active = false, ...restProps }: PdfMethodCardProps) {
   return (
     <MethodCard active={active} {...restProps}>
       <div>

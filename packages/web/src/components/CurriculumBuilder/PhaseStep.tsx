@@ -48,24 +48,26 @@ export function PhaseStep({
       <Card>
         <h2 className="text-2xl font-semibold text-foreground mb-1">{outlinePhase.title}</h2>
         <p className="text-sm text-muted-foreground">{outlinePhase.subtitle}</p>
-        <p className="text-xs text-muted-foreground mt-4">
-          <Trans>
-            Phase {currentPageIndex + 1} of {total}
-          </Trans>
-        </p>
+
+        <div className="flex items-center gap-2 mt-4 text-foreground/40">
+          {isGeneratingThis && !generatedPhase ? (
+            <>
+              <Spinner />
+              <p className="text-sm">
+                <Trans>Generating phase {currentPageIndex}...</Trans>
+              </p>
+            </>
+          ) : (
+            <p className="text-sm">
+              <Trans>
+                Phase {currentPageIndex + 1} of {total}
+              </Trans>
+            </p>
+          )}
+        </div>
       </Card>
 
-      {isGeneratingThis && !generatedPhase && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4 text-foreground/40">
-            <Spinner />
-            <p className="text-sm">
-              <Trans>Generating phase...</Trans>
-            </p>
-          </div>
-          <TaskList tasks={streamedTasks} readOnly />
-        </Card>
-      )}
+      {isGeneratingThis && !generatedPhase && <TaskList tasks={streamedTasks} readOnly />}
 
       {generatedPhase && (
         <TaskList

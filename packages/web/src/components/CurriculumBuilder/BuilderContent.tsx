@@ -90,7 +90,7 @@ export function BuilderContent({
         />
       )}
 
-      {step === "saving" && <LoadingState>Saving..</LoadingState>}
+      {step === "saving" && <LoadingState>Saving your program..</LoadingState>}
     </TopicContainer>
   );
 }

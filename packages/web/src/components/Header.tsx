@@ -7,7 +7,6 @@ import { useTheme } from "../hooks/useTheme";
 import { authClient } from "../lib/authClient";
 import type { BreadcrumbHandle } from "../lib/breadcrumbs";
 import type { AuthUser } from "../server/auth";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 
 import { Breadcrumb, BreadcrumbList, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
@@ -108,7 +107,6 @@ export function Header() {
               <Trans>New program</Trans>
             </span>
           </Button>
-          <LanguageSwitcher />
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger
