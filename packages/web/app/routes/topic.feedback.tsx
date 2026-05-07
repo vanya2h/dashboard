@@ -83,29 +83,39 @@ export default function FeedbackPage() {
 
   return (
     <>
-      <TopicContainer className="py-8 flex flex-col gap-4">
-        <Card>
-          <p className="text-xs text-muted-foreground mb-2">
-            <Trans>Feedback</Trans>
-          </p>
-          <h2 className="text-2xl font-semibold text-foreground">{partPlan?.title ?? ""}</h2>
-        </Card>
+      <TopicContainer className="py-8">
+        <Card.List>
+          <Card.Entry className="flex items-baseline justify-between gap-4">
+            <div className="flex flex-col">
+              <Card.Heading>{partPlan?.title ?? ""}</Card.Heading>
+              {partPlan?.description && <Card.CardSubheading>{partPlan.description}</Card.CardSubheading>}
+            </div>
+            <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+              <Trans>Feedback</Trans>
+            </span>
+          </Card.Entry>
 
-        <Card>
           {streaming && (
-            <>
-              <div className="flex items-center gap-2 mb-6 text-foreground/40">
-                <Spinner />
-                <p className="text-sm">
-                  <Trans>Evaluating your answers…</Trans>
-                </p>
-              </div>
-              {feedback && <Markdown isAnimating>{feedback}</Markdown>}
-            </>
+            <Card.Entry className="flex items-center gap-2 text-foreground/40">
+              <Spinner />
+              <p className="text-sm">
+                <Trans>Evaluating your answers…</Trans>
+              </p>
+            </Card.Entry>
           )}
 
-          {!streaming && feedback && <Markdown>{feedback}</Markdown>}
-        </Card>
+          {streaming && feedback && (
+            <Card.Entry>
+              <Markdown isAnimating>{feedback}</Markdown>
+            </Card.Entry>
+          )}
+
+          {!streaming && feedback && (
+            <Card.Entry>
+              <Markdown>{feedback}</Markdown>
+            </Card.Entry>
+          )}
+        </Card.List>
       </TopicContainer>
 
       {!data.readOnly && (

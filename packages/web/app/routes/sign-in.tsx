@@ -87,6 +87,7 @@ export default function SignIn() {
           <Input
             id="email"
             type="email"
+            size="lg"
             autoComplete="email"
             {...register("email")}
             aria-invalid={!!errors.email}
@@ -107,6 +108,7 @@ export default function SignIn() {
           <Input
             id="password"
             type="password"
+            size="lg"
             autoComplete="current-password"
             {...register("password")}
             aria-invalid={!!errors.password}
@@ -120,12 +122,12 @@ export default function SignIn() {
           )}
         </div>
 
-        <Button type="submit" variant="default" disabled={isSubmitting} className="w-full">
+        <Button size="lg" type="submit" variant="default" disabled={isSubmitting} className="w-full">
           {isSubmitting ? <Trans>Signing in…</Trans> : <Trans>Sign in</Trans>}
         </Button>
       </form>
 
-      <p className="text-center text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         <Trans>
           No account?{" "}
           <Link to={signUpHref} className="font-medium text-foreground hover:underline">

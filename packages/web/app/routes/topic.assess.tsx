@@ -1,7 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
-import { LoadingState } from "../../src/components/LoadingState";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
 import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
@@ -15,6 +14,7 @@ import type { loader as layoutLoader } from "./topic-layout";
 
 import { Card } from "~/components/Card";
 import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/ui/spinner";
 import { Textarea } from "~/components/ui/textarea";
 
 const TOKENS_ASSESSMENT = 300;
@@ -38,12 +38,13 @@ export default function AssessPage() {
   const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const { askAI } = useClaude();
+  const { streamAI } = useClaude();
   const { saveSession } = useTopicSession(taskId!);
   const { t } = useLingui();
   const abortRef = useRef<AbortController | null>(null);
 
   const [questions, setQuestions] = useState<string[] | null>(savedQuestions);
+  const [questionsStream, setQuestionsStream] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>(savedAnswers);
   const [loading, setLoading] = useState(false);
 
@@ -58,11 +59,21 @@ export default function AssessPage() {
     abortRef.current = ctrl;
     setLoading(true);
     setQuestions(null);
+    setQuestionsStream([]);
     setAnswers({});
     try {
-      const text = await askAI(
+      const text = await streamAI(
         ASSESSMENT_SYSTEM,
         `Topic: "${task.title}"\nCurriculum: ${curriculumName}${complexity ? `\nComplexity: ${complexity}` : ""}`,
+        (acc) => {
+          if (ctrl.signal.aborted) return;
+          try {
+            const { questions: qs } = parseJSON<{ questions?: string[] }>(acc);
+            if (Array.isArray(qs)) setQuestionsStream(qs.filter((q): q is string => typeof q === "string"));
+          } catch {
+            // partial stream not yet parseable
+          }
+        },
         TOKENS_ASSESSMENT,
         ctrl.signal,
       );
@@ -92,39 +103,48 @@ export default function AssessPage() {
     void navigate("../gaps", { relative: "path" });
   }
 
-  if (loading || !questions) {
-    return (
-      <LoadingState>
-        <Trans>Preparing assessment questions…</Trans>
-      </LoadingState>
-    );
-  }
-
-  const allAnswered = questions.every((_, i) => (answers[i] ?? "").trim().length > 0);
+  const isLoading = loading || !questions;
+  const allAnswered = !!questions && questions.every((_, i) => (answers[i] ?? "").trim().length > 0);
 
   return (
     <>
-      <TopicContainer className="py-8 flex flex-col gap-4">
-        <Card>
-          <div className="flex items-center justify-between gap-6">
-            <h2 className="text-2xl font-semibold text-foreground">
-              <Trans>Quick Assessment</Trans>
-            </h2>
+      <TopicContainer className="py-8">
+        <Card.List>
+          <Card.Entry className="flex items-baseline justify-between gap-4">
+            <div className="flex flex-col">
+              <Card.Heading>
+                <Trans>Quick Assessment</Trans>
+              </Card.Heading>
+              <Card.CardSubheading>
+                <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
+              </Card.CardSubheading>
+            </div>
             {!readOnly && (
               <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
                 <Trans>Regenerate</Trans>
               </Button>
             )}
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
-          </p>
-        </Card>
+          </Card.Entry>
 
-        <Card>
-          <div className="flex flex-col gap-6">
-            {questions.map((q, i) => (
-              <div key={i}>
+          {isLoading && (
+            <Card.Entry className="flex items-center gap-2 text-foreground/40">
+              <Spinner />
+              <p className="text-sm">
+                <Trans>Preparing assessment questions…</Trans>
+              </p>
+            </Card.Entry>
+          )}
+
+          {isLoading &&
+            questionsStream.map((q, i) => (
+              <Card.Entry key={i} className="text-sm text-foreground">
+                {i + 1}. {q}
+              </Card.Entry>
+            ))}
+
+          {!isLoading &&
+            questions?.map((q, i) => (
+              <Card.Entry key={i}>
                 <p className="text-sm font-medium text-foreground mb-2">
                   {i + 1}. {q}
                 </p>
@@ -136,10 +156,9 @@ export default function AssessPage() {
                   aria-label={t`Text input`}
                   disabled={readOnly}
                 />
-              </div>
+              </Card.Entry>
             ))}
-          </div>
-        </Card>
+        </Card.List>
       </TopicContainer>
 
       {!readOnly && (

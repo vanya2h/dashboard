@@ -50,6 +50,7 @@ export default function HandsOnPage() {
 
   const [answers, setAnswers] = useState<Record<string, string>>(savedAnswers);
   const [solutions, setSolutions] = useState<Record<number, { text: string; streaming: boolean }>>({});
+  const [solutionShown, setSolutionShown] = useState<Record<number, boolean>>({});
   const [hintShown, setHintShown] = useState<Record<number, boolean>>({});
 
   const { parts } = material;
@@ -57,6 +58,11 @@ export default function HandsOnPage() {
   const allAnswered = part.handsOn.every((_, i) => (answers[i] ?? "").trim().length > 0);
 
   async function handleSolution(idx: number, task: string, hint?: string) {
+    if (solutions[idx] && !solutions[idx].streaming) {
+      setSolutionShown((prev) => ({ ...prev, [idx]: true }));
+      return;
+    }
+    setSolutionShown((prev) => ({ ...prev, [idx]: true }));
     setSolutions((prev) => ({
       ...prev,
       [idx]: { text: "", streaming: true },
@@ -82,14 +88,12 @@ export default function HandsOnPage() {
         const { [idx]: _, ...rest } = prev;
         return rest;
       });
+      setSolutionShown((prev) => ({ ...prev, [idx]: false }));
     }
   }
 
   function handleHideSolution(idx: number) {
-    setSolutions((prev) => {
-      const { [idx]: _, ...rest } = prev;
-      return rest;
-    });
+    setSolutionShown((prev) => ({ ...prev, [idx]: false }));
   }
 
   function toggleHint(idx: number) {
@@ -110,33 +114,34 @@ export default function HandsOnPage() {
     <>
       <TopicContainer className="py-8 flex flex-col gap-8">
         {part.handsOn.map((taskItem, i) => (
-          <div key={i} className="flex flex-col gap-4">
-            <Card>
-              <h2 className="text-xl font-semibold">
+          <Card.List key={i}>
+            <Card.Entry>
+              <Card.Heading>
                 <Trans>Task {i + 1}</Trans>
-              </h2>
-              <div className="mt-2">
-                <Markdown>{taskItem.task}</Markdown>
-              </div>
-              <div className="mt-4">
-                <Textarea
-                  value={answers[i] ?? ""}
-                  onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
-                  placeholder={t`Your answer, code, or reasoning…`}
-                  rows={4}
-                  aria-label={t`Text input`}
-                  disabled={readOnly}
-                />
-              </div>
-            </Card>
+              </Card.Heading>
+            </Card.Entry>
+            <Card.Entry>
+              <Markdown>{taskItem.task}</Markdown>
+            </Card.Entry>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <Card.Entry>
+              <Textarea
+                value={answers[i] ?? ""}
+                onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
+                placeholder={t`Your answer, code, or reasoning…`}
+                rows={4}
+                aria-label={t`Text input`}
+                disabled={readOnly}
+              />
+            </Card.Entry>
+
+            <Card.Entry className="flex flex-wrap items-center gap-2">
               {taskItem.hint && (
                 <Button variant="secondary" size="xs" onClick={() => toggleHint(i)}>
                   {hintShown[i] ? <Trans>Hide hint</Trans> : <Trans>Show hint</Trans>}
                 </Button>
               )}
-              {solutions[i] && !solutions[i].streaming ? (
+              {solutionShown[i] && !solutions[i]?.streaming ? (
                 <Button variant="secondary" size="xs" onClick={() => handleHideSolution(i)}>
                   <Trans>Hide solution</Trans>
                 </Button>
@@ -150,26 +155,26 @@ export default function HandsOnPage() {
                 </Button>
               )}
               {solutions[i]?.streaming && <Spinner />}
-            </div>
+            </Card.Entry>
 
             {taskItem.hint && hintShown[i] && (
-              <Card>
-                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">
+              <Card.Entry>
+                <Card.Heading className="mb-2">
                   <Trans>Hint</Trans>
-                </p>
-                <p className="text-foreground">{taskItem.hint}</p>
-              </Card>
+                </Card.Heading>
+                <p className="text-sm text-foreground">{taskItem.hint}</p>
+              </Card.Entry>
             )}
 
-            {solutions[i] && (
-              <Card>
-                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">
+            {solutionShown[i] && solutions[i] && (
+              <Card.Entry>
+                <Card.Heading className="mb-2">
                   <Trans>Solution</Trans>
-                </p>
+                </Card.Heading>
                 <Markdown isAnimating={solutions[i].streaming}>{solutions[i].text}</Markdown>
-              </Card>
+              </Card.Entry>
             )}
-          </div>
+          </Card.List>
         ))}
       </TopicContainer>
 

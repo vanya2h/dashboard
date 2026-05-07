@@ -90,6 +90,7 @@ export default function SignUp() {
             id="name"
             type="text"
             autoComplete="name"
+            size="lg"
             {...register("name")}
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? "name-error" : undefined}
@@ -110,6 +111,7 @@ export default function SignUp() {
             id="email"
             type="email"
             autoComplete="email"
+            size="lg"
             {...register("email")}
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
@@ -130,6 +132,7 @@ export default function SignUp() {
             id="password"
             type="password"
             autoComplete="new-password"
+            size="lg"
             {...register("password")}
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
@@ -142,7 +145,7 @@ export default function SignUp() {
           )}
         </div>
 
-        <Button type="submit" variant="default" disabled={isSubmitting} className="w-full">
+        <Button size="lg" type="submit" variant="default" disabled={isSubmitting} className="w-full">
           {isSubmitting ? <Trans>Creating account…</Trans> : <Trans>Create account</Trans>}
         </Button>
       </form>

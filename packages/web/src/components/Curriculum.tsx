@@ -160,7 +160,7 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
 
         <div className="flex items-center gap-2 shrink-0">
           {session && (
-            <Button size="lg" type="button" onClick={startOver} variant="secondary">
+            <Button size="lg" type="button" onClick={startOver} variant="ghost">
               <Trans>Start over</Trans>
             </Button>
           )}

@@ -83,36 +83,38 @@ export default function WriteUpPage() {
 
   return (
     <>
-      <TopicContainer className="py-8 flex flex-col gap-4">
-        <Card>
-          <h2 className="text-xl font-semibold">
-            <Trans>Reflect</Trans>
-          </h2>
-          <p className="mt-2 text-foreground">{part.writeUpPrompt}</p>
-          {!streaming && (
-            <div className="mt-4">
-              <Textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={t`Write your reflection in your own words…`}
-                rows={4}
-                aria-label={t`Text input`}
-              />
+      <TopicContainer className="py-8">
+        <Card.List>
+          <Card.Entry>
+            <div className="flex flex-col">
+              <Card.Heading>
+                <Trans>Reflect</Trans>
+              </Card.Heading>
+              <Card.CardSubheading>{part.writeUpPrompt}</Card.CardSubheading>
             </div>
-          )}
-        </Card>
+          </Card.Entry>
 
-        {(feedback || streaming) && (
-          <Card>
-            <div className="flex items-center gap-2 mb-2">
-              {streaming && <Spinner />}
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Card.Entry>
+            <Textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={t`Write your reflection in your own words…`}
+              rows={4}
+              aria-label={t`Text input`}
+              disabled={streaming || !!feedback}
+            />
+          </Card.Entry>
+
+          {(feedback || streaming) && (
+            <Card.Entry>
+              <Card.Heading className="mb-3 flex items-center gap-2">
+                {streaming && <Spinner />}
                 <Trans>Tutor feedback</Trans>
-              </p>
-            </div>
-            <Markdown isAnimating={streaming}>{feedback}</Markdown>
-          </Card>
-        )}
+              </Card.Heading>
+              <Markdown isAnimating={streaming}>{feedback}</Markdown>
+            </Card.Entry>
+          )}
+        </Card.List>
       </TopicContainer>
 
       <TopicActionBar>

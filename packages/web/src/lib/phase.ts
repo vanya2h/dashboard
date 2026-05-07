@@ -35,10 +35,23 @@ const AssessingPhaseSchema = z.object({
   questions: z.array(z.string()),
   answers: answersSchema,
 });
+const GapLevelSchema = z.enum(["partially-known", "no-knowledge"]);
+
+const GapItemSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  level: GapLevelSchema,
+});
+
+// TODO(legacy gaps): drop the string variant once all stored gaps-review sessions
+// have been re-generated under the new shape. Until then we accept both so old
+// sessions still parse and render via the legacy read-only view.
+const GapEntrySchema = z.union([GapItemSchema, z.string()]);
+
 const GapsReviewPhaseSchema = z.object({
   name: z.literal("gaps-review"),
   summary: z.string(),
-  gaps: z.array(z.string()),
+  gaps: z.array(GapEntrySchema),
   context: z.string(),
 });
 const StudyPhaseSchema = z.object({
@@ -91,10 +104,17 @@ export type PartPlan = z.infer<typeof PartPlanSchema>;
 export type MaterialPlan = z.infer<typeof MaterialPlanSchema>;
 export type StudyPart = z.infer<typeof StudyPartSchema>;
 export type Material = z.infer<typeof MaterialSchema>;
+export type GapLevel = z.infer<typeof GapLevelSchema>;
+export type GapItem = z.infer<typeof GapItemSchema>;
+export type GapEntry = z.infer<typeof GapEntrySchema>;
 export type PersistedPhase = z.infer<typeof PersistedPhaseSchema>;
 export type PhaseKey = PersistedPhase["name"];
 export type PhaseByKey<T extends PhaseKey> = Extract<PersistedPhase, { name: T }>;
 export type TopicSessionState = z.infer<typeof TopicSessionStateSchema>;
+
+export function isLegacyGap(gap: GapEntry): gap is string {
+  return typeof gap === "string";
+}
 
 export const PHASE_ORDER = [
   "assessing",
@@ -149,12 +169,13 @@ export const PLAN_SYSTEM = `You are an expert tutor planning a structured study 
 Respond with ONLY valid JSON — no explanation outside the JSON:
 {
   "partPlans": [
-    { "title": "concise part title", "description": "one sentence: what this part covers and why it matters" }
+    { "title": "concise part title", "description": "1-2 short sentences (max 25 words total) on what this part covers and why it matters" }
   ]
 }
 Rules:
 - Parts ordered foundational to advanced
 - Every part must close a gap the assessment exposed — skip topics the learner already knows
+- Description: hard cap of 2 sentences and 25 words. No lists, no preamble, no rephrasing of the title.
 - Complexity mode rules (provided in the user message when available):
   - easy: 1-2 parts — only the highest-impact gaps, surface-level coverage
   - medium: 2-3 parts — core gaps plus one supporting concept
@@ -192,8 +213,22 @@ Complexity mode rules (provided in the user message when available):
 
 export const ASSESSMENT_EVAL_SYSTEM = `You are an expert tutor analyzing assessment answers.
 Respond with ONLY valid JSON — no markdown, no explanation:
-{ "summary": "1 sentence on current knowledge level", "gaps": ["concept needing focus", ...] }
-Be accurate. gaps can be empty array. Max 3 gaps.`;
+{
+  "summary": "1 sentence on current knowledge level",
+  "gaps": [
+    {
+      "title": "concise gap name (3-7 words)",
+      "description": "1-2 sentences on what is lacking and why it matters",
+      "level": "partially-known" | "no-knowledge"
+    }
+  ]
+}
+Rules:
+- Max 5 gaps. Empty array if knowledge is solid.
+- "partially-known": learner showed awareness but missed nuance, accuracy, or trade-offs
+- "no-knowledge": learner could not engage with the topic or got it materially wrong
+- Synthesize gaps across the whole assessment — they are not tied 1:1 to questions
+- Title is short and topic-shaped (e.g. "Research methods & user insight gathering"), not a question`;
 
 export const HANDS_ON_EVAL_SYSTEM = `You are a concise, direct tutor reviewing a learner's hands-on exercise solutions. Respond in markdown. Use fenced code blocks with an explicit language tag (typescript, python, bash, etc.) whenever referencing code. Keep response under 200 words.
 For each task: 1 sentence on what they got right and 1 sentence on the most important gap or misconception.
@@ -203,7 +238,8 @@ Be honest — vague praise is useless.`;
 export const WRITEUP_SYSTEM = `You are a concise, supportive tutor reviewing a learner's reflection. Respond in markdown. Keep response under 100 words.
 1 sentence: acknowledge what they captured well.
 1-2 sentences: the most important thing to think more deeply about.
-1 sentence: one concrete suggestion for deepening understanding.`;
+1 sentence: one concrete suggestion for deepening understanding.
+Don't add heading in the response. It is rendered above the content`;
 
 export const TASK_SOLUTION_SYSTEM = `You are a senior engineer sketching the answer to a hands-on task the way you would on a notebook page or a whiteboard for a peer — fluent, human, slightly informal.
 Respond in markdown. Use fenced code blocks with an explicit language tag only when code is essential; prefer prose, pseudocode, or shorthand for the rest.
