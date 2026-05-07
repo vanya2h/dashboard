@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useMemo, useState } from "react";
 import { Link, Outlet, redirect, useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
 import { ProgramCover } from "../../src/components/ProgramCover";
 import { TopicActionBarSlotContext } from "../../src/components/TopicActionBar";
 import { TopicHeader } from "../../src/components/TopicHeader";
-import { TopicSidebar } from "../../src/components/TopicSidebar";
+import { TopicSidebar, type TopicSidebarItem } from "../../src/components/TopicSidebar";
 import { listCurriculums } from "../../src/data/curriculum";
 import type { CurriculumDef } from "../../src/data/types";
 import { parseCurriculumDef } from "../../src/data/types";
@@ -11,7 +12,7 @@ import { useProgress } from "../../src/hooks/useProgress";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { getLocaleFromRequest } from "../../src/lib/i18n";
-import { parsePersistedPhase } from "../../src/lib/phase";
+import { highestPhase, parseTopicSessionState, PHASE_ORDER } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic-layout";
@@ -19,14 +20,37 @@ import type { Route } from "./+types/topic-layout";
 import { GridBackground } from "~/components/GridBg";
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 
-const PHASE_TO_STAGE_INDEX: Record<string, number> = {
-  assessing: 1,
-  "gaps-review": 2,
-  study: 3,
-  "hands-on": 4,
-  feedback: 5,
-  "write-up": 6,
-};
+type PhaseKey = (typeof PHASE_ORDER)[number];
+
+function buildSidebarItems(assessmentSkipped: boolean): TopicSidebarItem[] {
+  if (assessmentSkipped) {
+    return [
+      { path: "study", label: <Trans>Study</Trans> },
+      { path: "hands-on", label: <Trans>Practice</Trans> },
+      { path: "feedback", label: <Trans>Feedback</Trans> },
+      { path: "write-up", label: <Trans>Write-up</Trans> },
+      { path: "complete", label: <Trans>Complete</Trans> },
+    ];
+  }
+  return [
+    { path: "assess", label: <Trans>Assess</Trans> },
+    { path: "gaps", label: <Trans>Gaps</Trans> },
+    { path: "study", label: <Trans>Study</Trans> },
+    { path: "hands-on", label: <Trans>Practice</Trans> },
+    { path: "feedback", label: <Trans>Feedback</Trans> },
+    { path: "write-up", label: <Trans>Write-up</Trans> },
+    { path: "complete", label: <Trans>Complete</Trans> },
+  ];
+}
+
+const PHASE_TO_PATH = {
+  assessing: "assess",
+  "gaps-review": "gaps",
+  study: "study",
+  "hands-on": "hands-on",
+  feedback: "feedback",
+  "write-up": "write-up",
+} as const satisfies Record<PhaseKey, string>;
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   const title = loaderData?.task?.title;
@@ -73,10 +97,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const record = await db.topicSession.findUnique({
     where: { userId_taskId: { userId: session.user.id, taskId: params.taskId } },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
-  const highestStage = phase ? (PHASE_TO_STAGE_INDEX[phase.name] ?? 0) : 0;
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const top = highestPhase(state);
+  const assessmentSkipped = !state.phases.assessing && !state.phases["gaps-review"];
+  const highestPath = top ? PHASE_TO_PATH[top] : null;
 
-  return { ...taskInfo, highestStage };
+  return { ...taskInfo, assessmentSkipped, highestPath };
 }
 
 export const handle: BreadcrumbHandle = {
@@ -102,7 +128,7 @@ function TopicBreadcrumb() {
 }
 
 export default function TopicLayout() {
-  const { task, curriculumName, highestStage, cover } = useLoaderData<typeof loader>();
+  const { task, curriculumName, highestPath, cover, assessmentSkipped } = useLoaderData<typeof loader>();
   const { taskId } = useParams<{ curriculumId: string; taskId: string }>();
   const navigate = useNavigate();
   const { deleteSession } = useTopicSession(taskId!);
@@ -116,11 +142,15 @@ export default function TopicLayout() {
     void navigate("choice", { relative: "path" });
   }
 
+  const items = useMemo(() => buildSidebarItems(assessmentSkipped), [assessmentSkipped]);
+  const highestIdx = highestPath ? items.findIndex((it) => it.path === highestPath) : -1;
+  const reachedIndex = taskCompleted ? items.length - 1 : highestIdx;
+
   return (
     <TopicActionBarSlotContext value={actionBarSlot}>
       <TopicHeader taskTitle={task.title} curriculumName={curriculumName} onStartOver={startOver} />
       <div className="flex flex-1">
-        <TopicSidebar highestStage={highestStage} taskCompleted={taskCompleted} />
+        <TopicSidebar items={items} reachedIndex={reachedIndex} />
         <div className="flex-1 min-w-0 border-l border-border flex flex-col relative">
           {cover && (
             <div className="absolute inset-0">

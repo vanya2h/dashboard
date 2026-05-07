@@ -8,7 +8,7 @@ import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { parseJSON } from "../../src/lib/json";
 import type { PhaseByKey } from "../../src/lib/phase";
-import { ASSESSMENT_EVAL_SYSTEM, parsePersistedPhase } from "../../src/lib/phase";
+import { ASSESSMENT_EVAL_SYSTEM, isPhaseReadOnly, parseTopicSessionState } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.gaps";
@@ -18,7 +18,7 @@ import { Button } from "~/components/ui/button";
 
 const TOKENS_ASSESSMENT_EVAL = 300;
 
-type LoaderResult = PhaseByKey<"gaps-review"> | PhaseByKey<"assessing">;
+type LoaderResult = (PhaseByKey<"gaps-review"> | PhaseByKey<"assessing">) & { readOnly: boolean };
 
 export async function loader({ request, params }: Route.LoaderArgs): Promise<LoaderResult> {
   const session = await requireSession(request);
@@ -30,11 +30,14 @@ export async function loader({ request, params }: Route.LoaderArgs): Promise<Loa
       },
     },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const readOnly = isPhaseReadOnly(state, "gaps-review");
 
-  if (phase?.name === "gaps-review") return phase;
-  if (phase?.name === "assessing") return phase;
-  return { name: "assessing" as const, questions: [], answers: {} };
+  const review = state.phases["gaps-review"];
+  if (review) return { ...review, readOnly };
+  const assessing = state.phases.assessing;
+  if (assessing) return { ...assessing, readOnly };
+  return { name: "assessing" as const, questions: [], answers: {}, readOnly };
 }
 
 export default function GapsPage() {
@@ -44,8 +47,12 @@ export default function GapsPage() {
   const { stream } = useStreamAI();
   const { saveSession } = useTopicSession(taskId!);
 
-  const [evalStream, setEvalStream] = useState("");
-  const [review, setReview] = useState<PhaseByKey<"gaps-review"> | null>(data.name === "gaps-review" ? data : null);
+  const [, setEvalStream] = useState("");
+  const [review, setReview] = useState<PhaseByKey<"gaps-review"> | null>(
+    data.name === "gaps-review"
+      ? { name: data.name, summary: data.summary, gaps: data.gaps, context: data.context }
+      : null,
+  );
 
   useEffect(() => {
     if (data.name === "gaps-review") return;
@@ -103,11 +110,13 @@ export default function GapsPage() {
         )}
       </TopicContainer>
 
-      <TopicActionBar>
-        <Button className="ml-auto" onClick={() => void navigate("../study", { relative: "path" })}>
-          <Trans>Start studying</Trans>
-        </Button>
-      </TopicActionBar>
+      {!data.readOnly && (
+        <TopicActionBar>
+          <Button className="ml-auto" onClick={() => void navigate("../study", { relative: "path" })}>
+            <Trans>Start studying</Trans>
+          </Button>
+        </TopicActionBar>
+      )}
     </>
   );
 }

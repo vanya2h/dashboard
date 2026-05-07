@@ -8,7 +8,14 @@ import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
-import { parsePart, parsePersistedPhase, parsePlan, PART_SYSTEM, PLAN_SYSTEM } from "../../src/lib/phase";
+import {
+  isPhaseReadOnly,
+  parsePart,
+  parsePlan,
+  parseTopicSessionState,
+  PART_SYSTEM,
+  PLAN_SYSTEM,
+} from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.study";
@@ -21,18 +28,21 @@ import { Spinner } from "~/components/ui/spinner";
 const TOKENS_PLAN = 600;
 const TOKENS_PART = 3000;
 
-type LoaderResult = PhaseByKey<"study"> | PhaseByKey<"gaps-review"> | { name: null };
+type LoaderResult = (PhaseByKey<"study"> | PhaseByKey<"gaps-review"> | { name: null }) & { readOnly: boolean };
 
 export async function loader({ request, params }: Route.LoaderArgs): Promise<LoaderResult> {
   const session = await requireSession(request);
   const record = await db.topicSession.findUnique({
     where: { userId_taskId: { userId: session.user.id, taskId: params.taskId } },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const readOnly = isPhaseReadOnly(state, "study");
 
-  if (phase?.name === "study") return phase;
-  if (phase?.name === "gaps-review") return phase;
-  return { name: null };
+  const study = state.phases.study;
+  if (study) return { ...study, readOnly };
+  const gaps = state.phases["gaps-review"];
+  if (gaps) return { ...gaps, readOnly };
+  return { name: null, readOnly };
 }
 
 export default function StudyPage() {
@@ -41,7 +51,7 @@ export default function StudyPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const { streamAI } = useClaude();
-  const { saveSession } = useTopicSession(taskId!);
+  const { saveSession: rawSaveSession } = useTopicSession(taskId!);
   const abortRef = useRef<AbortController | null>(null);
 
   const task = layoutData?.task;
@@ -58,6 +68,10 @@ export default function StudyPage() {
     abortRef.current = ctrl;
     return ctrl;
   }
+
+  const { readOnly } = loaderData;
+  const saveSession: typeof rawSaveSession = (phase) =>
+    readOnly ? Promise.resolve({ ok: true } as never) : rawSaveSession(phase);
 
   async function loadPart(idx: number, mat: Material, ctrl: AbortController) {
     const partPlan = mat.plan.partPlans[idx];

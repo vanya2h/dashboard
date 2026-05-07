@@ -122,13 +122,13 @@
   --background-layer: oklch(20.715% 0.00956 107.252);
   --background-layer-active: oklch(22.493% 0.00752 107.05);
   --foreground: oklch(0.988 0.003 106.5);
-  --card: oklch(0.32 0 0 / 0.39);
-  --card-hover: oklch(39.793% 0.00005 271.152 / 0.39);
+  --card: oklch(18.674% 0.00002 271.152 / 0.723);
+  --card-hover: oklch(17.764% 0.00002 271.152 / 0.736);
   --card-active: var(--card-hover);
   --card-foreground: oklch(0.988 0.003 106.5);
   --muted: oklch(0.286 0.016 107.4);
   --muted-foreground: oklch(0.737 0.021 106.9);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(100% 0.00011 271.152 / 0.175);
   --border-hover: oklch(100% 0.00011 271.152 / 0.203);
   --border-active: oklch(100% 0.00011 271.152 / 0.28);
   --sidebar: oklch(0.228 0.013 107.4);

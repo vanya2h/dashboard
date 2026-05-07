@@ -7,7 +7,7 @@ import { TopicContainer } from "../../src/components/TopicContainer";
 import { useProgress } from "../../src/hooks/useProgress";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
-import { parsePersistedPhase, WRITEUP_SYSTEM } from "../../src/lib/phase";
+import { parseTopicSessionState, WRITEUP_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.write-up";
@@ -28,8 +28,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       },
     },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
-  if (phase?.name !== "write-up") {
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const phase = state.phases["write-up"];
+  if (!phase) {
     throw new Response("Not found", { status: 404 });
   }
   return {
@@ -102,10 +103,10 @@ export default function WriteUpPage() {
           <div className="mt-8">
             <div>
               <div className="flex items-center gap-2 mb-2">
+                {streaming && <Spinner />}
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   <Trans>Tutor feedback</Trans>
                 </p>
-                {streaming && <Spinner />}
               </div>
               <Markdown isAnimating={streaming}>{feedback}</Markdown>
             </div>

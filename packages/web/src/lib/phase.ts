@@ -30,43 +30,61 @@ const MaterialSchema = z.object({
 
 const answersSchema = z.record(z.string(), z.string());
 
+const AssessingPhaseSchema = z.object({
+  name: z.literal("assessing"),
+  questions: z.array(z.string()),
+  answers: answersSchema,
+});
+const GapsReviewPhaseSchema = z.object({
+  name: z.literal("gaps-review"),
+  summary: z.string(),
+  gaps: z.array(z.string()),
+  context: z.string(),
+});
+const StudyPhaseSchema = z.object({
+  name: z.literal("study"),
+  material: MaterialSchema,
+  partIdx: z.number(),
+});
+const HandsOnPhaseSchema = z.object({
+  name: z.literal("hands-on"),
+  material: MaterialSchema,
+  partIdx: z.number(),
+  answers: answersSchema,
+});
+const FeedbackPhaseSchema = z.object({
+  name: z.literal("feedback"),
+  material: MaterialSchema,
+  partIdx: z.number(),
+  answers: answersSchema,
+  feedback: z.string(),
+});
+const WriteUpPhaseSchema = z.object({
+  name: z.literal("write-up"),
+  material: MaterialSchema,
+  partIdx: z.number(),
+  feedback: z.string(),
+});
+
 export const PersistedPhaseSchema = z.discriminatedUnion("name", [
-  z.object({
-    name: z.literal("assessing"),
-    questions: z.array(z.string()),
-    answers: answersSchema,
-  }),
-  z.object({
-    name: z.literal("gaps-review"),
-    summary: z.string(),
-    gaps: z.array(z.string()),
-    context: z.string(),
-  }),
-  z.object({
-    name: z.literal("study"),
-    material: MaterialSchema,
-    partIdx: z.number(),
-  }),
-  z.object({
-    name: z.literal("hands-on"),
-    material: MaterialSchema,
-    partIdx: z.number(),
-    answers: answersSchema,
-  }),
-  z.object({
-    name: z.literal("feedback"),
-    material: MaterialSchema,
-    partIdx: z.number(),
-    answers: answersSchema,
-    feedback: z.string(),
-  }),
-  z.object({
-    name: z.literal("write-up"),
-    material: MaterialSchema,
-    partIdx: z.number(),
-    feedback: z.string(),
-  }),
+  AssessingPhaseSchema,
+  GapsReviewPhaseSchema,
+  StudyPhaseSchema,
+  HandsOnPhaseSchema,
+  FeedbackPhaseSchema,
+  WriteUpPhaseSchema,
 ]);
+
+export const TopicSessionStateSchema = z.object({
+  phases: z.object({
+    assessing: AssessingPhaseSchema.optional(),
+    "gaps-review": GapsReviewPhaseSchema.optional(),
+    study: StudyPhaseSchema.optional(),
+    "hands-on": HandsOnPhaseSchema.optional(),
+    feedback: FeedbackPhaseSchema.optional(),
+    "write-up": WriteUpPhaseSchema.optional(),
+  }),
+});
 
 export type HandsOnTask = z.infer<typeof HandsOnTaskSchema>;
 export type PartPlan = z.infer<typeof PartPlanSchema>;
@@ -76,10 +94,46 @@ export type Material = z.infer<typeof MaterialSchema>;
 export type PersistedPhase = z.infer<typeof PersistedPhaseSchema>;
 export type PhaseKey = PersistedPhase["name"];
 export type PhaseByKey<T extends PhaseKey> = Extract<PersistedPhase, { name: T }>;
+export type TopicSessionState = z.infer<typeof TopicSessionStateSchema>;
+
+export const PHASE_ORDER = [
+  "assessing",
+  "gaps-review",
+  "study",
+  "hands-on",
+  "feedback",
+  "write-up",
+] as const satisfies readonly PhaseKey[];
 
 export function parsePersistedPhase(data: unknown): PersistedPhase | null {
   const result = PersistedPhaseSchema.safeParse(data);
   return result.success ? result.data : null;
+}
+
+export function parseTopicSessionState(data: unknown): TopicSessionState {
+  const direct = TopicSessionStateSchema.safeParse(data);
+  if (direct.success) return direct.data;
+  const legacy = PersistedPhaseSchema.safeParse(data);
+  if (legacy.success) return { phases: { [legacy.data.name]: legacy.data } as TopicSessionState["phases"] };
+  return { phases: {} };
+}
+
+export function highestPhase(state: TopicSessionState): PhaseKey | null {
+  for (let i = PHASE_ORDER.length - 1; i >= 0; i--) {
+    const key = PHASE_ORDER[i]!;
+    if (state.phases[key]) return key;
+  }
+  return null;
+}
+
+export function nextPhaseKey(name: PhaseKey): PhaseKey | null {
+  const idx = PHASE_ORDER.indexOf(name);
+  return PHASE_ORDER[idx + 1] ?? null;
+}
+
+export function isPhaseReadOnly(state: TopicSessionState, name: PhaseKey): boolean {
+  const next = nextPhaseKey(name);
+  return next !== null && state.phases[next] !== undefined;
 }
 
 export const PHASE_ROUTES = {

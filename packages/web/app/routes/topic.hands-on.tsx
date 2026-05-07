@@ -6,7 +6,7 @@ import { TopicActionBar } from "../../src/components/TopicActionBar";
 import { TopicContainer } from "../../src/components/TopicContainer";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
-import { parsePersistedPhase, TASK_SOLUTION_SYSTEM } from "../../src/lib/phase";
+import { isPhaseReadOnly, parseTopicSessionState, TASK_SOLUTION_SYSTEM } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.hands-on";
@@ -26,17 +26,22 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       },
     },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
-  if (phase?.name !== "hands-on") throw new Response("Not found", { status: 404 });
-  return {
-    material: phase.material,
-    partIdx: phase.partIdx,
-    savedAnswers: phase.answers,
-  };
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const readOnly = isPhaseReadOnly(state, "hands-on");
+
+  const handsOn = state.phases["hands-on"];
+  if (handsOn) {
+    return { material: handsOn.material, partIdx: handsOn.partIdx, savedAnswers: handsOn.answers, readOnly };
+  }
+  const study = state.phases.study;
+  if (study) {
+    return { material: study.material, partIdx: study.partIdx, savedAnswers: {} as Record<string, string>, readOnly };
+  }
+  throw new Response("Not found", { status: 404 });
 }
 
 export default function HandsOnPage() {
-  const { material, partIdx, savedAnswers } = useLoaderData<typeof loader>();
+  const { material, partIdx, savedAnswers, readOnly } = useLoaderData<typeof loader>();
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const { stream } = useStreamAI();
@@ -158,17 +163,20 @@ export default function HandsOnPage() {
                 placeholder={t`Your answer, code, or reasoning…`}
                 rows={4}
                 aria-label={t`Text input`}
+                disabled={readOnly}
               />
             </div>
           ))}
         </div>
       </TopicContainer>
 
-      <TopicActionBar>
-        <Button className="ml-auto" disabled={!allAnswered} onClick={() => void handleSubmit()}>
-          <Trans>Submit for feedback</Trans>
-        </Button>
-      </TopicActionBar>
+      {!readOnly && (
+        <TopicActionBar>
+          <Button className="ml-auto" disabled={!allAnswered} onClick={() => void handleSubmit()}>
+            <Trans>Submit for feedback</Trans>
+          </Button>
+        </TopicActionBar>
+      )}
     </>
   );
 }

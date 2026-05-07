@@ -8,7 +8,7 @@ import { TopicContainer } from "../../src/components/TopicContainer";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { PhaseByKey } from "../../src/lib/phase";
-import { HANDS_ON_EVAL_SYSTEM, parsePersistedPhase } from "../../src/lib/phase";
+import { HANDS_ON_EVAL_SYSTEM, isPhaseReadOnly, parseTopicSessionState } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.feedback";
@@ -18,7 +18,7 @@ import { Spinner } from "~/components/ui/spinner";
 
 const TOKENS_HANDS_ON_EVAL = 500;
 
-type LoaderResult = PhaseByKey<"feedback"> | PhaseByKey<"hands-on">;
+type LoaderResult = (PhaseByKey<"feedback"> | PhaseByKey<"hands-on">) & { readOnly: boolean };
 
 export async function loader({ request, params }: Route.LoaderArgs): Promise<LoaderResult> {
   const session = await requireSession(request);
@@ -30,10 +30,13 @@ export async function loader({ request, params }: Route.LoaderArgs): Promise<Loa
       },
     },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const readOnly = isPhaseReadOnly(state, "feedback");
 
-  if (phase?.name === "feedback") return phase;
-  if (phase?.name === "hands-on") return phase;
+  const feedback = state.phases.feedback;
+  if (feedback) return { ...feedback, readOnly };
+  const handsOn = state.phases["hands-on"];
+  if (handsOn) return { ...handsOn, readOnly };
   throw new Response("Not found", { status: 404 });
 }
 
@@ -101,11 +104,13 @@ export default function FeedbackPage() {
         {!streaming && feedback && <Markdown>{feedback}</Markdown>}
       </TopicContainer>
 
-      <TopicActionBar>
-        <Button className="ml-auto" disabled={streaming || !feedback} onClick={handleContinue}>
-          <Trans>Reflection</Trans> <ArrowRightIcon />
-        </Button>
-      </TopicActionBar>
+      {!data.readOnly && (
+        <TopicActionBar>
+          <Button className="ml-auto" disabled={streaming || !feedback} onClick={handleContinue}>
+            <Trans>Reflection</Trans> <ArrowRightIcon />
+          </Button>
+        </TopicActionBar>
+      )}
     </>
   );
 }

@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import type { Prisma } from "@prisma/client-generated";
 import { Hono } from "hono";
 import { z } from "zod";
-import { PersistedPhaseSchema } from "../../lib/phase";
+import { parseTopicSessionState, PersistedPhaseSchema } from "../../lib/phase";
 import { db } from "../db";
 import type { AuthEnv } from "../middleware/requireAuth";
 
@@ -17,19 +17,26 @@ export const topicSessionRoute = new Hono<AuthEnv>()
       where: { userId_taskId: { userId, taskId } },
     });
 
-    return c.json({ phaseData: session?.phaseData ?? null });
+    if (!session) return c.json({ state: null });
+    return c.json({ state: parseTopicSessionState(session.phaseData) });
   })
 
   .put(
     "/topic-sessions/:taskId",
     zValidator("param", paramSchema),
-    zValidator("json", z.object({ phaseData: PersistedPhaseSchema })),
+    zValidator("json", z.object({ phase: PersistedPhaseSchema })),
     async (c) => {
       const userId = c.var.user.id;
       const { taskId } = c.req.valid("param");
-      const { phaseData } = c.req.valid("json");
+      const { phase } = c.req.valid("json");
 
-      const data = phaseData as unknown as Prisma.InputJsonValue;
+      const existing = await db.topicSession.findUnique({
+        where: { userId_taskId: { userId, taskId } },
+      });
+      const prev = existing ? parseTopicSessionState(existing.phaseData) : { phases: {} };
+      const next = { phases: { ...prev.phases, [phase.name]: phase } };
+      const data = next as unknown as Prisma.InputJsonValue;
+
       await db.topicSession.upsert({
         where: { userId_taskId: { userId, taskId } },
         update: { phaseData: data },

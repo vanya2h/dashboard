@@ -7,7 +7,7 @@ import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import { parseJSON } from "../../src/lib/json";
-import { ASSESSMENT_SYSTEM, parsePersistedPhase } from "../../src/lib/phase";
+import { ASSESSMENT_SYSTEM, isPhaseReadOnly, parseTopicSessionState } from "../../src/lib/phase";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/topic.assess";
@@ -23,15 +23,17 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const record = await db.topicSession.findUnique({
     where: { userId_taskId: { userId: session.user.id, taskId: params.taskId } },
   });
-  const phase = parsePersistedPhase(record?.phaseData);
-  if (phase?.name === "assessing") {
-    return { questions: phase.questions, answers: phase.answers };
+  const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
+  const phase = state.phases.assessing;
+  const readOnly = isPhaseReadOnly(state, "assessing");
+  if (phase) {
+    return { questions: phase.questions, answers: phase.answers, readOnly };
   }
-  return { questions: null, answers: {} as Record<string, string> };
+  return { questions: null, answers: {} as Record<string, string>, readOnly: false };
 }
 
 export default function AssessPage() {
-  const { questions: savedQuestions, answers: savedAnswers } = useLoaderData<typeof loader>();
+  const { questions: savedQuestions, answers: savedAnswers, readOnly } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
@@ -106,9 +108,11 @@ export default function AssessPage() {
           <h2 className="text-2xl font-semibold text-foreground">
             <Trans>Quick Assessment</Trans>
           </h2>
-          <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
-            <Trans>Regenerate</Trans>
-          </Button>
+          {!readOnly && (
+            <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
+              <Trans>Regenerate</Trans>
+            </Button>
+          )}
         </div>
         <p className="text-sm text-muted-foreground mb-8">
           <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
@@ -125,17 +129,20 @@ export default function AssessPage() {
                 placeholder={t`Your answer…`}
                 rows={3}
                 aria-label={t`Text input`}
+                disabled={readOnly}
               />
             </div>
           ))}
         </div>
       </TopicContainer>
 
-      <TopicActionBar>
-        <Button className="ml-auto" disabled={!allAnswered} onClick={() => void handleSubmit()}>
-          <Trans>Submit answers</Trans>
-        </Button>
-      </TopicActionBar>
+      {!readOnly && (
+        <TopicActionBar>
+          <Button className="ml-auto" disabled={!allAnswered} onClick={() => void handleSubmit()}>
+            <Trans>Submit answers</Trans>
+          </Button>
+        </TopicActionBar>
+      )}
     </>
   );
 }

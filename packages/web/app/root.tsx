@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router";
 import type { Complexity } from "../src/data/types";
 import { parseCurriculumDef } from "../src/data/types";
-import type { ActiveSession } from "../src/hooks/useProgress";
 import { activateLocale, getLocaleFromRequest, i18n } from "../src/lib/i18n";
+import { highestPhase, parseTopicSessionState } from "../src/lib/phase";
 import { auth } from "../src/server/auth";
 import { db } from "../src/server/db";
 import type { Route } from "./+types/root";
@@ -34,9 +34,14 @@ export async function loader({ request }: Route.LoaderArgs) {
       ),
       startedAt: startedAt?.value ?? new Date().toISOString(),
       activeSessions: Object.fromEntries(
-        topicSessions.map((s) => {
-          const data = s.phaseData as { name: ActiveSession["name"]; partIdx?: number };
-          return [s.taskId, { name: data.name, partIdx: data.partIdx }];
+        topicSessions.flatMap((s) => {
+          const state = parseTopicSessionState(s.phaseData);
+          const top = highestPhase(state);
+          if (!top) return [];
+          const phase = state.phases[top];
+          if (!phase) return [];
+          const partIdx = "partIdx" in phase ? phase.partIdx : undefined;
+          return [[s.taskId, { name: top, partIdx }]];
         }),
       ),
     },
