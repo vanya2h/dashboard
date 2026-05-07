@@ -5,20 +5,20 @@ import { UrlMethodCard } from "./UrlMethod";
 type MethodPickerProps = {
   url: string;
   onUrlChange: (v: string) => void;
+  urlError?: string;
   file: File | null;
   onFileChange: (f: File | null) => void;
   activeMethod: InputMode;
-  onSubmit: () => void;
 };
 
-export function MethodPicker({ url, onUrlChange, file, onFileChange, activeMethod, onSubmit }: MethodPickerProps) {
+export function MethodPicker({ url, onUrlChange, urlError, file, onFileChange, activeMethod }: MethodPickerProps) {
   return (
     <div className="flex w-full flex-col gap-4 sm:flex-row">
       <UrlMethodCard
         url={url}
         onUrlChange={onUrlChange}
+        error={urlError}
         active={activeMethod === "url"}
-        onSubmit={onSubmit}
         className="sm:flex-[1.6]"
       />
       <PdfMethodCard file={file} onFileChange={onFileChange} active={activeMethod === "pdf"} className="sm:flex-1" />

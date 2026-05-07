@@ -7,6 +7,7 @@ import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
 import { PHASE_ORDER } from "../lib/phase";
+import { Badge } from "./ui/badge";
 import { Card } from "./Card";
 import { PhaseCard } from "./PhaseCard";
 import { ProgramCover } from "./ProgramCover";
@@ -132,12 +133,7 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
 
   return (
     <Card>
-      <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em] text-foreground/40">
-        <span>
-          <Trans>Next up</Trans>
-        </span>
-        {session && <SessionBadge session={session} />}
-      </div>
+      <div className="flex items-center gap-3">{session && <SessionBadge session={session} />}</div>
 
       <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-foreground leading-tight">{task.title}</h2>
       <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground line-clamp-2">
@@ -179,31 +175,32 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
 }
 
 function SessionBadge({ session }: { session: ActiveSession }) {
-  const label = useSessionLabel(session);
+  const { partLabel, label } = useSessionLabel(session);
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 bg-brand/15 text-brand text-[11px] font-medium normal-case tracking-normal">
-      <span className="size-1.5 rounded-full bg-brand" aria-hidden />
-      {label}
-    </span>
+    <div className="flex items-center gap-1.5">
+      {partLabel && <Badge variant="secondary">{partLabel}</Badge>}
+      <Badge>{label}</Badge>
+    </div>
   );
 }
 
-function useSessionLabel(session: ActiveSession): string {
+function useSessionLabel(session: ActiveSession): { partLabel: string | null; label: string } {
   const { t } = useLingui();
   const part = (session.partIdx ?? 0) + 1;
+  const partLabel = t`Part ${part}`;
   switch (session.name) {
     case "assessing":
-      return t`Assessing`;
+      return { partLabel: null, label: t`Assessing` };
     case "gaps-review":
-      return t`Reviewing gaps`;
+      return { partLabel: null, label: t`Reviewing gaps` };
     case "study":
-      return t`Part ${part} · Study`;
+      return { partLabel, label: t`Study` };
     case "hands-on":
-      return t`Part ${part} · Practice`;
+      return { partLabel, label: t`Practice` };
     case "feedback":
-      return t`Part ${part} · Feedback`;
+      return { partLabel, label: t`Feedback` };
     case "write-up":
-      return t`Part ${part} · Write-up`;
+      return { partLabel, label: t`Write-up` };
     default: {
       const _exhaustive: never = session.name;
       return _exhaustive;

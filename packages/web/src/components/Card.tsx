@@ -14,6 +14,7 @@ export function Card({ active = false, hoverable = false, className, ...props }:
         "flex flex-col rounded-xl",
         "border border-border",
         "bg-card p-6 text-left transition-[background-color,border-color] duration-300 ease-out",
+        "backdrop-blur-3xl",
         active
           ? "border-border-active bg-card-active"
           : hoverable

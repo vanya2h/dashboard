@@ -174,6 +174,7 @@ Rules:
 - Study: 150-250 words — explain the WHY and trade-offs; include at least one code example
 - Hands-on tasks ordered simple to complex. CRITICAL: every task must be answerable by typing text into a single textarea — no task may require running code, submitting files, using external tools, or producing non-text output. Design tasks as written responses: explain a concept, write pseudocode, compare trade-offs, describe an approach, draft a plan, spot the bug in a snippet. Even for hands-on roles (e.g. 3D artist, devops) the deliverable must be text only.
 - Scope tightly to this part's title — do not duplicate content from the other parts listed
+- Don't start with heading. The heading is placed above and visible.
 - Complexity mode rules (provided in the user message when available):
   - easy: study 80-120 words, 1 hands-on task
   - medium: study 150-200 words, 2 hands-on tasks

@@ -36,7 +36,7 @@ export function BuilderContent({
   startOver,
 }: BuilderContentProps) {
   return (
-    <TopicContainer>
+    <TopicContainer className="py-8">
       {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {step === "idle" && (

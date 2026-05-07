@@ -7,11 +7,13 @@ import { cn } from "~/lib/utils";
 export type UrlMethodCardProps = MethodCardProps & {
   url: string;
   onUrlChange: (v: string) => void;
-  onSubmit: () => void;
+  error?: string;
 };
 
-export function UrlMethodCard({ url, onUrlChange, active, onSubmit, ...restProps }: UrlMethodCardProps) {
+export function UrlMethodCard({ url, onUrlChange, active, error, ...restProps }: UrlMethodCardProps) {
   const { t } = useLingui();
+  const showError = !!error && url.trim().length > 0;
+
   return (
     <MethodCard active={active} {...restProps}>
       <div>
@@ -31,23 +33,31 @@ export function UrlMethodCard({ url, onUrlChange, active, onSubmit, ...restProps
           className={cn(
             "flex items-center gap-2.5 rounded-md border bg-muted/30 px-3 py-2.5 transition-colors",
             "focus-within:border-foreground/40",
-            active ? "border-foreground/40" : "border-border",
+            showError
+              ? "border-destructive/60 focus-within:border-destructive"
+              : active
+                ? "border-foreground/40"
+                : "border-border",
           )}
         >
           <input
             type="url"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && url.trim()) onSubmit();
-            }}
             placeholder={t`Paste job URL here..`}
+            aria-invalid={showError}
             className="flex-1 border-0 bg-transparent font-mono text-sm text-foreground outline-none placeholder:text-foreground/40"
           />
         </div>
-        <p className="text-xs leading-normal text-foreground/40">
-          <Trans>* Some sites block direct access. If this fails, save as PDF and use the upload option instead.</Trans>
-        </p>
+        {showError ? (
+          <p className="text-xs leading-normal text-destructive">{error}</p>
+        ) : (
+          <p className="text-xs leading-normal text-foreground/40">
+            <Trans>
+              * Some sites block direct access. If this fails, save as PDF and use the upload option instead.
+            </Trans>
+          </p>
+        )}
       </div>
     </MethodCard>
   );

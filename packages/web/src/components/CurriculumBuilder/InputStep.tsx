@@ -1,5 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { Complexity } from "../../data/types";
+import { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { type Complexity, COMPLEXITY_LEVELS } from "../../data/types";
 import { Card } from "../Card";
 import { MethodPicker } from "./methods/MethodPicker";
 import { BuilderActionBar } from "./BuilderActionBar";
@@ -8,6 +12,42 @@ import type { InputMode } from "./useCurriculumBuilder";
 import { Button } from "~/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { cn } from "~/lib/utils";
+
+const inputSchema = z
+  .object({
+    inputMode: z.enum(["url", "pdf"]).nullable(),
+    url: z.string(),
+    file: z.instanceof(File).nullable(),
+    complexity: z.enum(COMPLEXITY_LEVELS),
+  })
+  .superRefine((data, ctx) => {
+    if (data.inputMode === null) {
+      ctx.addIssue({ code: "custom", path: ["inputMode"], message: "Choose URL or PDF" });
+      return;
+    }
+    if (data.inputMode === "url" && !isValidHttpUrl(data.url)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["url"],
+        message: "Enter a full URL starting with http:// or https://",
+      });
+    }
+    if (data.inputMode === "pdf" && !data.file) {
+      ctx.addIssue({ code: "custom", path: ["file"], message: "Please upload a PDF" });
+    }
+  });
+
+type InputFormValues = z.infer<typeof inputSchema>;
+
+function isValidHttpUrl(value: string): boolean {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname.includes(".");
+  } catch {
+    return false;
+  }
+}
 
 type InputStepProps = {
   method: InputMode;
@@ -32,51 +72,90 @@ export function InputStep({
   setComplexity,
   onGenerate,
 }: InputStepProps) {
-  const canGenerate = method !== null;
+  const form = useForm<InputFormValues>({
+    resolver: zodResolver(inputSchema),
+    mode: "onChange",
+    defaultValues: { inputMode: method, url, file, complexity },
+  });
+
+  const {
+    handleSubmit,
+    setValue,
+    control,
+    formState: { isValid, errors, touchedFields },
+  } = form;
+
+  const watchedMode = useWatch({ control, name: "inputMode" });
+  const watchedUrl = useWatch({ control, name: "url" });
+  const watchedFile = useWatch({ control, name: "file" });
+  const watchedComplexity = useWatch({ control, name: "complexity" });
+
+  useEffect(() => {
+    setValue("inputMode", method, { shouldValidate: true });
+  }, [method, setValue]);
 
   function handleUrlChange(v: string) {
+    setValue("url", v, { shouldValidate: true, shouldTouch: true });
     setUrl(v);
     if (v.trim()) {
-      if (file) setFile(null);
-      if (method !== "url") setMethod("url");
-    } else if (method === "url") {
+      if (watchedFile) {
+        setValue("file", null);
+        setFile(null);
+      }
+      if (watchedMode !== "url") {
+        setValue("inputMode", "url", { shouldValidate: true });
+        setMethod("url");
+      }
+    } else if (watchedMode === "url") {
+      setValue("inputMode", null, { shouldValidate: true });
       setMethod(null);
     }
   }
 
   function handleFileChange(f: File | null) {
+    setValue("file", f, { shouldValidate: true, shouldTouch: true });
     setFile(f);
     if (f) {
-      if (url) setUrl("");
-      if (method !== "pdf") setMethod("pdf");
-    } else if (method === "pdf") {
+      if (watchedUrl) {
+        setValue("url", "");
+        setUrl("");
+      }
+      if (watchedMode !== "pdf") {
+        setValue("inputMode", "pdf", { shouldValidate: true });
+        setMethod("pdf");
+      }
+    } else if (watchedMode === "pdf") {
+      setValue("inputMode", null, { shouldValidate: true });
       setMethod(null);
     }
   }
 
-  function submit() {
-    if (canGenerate) onGenerate();
+  function handleComplexityChange(v: Complexity) {
+    setValue("complexity", v, { shouldValidate: true });
+    setComplexity(v);
   }
 
+  const urlError = touchedFields.url ? errors.url?.message : undefined;
+
   return (
-    <div className="flex w-full flex-col gap-4 mt-[8vh]">
+    <form onSubmit={handleSubmit(() => onGenerate())} className="flex w-full flex-col gap-4 mt-[8vh]">
       <MethodPicker
-        url={url}
+        url={watchedUrl}
         onUrlChange={handleUrlChange}
-        file={file}
+        urlError={urlError}
+        file={watchedFile}
         onFileChange={handleFileChange}
-        activeMethod={method}
-        onSubmit={submit}
+        activeMethod={watchedMode}
       />
 
-      <DepthRow depth={complexity} setDepth={setComplexity} enabled={canGenerate} />
+      <DepthRow depth={watchedComplexity} setDepth={handleComplexityChange} enabled={isValid} />
 
       <BuilderActionBar>
-        <Button className="ml-auto" type="button" onClick={submit} disabled={!canGenerate}>
+        <Button className="ml-auto" type="submit" disabled={!isValid}>
           <Trans>Generate program →</Trans>
         </Button>
       </BuilderActionBar>
-    </div>
+    </form>
   );
 }
 

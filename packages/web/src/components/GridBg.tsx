@@ -8,7 +8,7 @@ export function GridBackground({ className, ...restProps }: GridBackgroundProps)
       <svg className="absolute inset-0 w-full h-full text-muted-foreground" aria-hidden>
         <defs>
           <pattern id="grid-bg-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill="currentColor" fillOpacity="0.15" />
+            <circle cx="1" cy="1" r="1" fill="currentColor" fillOpacity="0.2" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#grid-bg-dots)" />

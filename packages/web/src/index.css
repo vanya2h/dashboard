@@ -124,7 +124,7 @@
   --background-layer: oklch(20.715% 0.00956 107.252);
   --background-layer-active: oklch(22.493% 0.00752 107.05);
   --foreground: oklch(0.988 0.003 106.5);
-  --card: oklch(18.674% 0.00002 271.152 / 0.723);
+  --card: oklch(18.674% 0.00002 271.152 / 0.849);
   --card-hover: oklch(17.764% 0.00002 271.152 / 0.736);
   --card-active: var(--card-hover);
   --card-foreground: oklch(0.988 0.003 106.5);
