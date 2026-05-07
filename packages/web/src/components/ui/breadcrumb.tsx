@@ -1,7 +1,6 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { ArrowRight01Icon, MoreHorizontalCircle01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "~/lib/utils";
@@ -14,17 +13,14 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
     <ol
       data-slot="breadcrumb-list"
-      className={cn(
-        "flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground sm:gap-2.5",
-        className,
-      )}
+      className={cn("flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground", className)}
       {...props}
     />
   );
 }
 
 function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
-  return <li data-slot="breadcrumb-item" className={cn("inline-flex items-center gap-1.5", className)} {...props} />;
+  return <li data-slot="breadcrumb-item" className={cn("inline-flex items-center gap-1", className)} {...props} />;
 }
 
 function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<"a">) {
@@ -65,7 +61,7 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
       className={cn("[&>svg]:size-3.5", className)}
       {...props}
     >
-      {children ?? <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />}
+      {children ?? <ChevronRightIcon />}
     </li>
   );
 }
@@ -79,7 +75,7 @@ function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span"
       className={cn("flex size-5 items-center justify-center [&>svg]:size-4", className)}
       {...props}
     >
-      <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
+      <MoreHorizontalIcon />
       <span className="sr-only">More</span>
     </span>
   );
