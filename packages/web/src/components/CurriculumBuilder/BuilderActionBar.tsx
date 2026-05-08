@@ -20,7 +20,7 @@ export function BuilderActionBar({ className, children, ...restProps }: BuilderA
         stuck ? "bg-background/80 backdrop-blur-md" : "bg-background/40",
       )}
     >
-      <ReadingColumn {...restProps} className={cn("flex items-center gap-3 py-3", className)}>
+      <ReadingColumn {...restProps} className={cn("flex flex-row items-center gap-3 py-3", className)}>
         {children}
       </ReadingColumn>
     </div>,

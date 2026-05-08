@@ -20,7 +20,7 @@ export function TopicActionBar({ className, children, ...restProps }: TopicActio
         stuck ? "bg-background/80 backdrop-blur-md" : "bg-background/40",
       )}
     >
-      <ReadingColumn {...restProps} className={cn("flex items-center h-full gap-3 py-3", className)}>
+      <ReadingColumn {...restProps} className={cn("flex flex-row items-center h-full gap-3 py-3", className)}>
         {children}
       </ReadingColumn>
     </div>,

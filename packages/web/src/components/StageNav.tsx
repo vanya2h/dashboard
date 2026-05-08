@@ -29,6 +29,7 @@ export function StageNav({ stages, className, ...restProps }: StageNavProps) {
       className={cn(
         "w-full self-start bg-background border-b border-border",
         "lg:w-64 lg:shrink-0 lg:py-8 lg:z-auto lg:border-b-0",
+        "lg:sticky top-10",
         className,
       )}
     >
