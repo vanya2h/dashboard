@@ -26,7 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       db.user.findUnique({ where: { id: userId }, select: { onboardingSkipped: true } }),
       db.userProfile.findUnique({
         where: { userId },
-        select: { markdown: true, targetRoles: true, updatedAt: true },
+        select: { markdown: true, updatedAt: true },
       }),
     ],
   );
@@ -41,7 +41,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     profile: profile
       ? {
           markdown: profile.markdown,
-          targetRoles: profile.targetRoles,
           updatedAt: profile.updatedAt.toISOString(),
         }
       : null,

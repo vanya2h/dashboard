@@ -30,24 +30,16 @@ Example: \`- **TypeScript** (deep) — primary language, 8 yrs across FE and BE\
 
 DROP entirely: contact info, dates, education (unless recent grad), soft skills, hobbies, languages, references, every "responsibilities" bullet, every project unless it shows a unique skill not already in Stack.
 
-Do not invent. If depth is ambiguous, prefer "working" over "deep".
-
-The \`targetRoles\` field is REQUIRED — never empty if the CV has any work history.
-- If the CV explicitly states target roles (objective / headline / "looking for"), use those.
-- Otherwise, INFER 2-3 plausible target roles from the candidate's seniority, primary stack, and recent trajectory.
-- Format like job titles: "Senior Frontend Engineer", "Founding Engineer", "Staff Backend Engineer", "Tech Lead".
-- 2-4 entries. Be specific (include level + specialization), not generic ("Software Engineer").`;
+Do not invent. If depth is ambiguous, prefer "working" over "deep".`;
 
 const profileExtractionInputSchema = z.object({
   markdown: z.string().min(1),
-  targetRoles: z.array(z.string()).max(8),
 });
 
 type ProfileExtraction = z.infer<typeof profileExtractionInputSchema>;
 
 const updateProfileSchema = z.object({
-  markdown: z.string().max(PROFILE_MARKDOWN_MAX_CHARS).optional(),
-  targetRoles: z.array(z.string().min(1).max(80)).max(8).optional(),
+  markdown: z.string().max(PROFILE_MARKDOWN_MAX_CHARS),
 });
 
 const uploadSchema = z.object({
@@ -75,13 +67,8 @@ async function extractProfileFromPdfText(text: string): Promise<ProfileExtractio
               type: "string",
               description: "The dense profile markdown following the required section structure.",
             },
-            targetRoles: {
-              type: "array",
-              items: { type: "string" },
-              description: "Target roles extracted from the CV. Empty if not stated.",
-            },
           },
-          required: ["markdown", "targetRoles"],
+          required: ["markdown"],
         },
       },
     ],
@@ -109,7 +96,6 @@ export const profileRoute = new Hono<AuthEnv>()
       profile: profile
         ? {
             markdown: profile.markdown,
-            targetRoles: profile.targetRoles,
             updatedAt: profile.updatedAt.toISOString(),
           }
         : null,
@@ -155,14 +141,13 @@ export const profileRoute = new Hono<AuthEnv>()
 
     const profile = await db.userProfile.upsert({
       where: { userId },
-      update: { markdown: extracted.markdown, targetRoles: extracted.targetRoles },
-      create: { userId, markdown: extracted.markdown, targetRoles: extracted.targetRoles },
+      update: { markdown: extracted.markdown },
+      create: { userId, markdown: extracted.markdown },
     });
 
     return c.json({
       profile: {
         markdown: profile.markdown,
-        targetRoles: profile.targetRoles,
         updatedAt: profile.updatedAt.toISOString(),
       },
     });
@@ -170,29 +155,17 @@ export const profileRoute = new Hono<AuthEnv>()
 
   .patch("/profile", zValidator("json", updateProfileSchema), async (c) => {
     const userId = c.var.user.id;
-    const { markdown, targetRoles } = c.req.valid("json");
-
-    if (markdown === undefined && targetRoles === undefined) {
-      return c.json({ error: "Nothing to update" }, 400);
-    }
+    const { markdown } = c.req.valid("json");
 
     const profile = await db.userProfile.upsert({
       where: { userId },
-      update: {
-        ...(markdown !== undefined ? { markdown } : {}),
-        ...(targetRoles !== undefined ? { targetRoles } : {}),
-      },
-      create: {
-        userId,
-        markdown: markdown ?? "",
-        targetRoles: targetRoles ?? [],
-      },
+      update: { markdown },
+      create: { userId, markdown },
     });
 
     return c.json({
       profile: {
         markdown: profile.markdown,
-        targetRoles: profile.targetRoles,
         updatedAt: profile.updatedAt.toISOString(),
       },
     });

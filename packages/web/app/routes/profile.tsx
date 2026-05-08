@@ -1,8 +1,18 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { CheckIcon, FileTextIcon, TrashIcon, UploadIcon, XIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckIcon,
+  DotsThreeVerticalIcon,
+  FileTextIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
 import type { UserProfile } from "@prisma/client-generated";
 import { DetailedError, parseResponse } from "hono/client";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { GridBackground } from "../../src/components/GridBg";
 import { PageBody } from "../../src/components/layout/PageBody";
@@ -20,7 +30,7 @@ import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/profile";
 
 import { Card } from "~/components/Card";
-import { Badge } from "~/components/ui/badge";
+import { DashedBorder } from "~/components/DashedBorder";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -30,9 +40,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Spinner } from "~/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
 import { cn } from "~/lib/utils";
 
@@ -56,7 +71,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const profile = await db.userProfile.findUnique({
     where: { userId },
-    select: { markdown: true, targetRoles: true, updatedAt: true },
+    select: { markdown: true, updatedAt: true },
   });
 
   return {
@@ -64,7 +79,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     profile: profile
       ? {
           markdown: profile.markdown,
-          targetRoles: profile.targetRoles,
           updatedAt: profile.updatedAt.toISOString(),
         }
       : null,
@@ -82,9 +96,7 @@ export default function ProfilePage({ loaderData }: Route.ComponentProps) {
       </div>
       <GridBackground />
       <PageContent className="relative items-center justify-center">
-        <ReadingColumn>
-          {profile ? <FilledState user={user} profile={profile} /> : <EmptyState user={user} />}
-        </ReadingColumn>
+        <ReadingColumn>{profile ? <FilledState profile={profile} /> : <EmptyState user={user} />}</ReadingColumn>
       </PageContent>
     </PageBody>
   );
@@ -126,12 +138,12 @@ function EmptyState({ user }: { user: { name: string } }) {
   }
 
   return (
-    <Card.List>
+    <Card.List className="my-auto">
       <Card.Entry className="gap-2">
         <Card.Heading>
           <Trans>Hello, {user.name}</Trans>
         </Card.Heading>
-        <Card.SubHeading className="mt-2">
+        <Card.SubHeading>
           <Trans>
             Upload your CV so we can tailor every curriculum, assessment, and explanation to what you already know — and
             what you actually want to do next.
@@ -153,11 +165,12 @@ function EmptyState({ user }: { user: { name: string } }) {
           }}
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "relative flex min-h-32 h-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center transition-colors hover:bg-muted/40",
+            "relative flex min-h-32 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl bg-muted/20 p-6 text-center transition-colors hover:bg-muted/40",
             dragOver && "border-foreground/40 bg-muted/60",
             uploading && "pointer-events-none opacity-80",
           )}
         >
+          <DashedBorder />
           <input
             ref={inputRef}
             type="file"
@@ -221,13 +234,13 @@ function EmptyState({ user }: { user: { name: string } }) {
   );
 }
 
-type Profile = Pick<UserProfile, "markdown" | "targetRoles"> & { updatedAt: string };
+type Profile = Pick<UserProfile, "markdown"> & { updatedAt: string };
 
-function FilledState({ user, profile }: { user: { name: string }; profile: Profile }) {
+function FilledState({ profile }: { profile: Profile }) {
+  const navigate = useNavigate();
   const revalidator = useRevalidator();
   const { t } = useLingui();
   const [markdown, setMarkdown] = useState(profile.markdown);
-  const [targetRoles, setTargetRoles] = useState(profile.targetRoles);
   const [savingMarkdown, setSavingMarkdown] = useState(false);
   const [reuploadOpen, setReuploadOpen] = useState(false);
   const [reuploading, setReuploading] = useState(false);
@@ -237,6 +250,7 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [editing, setEditing] = useState(false);
   const dirty = markdown !== profile.markdown;
 
   async function saveMarkdown() {
@@ -244,19 +258,15 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
     try {
       await parseResponse(apiClient.api.profile.$patch({ json: { markdown } }));
       void revalidator.revalidate();
+      setEditing(false);
     } finally {
       setSavingMarkdown(false);
     }
   }
 
-  async function persistTargetRoles(next: string[]) {
-    setTargetRoles(next);
-    try {
-      await parseResponse(apiClient.api.profile.$patch({ json: { targetRoles: next } }));
-      void revalidator.revalidate();
-    } catch {
-      setTargetRoles(profile.targetRoles);
-    }
+  function cancelEdit() {
+    setMarkdown(profile.markdown);
+    setEditing(false);
   }
 
   async function handleDelete() {
@@ -292,75 +302,71 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
   }
 
   return (
-    <Tabs defaultValue="preview">
-      <Card.List>
-        <Card.Entry className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <Card.Heading>
-            <Trans>Your Profile</Trans>
-          </Card.Heading>
-          <div className="flex items-center gap-2 flex-wrap">
-            <TabsList>
-              <TabsTrigger value="preview">
-                <Trans>Preview</Trans>
-              </TabsTrigger>
-              <TabsTrigger value="edit">
-                <Trans>Edit</Trans>
-              </TabsTrigger>
-            </TabsList>
-            {dirty && (
-              <Button size="sm" onClick={() => void saveMarkdown()} disabled={savingMarkdown}>
-                {savingMarkdown ? <Spinner /> : <CheckIcon size={14} />}
-                <Trans>Save changes</Trans>
-              </Button>
-            )}
+    <>
+      <Card.List className="my-auto">
+        <Card.Entry>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex items-center gap-1 w-full">
+              <Card.Heading>
+                <Trans>Your Profile</Trans>
+              </Card.Heading>
 
-            <Button variant="secondary" size="sm" onClick={() => setReuploadOpen(true)}>
-              <FileTextIcon size={14} />
-              <Trans>Re-upload CV</Trans>
-            </Button>
+              <div className="grow" />
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t`Profile actions`} />}>
+                  <DotsThreeVerticalIcon size={16} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled={editing} onClick={() => setEditing(true)}>
+                    <PencilSimpleIcon size={14} />
+                    <Trans>Edit profile</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setReuploadOpen(true)}>
+                    <FileTextIcon size={14} />
+                    <Trans>Re-upload CV</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+                    <TrashIcon size={14} />
+                    <Trans>Delete CV</Trans>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </Card.Entry>
         <Card.Entry>
-          <TabsContent value="preview">
-            <Markdown>{markdown}</Markdown>
-          </TabsContent>
-          <TabsContent value="edit" className="mt-3">
-            <Textarea
-              value={markdown}
-              onChange={(e) => setMarkdown(e.target.value)}
-              rows={20}
-              className="font-mono text-xs"
-              aria-label={t`Profile markdown`}
-            />
-          </TabsContent>
-        </Card.Entry>
-
-        <Card.Entry>
-          <Card.Heading>
-            <Trans>Target roles</Trans>
-          </Card.Heading>
-          <div className="mt-2">
-            <TargetRolesEditor value={targetRoles} onChange={(next) => void persistTargetRoles(next)} />
-          </div>
+          {editing ? (
+            <div className="flex flex-col gap-2">
+              <Textarea
+                value={markdown}
+                onChange={(e) => setMarkdown(e.target.value)}
+                rows={20}
+                className="font-mono text-xs"
+                aria-label={t`Profile markdown`}
+              />
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={savingMarkdown}>
+                  <Trans>Cancel</Trans>
+                </Button>
+                <Button size="sm" onClick={() => void saveMarkdown()} disabled={savingMarkdown || !dirty}>
+                  {savingMarkdown ? <Spinner /> : <CheckIcon size={14} />}
+                  <Trans>Save changes</Trans>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <ExpandableMarkdown>{markdown}</ExpandableMarkdown>
+          )}
         </Card.Entry>
 
         <Card.Entry className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <div>
-            <Card.Heading>
-              <Trans>Danger zone</Trans>
-            </Card.Heading>
-            <Card.SubHeading>
-              <Trans>Removes your profile permanently. Curriculums won&apos;t be tailored until you re-upload.</Trans>
-            </Card.SubHeading>
-          </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setDeleteOpen(true)}
-            className="w-full sm:w-auto sm:shrink-0"
-          >
-            <TrashIcon size={14} />
-            <Trans>Delete</Trans>
+          <Card.Heading>
+            <Trans>Ready to start learning?</Trans>
+          </Card.Heading>
+          <Button size="lg" onClick={() => navigate(getHomeRoute())} className="w-full sm:w-auto sm:shrink-0">
+            <Trans>Continue with this profile</Trans>
+            <ArrowRightIcon size={14} />
           </Button>
         </Card.Entry>
       </Card.List>
@@ -373,9 +379,8 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                This permanently deletes your profile, including the markdown and target roles. Curriculums and
-                assessments will no longer be tailored to your background until you upload a new CV. This can&apos;t be
-                undone.
+                This permanently deletes your profile. Curriculums and assessments will no longer be tailored to your
+                background until you upload a new CV. This can&apos;t be undone.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -406,8 +411,8 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Uploading a new CV will replace your current profile, including any manual edits you&apos;ve made to the
-                markdown or target roles. This can&apos;t be undone.
+                Uploading a new CV will replace your current profile, including any manual edits. This can&apos;t be
+                undone.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -441,66 +446,63 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Tabs>
+    </>
   );
 }
 
-function TargetRolesEditor({ value, onChange }: { value: string[]; onChange: (next: string[]) => void }) {
-  const { t } = useLingui();
-  const [draft, setDraft] = useState("");
+const COLLAPSED_HEIGHT = 240;
+const COLLAPSED_MASK = "linear-gradient(to bottom, black 50%, transparent 100%)";
 
-  function add() {
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    if (value.includes(trimmed)) {
-      setDraft("");
-      return;
-    }
-    onChange([...value, trimmed]);
-    setDraft("");
-  }
+function ExpandableMarkdown({ children }: { children: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!contentRef.current) return;
+    const measure = () => {
+      if (contentRef.current) setContentHeight(contentRef.current.scrollHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [children]);
+
+  const overflowing = contentHeight > COLLAPSED_HEIGHT;
+  const collapsed = overflowing && !expanded;
+  const maxHeight = !overflowing ? contentHeight || undefined : expanded ? contentHeight : COLLAPSED_HEIGHT;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {value.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            <Trans>No target roles yet — add ones you&apos;re aiming for.</Trans>
-          </p>
-        )}
-        {value.map((role) => (
-          <Badge key={role} variant="secondary" className="gap-1.5 pr-1.5">
-            {role}
-            <button
-              type="button"
-              onClick={() => onChange(value.filter((r) => r !== role))}
-              className="ml-0.5 -mr-0.5 inline-flex size-3.5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label={t`Remove ${role}`}
-            >
-              <XIcon size={10} />
-            </button>
-          </Badge>
-        ))}
+    <div className="relative flex flex-col gap-3">
+      <div
+        className="overflow-hidden transition-[max-height] duration-500 ease-out"
+        style={{
+          maxHeight,
+          maskImage: collapsed ? COLLAPSED_MASK : undefined,
+          WebkitMaskImage: collapsed ? COLLAPSED_MASK : undefined,
+        }}
+      >
+        <div ref={contentRef}>
+          <Markdown>{children}</Markdown>
+        </div>
       </div>
-
-      <div className="flex items-center gap-2">
-        <Input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              add();
-            }
-          }}
-          placeholder={t`e.g. Senior Frontend Engineer`}
-          size="sm"
-          className="max-w-xs"
-        />
-        <Button variant="secondary" size="sm" onClick={add} disabled={!draft.trim()}>
-          <Trans>Add</Trans>
-        </Button>
-      </div>
+      {collapsed && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-2">
+          <Button size="sm" onClick={() => setExpanded(true)} className="pointer-events-auto">
+            <CaretDownIcon size={14} />
+            <Trans>See all</Trans>
+          </Button>
+        </div>
+      )}
+      {overflowing && expanded && (
+        <div className="flex justify-center">
+          <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
+            <CaretUpIcon size={14} />
+            <Trans>Show less</Trans>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

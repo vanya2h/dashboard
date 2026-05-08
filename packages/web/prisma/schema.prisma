@@ -133,7 +133,6 @@ model UserProfile {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   markdown    String
-  targetRoles String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
