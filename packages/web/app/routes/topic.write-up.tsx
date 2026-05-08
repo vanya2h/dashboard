@@ -89,7 +89,7 @@ export default function WriteUpPage() {
         <ReadingColumn>
           <Card.List>
             <Card.Entry>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2">
                 <Card.Heading>
                   <Trans>Reflect</Trans>
                 </Card.Heading>
@@ -109,8 +109,8 @@ export default function WriteUpPage() {
             </Card.Entry>
 
             {(feedback || streaming) && (
-              <Card.Entry>
-                <Card.Heading className="mb-3 flex items-center gap-2">
+              <Card.Entry className="gap-2">
+                <Card.Heading className="flex items-center gap-2">
                   {streaming && <Spinner />}
                   <Trans>Tutor feedback</Trans>
                 </Card.Heading>

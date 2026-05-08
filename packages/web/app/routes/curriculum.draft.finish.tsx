@@ -32,11 +32,11 @@ export default function DraftFinishPage() {
       <PageContent>
         <ReadingColumn>
           <Card.List className="my-auto">
-            <Card.Entry>
+            <Card.Entry className="gap-2">
               <Card.Heading>
                 <Trans>Program Ready!</Trans>
               </Card.Heading>
-              <Card.SubHeading className="mt-2 max-w-sm">
+              <Card.SubHeading className="max-w-sm">
                 <Trans>
                   <span className="font-medium text-foreground">{name}</span> is published and ready to study.
                 </Trans>

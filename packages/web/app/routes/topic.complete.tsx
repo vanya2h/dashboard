@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useNavigate, useParams, useRouteLoaderData } from "react-router";
-import { Inset } from "../../src/components/layout/Inset";
 import { PageBody } from "../../src/components/layout/PageBody";
 import { PageContent } from "../../src/components/layout/PageContent";
 import { getCurriculumLinks } from "../../src/lib/routes";
@@ -21,23 +20,27 @@ export default function CompletePage() {
     <PageBody>
       <PageContent>
         <ReadingColumn>
-          <Card className="my-auto">
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              <Trans>Topic Complete!</Trans>
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              <Trans>
-                You passed the final test for <span className="font-medium text-foreground">{taskTitle}</span>.
-                It&apos;s been marked as done.
-              </Trans>
-            </p>
-            <Button
-              className="mt-6 ml-auto"
-              onClick={() => curriculumId && void navigate(getCurriculumLinks().byId(curriculumId))}
-            >
-              <Trans>Continue</Trans>
-            </Button>
-          </Card>
+          <Card.List className="my-auto">
+            <Card.Entry className="gap-2">
+              <Card.Heading>
+                <Trans>Topic Complete!</Trans>
+              </Card.Heading>
+              <Card.SubHeading>
+                <Trans>
+                  You passed the final test for <span className="font-medium text-foreground">{taskTitle}</span>.
+                  It&apos;s been marked as done.
+                </Trans>
+              </Card.SubHeading>
+            </Card.Entry>
+            <Card.Entry>
+              <Button
+                className="ml-auto"
+                onClick={() => curriculumId && void navigate(getCurriculumLinks().byId(curriculumId))}
+              >
+                <Trans>Continue</Trans>
+              </Button>
+            </Card.Entry>
+          </Card.List>
         </ReadingColumn>
       </PageContent>
     </PageBody>

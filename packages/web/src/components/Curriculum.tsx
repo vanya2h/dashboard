@@ -8,10 +8,8 @@ import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
 import { PHASE_ORDER } from "../lib/phase";
 import { BigColumn } from "./layout/BigColumn";
-import { Inset } from "./layout/Inset";
 import { PageBody } from "./layout/PageBody";
 import { PageContent } from "./layout/PageContent";
-import { ReadingColumn } from "./layout/ReadingColumn";
 import { Badge } from "./ui/badge";
 import { Card } from "./Card";
 import { PhaseCard } from "./PhaseCard";
@@ -151,10 +149,14 @@ function NextUpPane({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
         )}
       </div>
 
-      <h2 className="text-3xl font-semibold tracking-[-0.03em] text-foreground leading-tight">{task.title}</h2>
-      <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground line-clamp-2">
-        {task.notes ?? phase.subtitle}
-      </p>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg md:text-2xl font-semibold tracking-[-0.03em] text-foreground leading-tight">
+          {task.title}
+        </h2>
+        <p className="text-xs md:text-sm max-w-2xl leading-relaxed text-muted-foreground">
+          {task.notes ?? phase.subtitle}
+        </p>
+      </div>
       <div className="grow" />
       <div className="mt-6 flex items-end justify-between gap-6 flex-wrap">
         <div className="flex-1 min-w-0">

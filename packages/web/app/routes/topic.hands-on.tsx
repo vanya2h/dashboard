@@ -138,7 +138,7 @@ export default function HandsOnPage() {
                 />
               </Card.Entry>
 
-              <Card.Entry className="flex flex-wrap items-center gap-2">
+              <Card.Entry className="flex flex-row flex-wrap items-center gap-2">
                 {taskItem.hint && (
                   <Button variant="secondary" size="xs" onClick={() => toggleHint(i)}>
                     {hintShown[i] ? <Trans>Hide hint</Trans> : <Trans>Show hint</Trans>}
@@ -161,17 +161,17 @@ export default function HandsOnPage() {
               </Card.Entry>
 
               {taskItem.hint && hintShown[i] && (
-                <Card.Entry>
-                  <Card.Heading className="mb-2">
+                <Card.Entry className="gap-2">
+                  <Card.Heading>
                     <Trans>Hint</Trans>
                   </Card.Heading>
-                  <p className="text-sm text-foreground">{taskItem.hint}</p>
+                  <Card.SubHeading>{taskItem.hint}</Card.SubHeading>
                 </Card.Entry>
               )}
 
               {solutionShown[i] && solutions[i] && (
-                <Card.Entry>
-                  <Card.Heading className="mb-2">
+                <Card.Entry className="gap-2">
+                  <Card.Heading>
                     <Trans>Solution</Trans>
                   </Card.Heading>
                   <Markdown isAnimating={solutions[i].streaming}>{solutions[i].text}</Markdown>

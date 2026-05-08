@@ -131,13 +131,14 @@ export function InputStep({ defaultComplexity = "medium", generating = false, on
         />
 
         <DepthRow depth={watchedComplexity} setDepth={handleComplexityChange} enabled={isValid} />
+        <Card.Entry>
+          <div className="flex justify-end">
+            <Button type="button" onClick={() => void submit()} disabled={!isValid || generating}>
+              <Trans>Generate program →</Trans>
+            </Button>
+          </div>
+        </Card.Entry>
       </Card.List>
-
-      <div className="flex justify-end">
-        <Button type="button" onClick={() => void submit()} disabled={!isValid || generating}>
-          <Trans>Generate program →</Trans>
-        </Button>
-      </div>
     </form>
   );
 }

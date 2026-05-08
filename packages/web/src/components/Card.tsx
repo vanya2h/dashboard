@@ -40,13 +40,13 @@ function CardList({ className, ...props }: CardListProps) {
 export type CardEntryProps = ComponentProps<"div">;
 
 function CardEntry({ className, ...props }: CardEntryProps) {
-  return <CardEntryRaw className={cn("px-4 sm:px-5 py-4 sm:py-5 last:pb-6", className)} {...props} />;
+  return <CardEntryRaw className={cn("px-4 sm:px-5 py-4 sm:py-5", className)} {...props} />;
 }
 
 export type CardEntryRawProps = ComponentProps<"div">;
 
 function CardEntryRaw({ className, ...props }: CardEntryRawProps) {
-  return <div className={cn("border-b border-border last:border-b-0", className)} {...props} />;
+  return <div className={cn("flex flex-col border-b border-border last:border-b-0", className)} {...props} />;
 }
 
 export type CardHeadingProps = ComponentProps<"h2">;

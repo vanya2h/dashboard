@@ -99,7 +99,7 @@ export default function FeedbackPage() {
             </Card.Entry>
 
             {streaming && (
-              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+              <Card.Entry className="flex flex-row items-center gap-2 text-foreground/40">
                 <Spinner />
                 <p className="text-sm">
                   <Trans>Evaluating your answers…</Trans>

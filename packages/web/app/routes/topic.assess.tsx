@@ -114,7 +114,7 @@ export default function AssessPage() {
         <ReadingColumn>
           <Card.List>
             <Card.Entry className="flex items-baseline justify-between gap-4">
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2">
                 <Card.Heading>
                   <Trans>Quick Assessment</Trans>
                 </Card.Heading>
@@ -130,7 +130,7 @@ export default function AssessPage() {
             </Card.Entry>
 
             {isLoading && (
-              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+              <Card.Entry className="flex flex-row items-center gap-2 text-foreground/40">
                 <Spinner />
                 <p className="text-sm">
                   <Trans>Preparing assessment questions…</Trans>
@@ -147,8 +147,8 @@ export default function AssessPage() {
 
             {!isLoading &&
               questions?.map((q, i) => (
-                <Card.Entry key={i}>
-                  <p className="text-sm font-medium text-foreground mb-2">
+                <Card.Entry className="gap-4" key={i}>
+                  <p className="text-sm font-medium text-foreground">
                     {i + 1}. {q}
                   </p>
                   <Textarea

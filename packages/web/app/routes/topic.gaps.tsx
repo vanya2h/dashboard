@@ -107,7 +107,7 @@ export default function GapsPage() {
         <ReadingColumn>
           <Card.List>
             <Card.Entry className="flex items-baseline justify-between gap-4">
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2">
                 <Card.Heading>
                   {isLoading ? (
                     <Trans>Evaluating your answers…</Trans>
@@ -131,7 +131,7 @@ export default function GapsPage() {
             </Card.Entry>
 
             {isLoading && gaps.length === 0 && (
-              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+              <Card.Entry className="flex flex-row items-center gap-2 text-foreground/40">
                 <Spinner />
                 <p className="text-sm">
                   <Trans>Identifying gaps…</Trans>

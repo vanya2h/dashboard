@@ -15,7 +15,7 @@ export default function ChoicePage() {
       <PageContent>
         <BigColumn>
           <Card.List className="my-auto">
-            <Card.Entry>
+            <Card.Entry className="gap-2">
               <Card.Heading>
                 <Trans>How do you want to start?</Trans>
               </Card.Heading>

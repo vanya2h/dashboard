@@ -132,13 +132,13 @@ export default function NewCurriculumPage() {
       <GridBackground />
       <PageContent className="relative">
         <BigColumn>
-          <div className="flex flex-col my-auto">
+          <div className="flex flex-col gap-6 my-auto">
             {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             <InputStep onGenerate={(values) => void handleGenerate(values)} generating={generating} />
 
             {drafts.length > 0 && (
-              <section className="mt-12">
+              <section>
                 <Card.List>
                   <Card.Entry>
                     <Card.Heading>

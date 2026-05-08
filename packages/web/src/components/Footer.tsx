@@ -10,8 +10,8 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border bg-background">
-      <Inset className="py-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between text-sm text-muted-foreground">
-        <div className="flex items-center gap-4 min-w-0 justify-center sm:justify-start">
+      <Inset className="py-3 flex flex-col gap-3 sm:flex-row sm:justify-between text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 min-w-0 justify-between sm:justify-start">
           <span className="whitespace-nowrap">
             <Trans>© {currentYear} Learning Tracker</Trans>
           </span>
@@ -19,24 +19,26 @@ export function Footer() {
             <Trans>Beta</Trans>
           </span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-          <LanguageSwitcher />
+        <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-start">
+          <div className="flex flex-row gap-2">
+            <LanguageSwitcher />
+            <Button
+              variant="secondary"
+              size="icon"
+              render={
+                <a
+                  href="https://github.com/vanya2h/learn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub"
+                />
+              }
+            >
+              <GithubLogoIcon />
+            </Button>
+          </div>
           <Button variant="secondary" render={<a href="mailto:hi@vanya2h.me" />}>
             <Trans>Send feedback</Trans>
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            render={
-              <a
-                href="https://github.com/vanya2h/learn"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-              />
-            }
-          >
-            <GithubLogoIcon />
           </Button>
         </div>
       </Inset>

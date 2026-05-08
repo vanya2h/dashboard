@@ -81,7 +81,7 @@ export default function ProfilePage({ loaderData }: Route.ComponentProps) {
         <ProgramCover shape="wave" preset={theme === "dark" ? GRADIENT_PRESETS.heroDark : GRADIENT_PRESETS.heroLight} />
       </div>
       <GridBackground />
-      <PageContent className="relative min-w-[55vh] items-center justify-center">
+      <PageContent className="relative items-center justify-center">
         <ReadingColumn>
           {profile ? <FilledState user={user} profile={profile} /> : <EmptyState user={user} />}
         </ReadingColumn>
@@ -127,7 +127,7 @@ function EmptyState({ user }: { user: { name: string } }) {
 
   return (
     <Card.List>
-      <Card.Entry>
+      <Card.Entry className="gap-2">
         <Card.Heading>
           <Trans>Hello, {user.name}</Trans>
         </Card.Heading>
@@ -200,14 +200,20 @@ function EmptyState({ user }: { user: { name: string } }) {
         </Card.Entry>
       )}
 
-      <Card.Entry className="flex items-center justify-between gap-4">
+      <Card.Entry className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p className="text-xs text-muted-foreground">
           <Trans>
             Your CV is sent to Anthropic to extract a profile. We don&apos;t store the PDF or its raw text — only the
             structured profile shown below.
           </Trans>
         </p>
-        <Button variant="ghost" size="sm" onClick={() => void handleSkip()} disabled={uploading} className="shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void handleSkip()}
+          disabled={uploading}
+          className="w-full sm:w-auto sm:shrink-0"
+        >
           <Trans>Skip for now</Trans>
         </Button>
       </Card.Entry>
@@ -288,11 +294,11 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
   return (
     <Tabs defaultValue="preview">
       <Card.List>
-        <Card.Entry className="flex items-center justify-between gap-4">
+        <Card.Entry className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <Card.Heading>
             <Trans>Your Profile</Trans>
           </Card.Heading>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <TabsList>
               <TabsTrigger value="preview">
                 <Trans>Preview</Trans>
@@ -338,7 +344,7 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
           </div>
         </Card.Entry>
 
-        <Card.Entry className="flex items-center justify-between gap-4">
+        <Card.Entry className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <Card.Heading>
               <Trans>Danger zone</Trans>
@@ -347,7 +353,12 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
               <Trans>Removes your profile permanently. Curriculums won&apos;t be tailored until you re-upload.</Trans>
             </Card.SubHeading>
           </div>
-          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)} className="shrink-0">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setDeleteOpen(true)}
+            className="w-full sm:w-auto sm:shrink-0"
+          >
             <TrashIcon size={14} />
             <Trans>Delete</Trans>
           </Button>
