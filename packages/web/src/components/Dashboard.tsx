@@ -8,6 +8,10 @@ import { useTheme } from "../hooks/useTheme";
 import { GRADIENT_PRESETS } from "../lib/gradient";
 import { getCurriculumLinks } from "../lib/routes";
 import { computeUnlockedSkills } from "../lib/skills";
+import { Inset } from "./layout/Inset";
+import { PageBody } from "./layout/PageBody";
+import { Section } from "./layout/Section";
+import { SectionHeader } from "./layout/SectionHeader";
 import { AnimatedText } from "./AnimatedText";
 import { GradientBackground } from "./GradientBg";
 import { CreatePersonalProgramCard, ProgramCard } from "./ProgramCard";
@@ -72,18 +76,18 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
   if (curriculumsWithUnlockedSkills.length === 0) return null;
 
   return (
-    <section className="border-b border-border">
-      <div className="px-6 py-4 border-b border-border">
+    <Section>
+      <SectionHeader>
         <h2 className="text-base font-semibold text-foreground">
           <Trans>Skills</Trans>
         </h2>
-      </div>
+      </SectionHeader>
       <div className="flex flex-col">
         {curriculumsWithUnlockedSkills.map((curriculum, idx) => (
           <div key={curriculum.id} className={cn(idx > 0 && "border-t border-border")}>
-            <h3 className="px-6 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground border-b border-border">
-              {curriculum.name}
-            </h3>
+            <Inset className="py-3 border-b border-border">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{curriculum.name}</h3>
+            </Inset>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {curriculum.unlockedSkills.map((skill, i) => (
                 <div
@@ -103,7 +107,7 @@ function SkillsSection({ completedTaskIds }: { completedTaskIds: Record<string, 
           </div>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -116,10 +120,10 @@ export function Dashboard() {
   const { theme } = useTheme();
 
   return (
-    <main>
-      <section className="relative isolate overflow-hidden border-b border-border">
+    <PageBody>
+      <Section className="relative isolate overflow-hidden">
         <GradientBackground preset={theme === "dark" ? GRADIENT_PRESETS.heroDark : GRADIENT_PRESETS.heroLight} />
-        <div className="relative flex flex-col items-center justify-center text-center px-6 py-24 sm:py-32">
+        <Inset className="relative flex flex-col items-center justify-center text-center py-24 sm:py-32">
           <AnimatedText
             as="h1"
             text={t`Learn Everything`}
@@ -145,14 +149,14 @@ export function Dashboard() {
           >
             <Trans>New Program</Trans>
           </Button>
-        </div>
-      </section>
-      <section className="border-b border-border">
-        <div className="px-6 py-4 border-b border-border">
+        </Inset>
+      </Section>
+      <Section>
+        <SectionHeader>
           <h2 className="text-2xl font-semibold text-foreground">
             <Trans>Programs</Trans>
           </h2>
-        </div>
+        </SectionHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {allCurriculums.map((curriculum) => (
             <ProgramCard
@@ -164,8 +168,8 @@ export function Dashboard() {
           ))}
           <CreatePersonalProgramCard className={CELL_BORDERS} />
         </div>
-      </section>
+      </Section>
       <SkillsSection completedTaskIds={completedTaskIds} />
-    </main>
+    </PageBody>
   );
 }

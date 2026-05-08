@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate, useParams, useRevalidator, useRouteLoaderData } from "react-router";
 import { BuilderActionBar } from "../../src/components/CurriculumBuilder/BuilderActionBar";
 import { SelectableCard } from "../../src/components/CurriculumBuilder/SelectableCard";
-import { TopicContainer } from "../../src/components/TopicContainer";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { type CurriculumOutline, parseCurriculumOutline } from "../../src/data/types";
 import { apiClient } from "../../src/lib/apiClient";
 import { readSSEStream } from "../../src/lib/claude";
@@ -131,50 +133,52 @@ export default function DraftOutlinePage() {
   }
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>
-                {outline?.name || (streaming ? <Trans>Generating outline…</Trans> : <Trans>Outline</Trans>)}
-              </Card.Heading>
-              {outline?.description && <Card.CardSubheading>{outline.description}</Card.CardSubheading>}
-            </div>
-            {!streaming && initialOutline && (
-              <Button variant="ghost" size="sm" onClick={() => void run()}>
-                <Trans>Regenerate</Trans>
-              </Button>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <Card.Heading>
+                  {outline?.name || (streaming ? <Trans>Generating outline…</Trans> : <Trans>Outline</Trans>)}
+                </Card.Heading>
+                {outline?.description && <Card.SubHeading>{outline.description}</Card.SubHeading>}
+              </div>
+              {!streaming && initialOutline && (
+                <Button className="hidden md:block" variant="ghost" size="sm" onClick={() => void run()}>
+                  <Trans>Regenerate</Trans>
+                </Button>
+              )}
+            </Card.Entry>
+
+            {streaming && !outline && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Generating outline…</Trans>
+                </p>
+              </Card.Entry>
             )}
-          </Card.Entry>
 
-          {streaming && !outline && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Generating outline…</Trans>
-              </p>
-            </Card.Entry>
-          )}
-
-          {(outline?.phases.length || 0) > 0 && (
-            <Card.Entry className="flex flex-col gap-2">
-              {outline?.phases.map((phase) => (
-                <SelectableCard
-                  key={phase.id}
-                  selected={selectedIds.includes(phase.id)}
-                  onToggle={streaming ? undefined : () => toggle(phase.id)}
-                  readOnly={streaming}
-                  title={phase.title}
-                  description={phase.subtitle}
-                />
-              ))}
-            </Card.Entry>
-          )}
-        </Card.List>
-      </TopicContainer>
+            {(outline?.phases.length || 0) > 0 && (
+              <>
+                {outline?.phases.map((phase) => (
+                  <SelectableCard
+                    key={phase.id}
+                    selected={selectedIds.includes(phase.id)}
+                    onToggle={streaming ? undefined : () => toggle(phase.id)}
+                    readOnly={streaming}
+                    title={phase.title}
+                    description={phase.subtitle}
+                  />
+                ))}
+              </>
+            )}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       <BuilderActionBar>
         <Button
@@ -185,6 +189,6 @@ export default function DraftOutlinePage() {
           <Trans>Start generating</Trans> <ArrowRightIcon className="inline ml-1" />
         </Button>
       </BuilderActionBar>
-    </>
+    </PageBody>
   );
 }

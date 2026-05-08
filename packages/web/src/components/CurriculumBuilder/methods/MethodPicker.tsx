@@ -16,7 +16,7 @@ type MethodPickerProps = {
 
 export function MethodPicker({ url, onUrlChange, urlError, file, onFileChange, activeMethod }: MethodPickerProps) {
   return (
-    <Card.Entry className="p-0 last:pb-0 grid grid-cols-1 sm:grid-cols-[1.6fr_1fr]">
+    <Card.EntryRaw className="grid grid-cols-1 sm:grid-cols-[1.6fr_1fr]">
       <UrlMethodCard
         url={url}
         onUrlChange={onUrlChange}
@@ -25,6 +25,6 @@ export function MethodPicker({ url, onUrlChange, urlError, file, onFileChange, a
         className="border-b border-border sm:border-b-0 sm:border-r"
       />
       <PdfMethodCard file={file} onFileChange={onFileChange} active={activeMethod === "pdf"} />
-    </Card.Entry>
+    </Card.EntryRaw>
   );
 }

@@ -2,11 +2,11 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { DetailedError, parseResponse } from "hono/client";
 import { useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router";
-import { BuilderActionBarSlotContext } from "../../src/components/CurriculumBuilder/BuilderActionBar";
 import { InputStep, type InputStepValues } from "../../src/components/CurriculumBuilder/InputStep";
 import { GridBackground } from "../../src/components/GridBg";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
 import { ProgramCover } from "../../src/components/ProgramCover";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { apiClient } from "../../src/lib/apiClient";
 import type { BreadcrumbHandle } from "../../src/lib/breadcrumbs";
 import { generateGradient, type GradientCover, GradientCoverSchema } from "../../src/lib/gradient";
@@ -16,6 +16,7 @@ import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.new";
 
 import { Card } from "~/components/Card";
+import { BigColumn } from "~/components/layout/BigColumn";
 import { BreadcrumbItem, BreadcrumbPage } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -86,7 +87,6 @@ export default function NewCurriculumPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cover] = useState<GradientCover>(generateGradient);
-  const [actionBarSlot, setActionBarSlot] = useState<HTMLElement | null>(null);
 
   async function handleGenerate(values: InputStepValues) {
     setGenerating(true);
@@ -125,14 +125,14 @@ export default function NewCurriculumPage() {
   }
 
   return (
-    <BuilderActionBarSlotContext value={actionBarSlot}>
-      <div className="relative flex flex-1 flex-col grow">
-        <div className="absolute inset-0">
-          <ProgramCover shape="wave" preset={cover} />
-        </div>
-        <div className="relative grow flex flex-col">
-          <GridBackground />
-          <TopicContainer className="py-8 grow">
+    <PageBody className="relative">
+      <div className="absolute inset-0">
+        <ProgramCover shape="wave" preset={cover} />
+      </div>
+      <GridBackground />
+      <PageContent className="relative">
+        <BigColumn>
+          <div className="flex flex-col my-auto">
             {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             <InputStep onGenerate={(values) => void handleGenerate(values)} generating={generating} />
@@ -146,7 +146,7 @@ export default function NewCurriculumPage() {
                     </Card.Heading>
                   </Card.Entry>
                   {drafts.map((draft) => (
-                    <Card.Entry key={draft.id} className="p-0 last:pb-0">
+                    <Card.EntryRaw key={draft.id}>
                       <Link
                         to={getCurriculumLinks().draft(draft.id).index}
                         className={cn(
@@ -173,16 +173,15 @@ export default function NewCurriculumPage() {
                           </Button>
                         </div>
                       </Link>
-                    </Card.Entry>
+                    </Card.EntryRaw>
                   ))}
                 </Card.List>
               </section>
             )}
-          </TopicContainer>
-          <div ref={setActionBarSlot} className="sticky bottom-0 z-10 shrink-0" />
-        </div>
-      </div>
-    </BuilderActionBarSlotContext>
+          </div>
+        </BigColumn>
+      </PageContent>
+    </PageBody>
   );
 }
 

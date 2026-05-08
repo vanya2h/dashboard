@@ -1,6 +1,6 @@
 import { createContext, use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { TopicContainer } from "./TopicContainer";
+import { ReadingColumn } from "./layout/ReadingColumn";
 
 import { cn } from "~/lib/utils";
 
@@ -20,9 +20,9 @@ export function TopicActionBar({ className, children, ...restProps }: TopicActio
         stuck ? "bg-background/80 backdrop-blur-md" : "bg-background/40",
       )}
     >
-      <TopicContainer {...restProps} className={cn("flex items-center h-full gap-3 py-3", className)}>
+      <ReadingColumn {...restProps} className={cn("flex items-center h-full gap-3 py-3", className)}>
         {children}
-      </TopicContainer>
+      </ReadingColumn>
     </div>,
     slot,
   );

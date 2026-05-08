@@ -1,8 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { parseJSON } from "../../src/lib/json";
@@ -100,53 +102,55 @@ export default function GapsPage() {
   const partialCount = gaps.reduce((acc, g) => acc + (!isLegacyGap(g) && g.level === "partially-known" ? 1 : 0), 0);
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>
-                {isLoading ? (
-                  <Trans>Evaluating your answers…</Trans>
-                ) : (
-                  <Trans>Here&apos;s what your assessment showed</Trans>
-                )}
-              </Card.Heading>
-              {summary && <Card.CardSubheading>{summary}</Card.CardSubheading>}
-            </div>
-            {!isLoading && gaps.length > 0 && (
-              <span className="font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
-                {gaps.length} <Trans>gaps</Trans>
-                {partialCount > 0 && (
-                  <>
-                    {" · "}
-                    {partialCount} <Trans>partially known</Trans>
-                  </>
-                )}
-              </span>
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col">
+                <Card.Heading>
+                  {isLoading ? (
+                    <Trans>Evaluating your answers…</Trans>
+                  ) : (
+                    <Trans>Here&apos;s what your assessment showed</Trans>
+                  )}
+                </Card.Heading>
+                {summary && <Card.SubHeading>{summary}</Card.SubHeading>}
+              </div>
+              {!isLoading && gaps.length > 0 && (
+                <span className="font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+                  {gaps.length} <Trans>gaps</Trans>
+                  {partialCount > 0 && (
+                    <>
+                      {" · "}
+                      {partialCount} <Trans>partially known</Trans>
+                    </>
+                  )}
+                </span>
+              )}
+            </Card.Entry>
+
+            {isLoading && gaps.length === 0 && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Identifying gaps…</Trans>
+                </p>
+              </Card.Entry>
             )}
-          </Card.Entry>
 
-          {isLoading && gaps.length === 0 && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Identifying gaps…</Trans>
-              </p>
-            </Card.Entry>
-          )}
+            {!isLoading && gaps.length === 0 && (
+              <Card.Entry className="text-sm text-muted-foreground">
+                <Trans>No significant gaps detected — the material will go deep on advanced nuances.</Trans>
+              </Card.Entry>
+            )}
 
-          {!isLoading && gaps.length === 0 && (
-            <Card.Entry className="text-sm text-muted-foreground">
-              <Trans>No significant gaps detected — the material will go deep on advanced nuances.</Trans>
-            </Card.Entry>
-          )}
-
-          {gaps.map((gap, i) => (
-            <GapRow key={i} gap={gap} />
-          ))}
-        </Card.List>
-      </TopicContainer>
+            {gaps.map((gap, i) => (
+              <GapRow key={i} gap={gap} />
+            ))}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       {!data.readOnly && (
         <TopicActionBar>
@@ -159,7 +163,7 @@ export default function GapsPage() {
           </Button>
         </TopicActionBar>
       )}
-    </>
+    </PageBody>
   );
 }
 

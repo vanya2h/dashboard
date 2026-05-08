@@ -2,9 +2,11 @@ import { Trans } from "@lingui/react/macro";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import type { PhaseByKey } from "../../src/lib/phase";
@@ -82,41 +84,43 @@ export default function FeedbackPage() {
   }
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>{partPlan?.title ?? ""}</Card.Heading>
-              {partPlan?.description && <Card.CardSubheading>{partPlan.description}</Card.CardSubheading>}
-            </div>
-            <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
-              <Trans>Feedback</Trans>
-            </span>
-          </Card.Entry>
-
-          {streaming && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Evaluating your answers…</Trans>
-              </p>
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <Card.Heading>{partPlan?.title ?? ""}</Card.Heading>
+                {partPlan?.description && <Card.SubHeading>{partPlan.description}</Card.SubHeading>}
+              </div>
+              <span className="hidden md:inline shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+                <Trans>Feedback</Trans>
+              </span>
             </Card.Entry>
-          )}
 
-          {streaming && feedback && (
-            <Card.Entry>
-              <Markdown isAnimating>{feedback}</Markdown>
-            </Card.Entry>
-          )}
+            {streaming && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Evaluating your answers…</Trans>
+                </p>
+              </Card.Entry>
+            )}
 
-          {!streaming && feedback && (
-            <Card.Entry>
-              <Markdown>{feedback}</Markdown>
-            </Card.Entry>
-          )}
-        </Card.List>
-      </TopicContainer>
+            {streaming && feedback && (
+              <Card.Entry>
+                <Markdown isAnimating>{feedback}</Markdown>
+              </Card.Entry>
+            )}
+
+            {!streaming && feedback && (
+              <Card.Entry>
+                <Markdown>{feedback}</Markdown>
+              </Card.Entry>
+            )}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       {!data.readOnly && (
         <TopicActionBar>
@@ -125,6 +129,6 @@ export default function FeedbackPage() {
           </Button>
         </TopicActionBar>
       )}
-    </>
+    </PageBody>
   );
 }

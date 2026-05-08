@@ -153,11 +153,13 @@ export default function TopicLayout() {
 
   return (
     <TopicActionBarSlotContext value={actionBarSlot}>
-      <TopicHeader taskTitle={task.title} curriculumName={curriculumName} onStartOver={startOver} />
+      <div className="hidden sm:flex w-full">
+        <TopicHeader taskTitle={task.title} curriculumName={curriculumName} onStartOver={startOver} />
+      </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-col lg:flex-row flex-1">
         <TopicSidebar items={items} reachedIndex={reachedIndex} />
-        <div className="flex-1 min-w-0 border-l border-border flex flex-col relative">
+        <div className="flex-1 min-w-0 lg:border-l border-border flex flex-col relative">
           {cover && (
             <div className="absolute inset-0">
               <ProgramCover shape="wave" preset={cover} />

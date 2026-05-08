@@ -1,9 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { isPhaseReadOnly, parseTopicSessionState, TASK_SOLUTION_SYSTEM } from "../../src/lib/phase";
@@ -111,72 +113,74 @@ export default function HandsOnPage() {
   }
 
   return (
-    <>
-      <TopicContainer className="py-8 flex flex-col gap-8">
-        {part.handsOn.map((taskItem, i) => (
-          <Card.List key={i}>
-            <Card.Entry>
-              <Card.Heading>
-                <Trans>Task {i + 1}</Trans>
-              </Card.Heading>
-            </Card.Entry>
-            <Card.Entry>
-              <Markdown>{taskItem.task}</Markdown>
-            </Card.Entry>
-
-            <Card.Entry>
-              <Textarea
-                value={answers[i] ?? ""}
-                onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
-                placeholder={t`Your answer, code, or reasoning…`}
-                rows={4}
-                aria-label={t`Text input`}
-                disabled={readOnly}
-              />
-            </Card.Entry>
-
-            <Card.Entry className="flex flex-wrap items-center gap-2">
-              {taskItem.hint && (
-                <Button variant="secondary" size="xs" onClick={() => toggleHint(i)}>
-                  {hintShown[i] ? <Trans>Hide hint</Trans> : <Trans>Show hint</Trans>}
-                </Button>
-              )}
-              {solutionShown[i] && !solutions[i]?.streaming ? (
-                <Button variant="secondary" size="xs" onClick={() => handleHideSolution(i)}>
-                  <Trans>Hide solution</Trans>
-                </Button>
-              ) : (
-                <Button
-                  size="xs"
-                  disabled={solutions[i]?.streaming}
-                  onClick={() => void handleSolution(i, taskItem.task, taskItem.hint)}
-                >
-                  <Trans>See solution</Trans>
-                </Button>
-              )}
-              {solutions[i]?.streaming && <Spinner />}
-            </Card.Entry>
-
-            {taskItem.hint && hintShown[i] && (
+    <PageBody>
+      <PageContent>
+        <ReadingColumn className="flex flex-col gap-8">
+          {part.handsOn.map((taskItem, i) => (
+            <Card.List key={i}>
               <Card.Entry>
-                <Card.Heading className="mb-2">
-                  <Trans>Hint</Trans>
+                <Card.Heading>
+                  <Trans>Task {i + 1}</Trans>
                 </Card.Heading>
-                <p className="text-sm text-foreground">{taskItem.hint}</p>
               </Card.Entry>
-            )}
-
-            {solutionShown[i] && solutions[i] && (
               <Card.Entry>
-                <Card.Heading className="mb-2">
-                  <Trans>Solution</Trans>
-                </Card.Heading>
-                <Markdown isAnimating={solutions[i].streaming}>{solutions[i].text}</Markdown>
+                <Markdown>{taskItem.task}</Markdown>
               </Card.Entry>
-            )}
-          </Card.List>
-        ))}
-      </TopicContainer>
+
+              <Card.Entry>
+                <Textarea
+                  value={answers[i] ?? ""}
+                  onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
+                  placeholder={t`Your answer, code, or reasoning…`}
+                  rows={4}
+                  aria-label={t`Text input`}
+                  disabled={readOnly}
+                />
+              </Card.Entry>
+
+              <Card.Entry className="flex flex-wrap items-center gap-2">
+                {taskItem.hint && (
+                  <Button variant="secondary" size="xs" onClick={() => toggleHint(i)}>
+                    {hintShown[i] ? <Trans>Hide hint</Trans> : <Trans>Show hint</Trans>}
+                  </Button>
+                )}
+                {solutionShown[i] && !solutions[i]?.streaming ? (
+                  <Button variant="secondary" size="xs" onClick={() => handleHideSolution(i)}>
+                    <Trans>Hide solution</Trans>
+                  </Button>
+                ) : (
+                  <Button
+                    size="xs"
+                    disabled={solutions[i]?.streaming}
+                    onClick={() => void handleSolution(i, taskItem.task, taskItem.hint)}
+                  >
+                    <Trans>See solution</Trans>
+                  </Button>
+                )}
+                {solutions[i]?.streaming && <Spinner />}
+              </Card.Entry>
+
+              {taskItem.hint && hintShown[i] && (
+                <Card.Entry>
+                  <Card.Heading className="mb-2">
+                    <Trans>Hint</Trans>
+                  </Card.Heading>
+                  <p className="text-sm text-foreground">{taskItem.hint}</p>
+                </Card.Entry>
+              )}
+
+              {solutionShown[i] && solutions[i] && (
+                <Card.Entry>
+                  <Card.Heading className="mb-2">
+                    <Trans>Solution</Trans>
+                  </Card.Heading>
+                  <Markdown isAnimating={solutions[i].streaming}>{solutions[i].text}</Markdown>
+                </Card.Entry>
+              )}
+            </Card.List>
+          ))}
+        </ReadingColumn>
+      </PageContent>
 
       {!readOnly && (
         <TopicActionBar>
@@ -185,6 +189,6 @@ export default function HandsOnPage() {
           </Button>
         </TopicActionBar>
       )}
-    </>
+    </PageBody>
   );
 }

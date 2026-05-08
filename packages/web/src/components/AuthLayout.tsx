@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Container } from "./layout/Container";
 import { Footer } from "./Footer";
 import { GradientBackground } from "./GradientBg";
 
@@ -8,7 +9,7 @@ import { GRADIENT_PRESETS } from "~/lib/gradient";
 export function AuthLayout({ children }: { children: ReactNode }) {
   const { theme } = useTheme();
   return (
-    <div className="max-w-360 mx-auto border-x border-border min-h-screen flex flex-col">
+    <Container>
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-5">
         <div className="lg:col-span-2 flex items-center justify-center px-4 py-16">
           <div className="w-full max-w-md space-y-8 p-6">{children}</div>
@@ -21,6 +22,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
       <Footer />
-    </div>
+    </Container>
   );
 }

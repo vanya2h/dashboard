@@ -53,7 +53,7 @@ export default function CurriculumPage() {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   const isNotFound = isRouteErrorResponse(error) && error.status === 404;
   return (
-    <main className="flex grow flex-col items-center justify-center px-6 py-32 text-center">
+    <main className="flex grow flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-32 text-center">
       <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-foreground/40">
         {isNotFound ? "404" : "Error"}
       </div>

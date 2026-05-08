@@ -9,11 +9,11 @@ export type CardProps = ComponentProps<"div"> & {
 
 export function Card({ active = false, hoverable = false, className, ...props }: CardProps) {
   return (
-    <div
+    <CardRaw
       className={cn(
         "flex flex-col rounded-xl",
         "border border-border",
-        "bg-card p-6 text-left transition-[background-color,border-color] duration-300 ease-out",
+        "bg-card p-4 sm:p-6 text-left transition-[background-color,border-color] duration-300 ease-out",
         "backdrop-blur-3xl",
         active
           ? "border-border-active bg-card-active"
@@ -27,16 +27,26 @@ export function Card({ active = false, hoverable = false, className, ...props }:
   );
 }
 
+function CardRaw({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("flex flex-col", "p-4 sm:p-6 text-left", className)} {...props} />;
+}
+
 export type CardListProps = CardProps;
 
 function CardList({ className, ...props }: CardListProps) {
-  return <Card className={cn("overflow-hidden p-0", className)} {...props} />;
+  return <Card className={cn("overflow-hidden p-0 sm:p-0", className)} {...props} />;
 }
 
 export type CardEntryProps = ComponentProps<"div">;
 
 function CardEntry({ className, ...props }: CardEntryProps) {
-  return <div className={cn("px-6 py-4 border-b border-border last:border-b-0 last:pb-6", className)} {...props} />;
+  return <CardEntryRaw className={cn("px-4 sm:px-5 py-4 sm:py-5 last:pb-6", className)} {...props} />;
+}
+
+export type CardEntryRawProps = ComponentProps<"div">;
+
+function CardEntryRaw({ className, ...props }: CardEntryRawProps) {
+  return <div className={cn("border-b border-border last:border-b-0", className)} {...props} />;
 }
 
 export type CardHeadingProps = ComponentProps<"h2">;
@@ -53,5 +63,7 @@ function CardSubheading({ className, ...props }: CardSubheadingProps) {
 
 Card.List = CardList;
 Card.Entry = CardEntry;
+Card.EntryRaw = CardEntryRaw;
 Card.Heading = CardHeading;
-Card.CardSubheading = CardSubheading;
+Card.SubHeading = CardSubheading;
+Card.Raw = CardRaw;

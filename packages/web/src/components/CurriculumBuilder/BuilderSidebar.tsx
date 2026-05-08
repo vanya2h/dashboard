@@ -4,7 +4,6 @@ import { useLocation, useParams } from "react-router";
 import { StageNav, type StageNavStage } from "../StageNav";
 
 import { getCurriculumLinks, type IDraftLinks } from "~/lib/routes";
-import { cn } from "~/lib/utils";
 
 export type DraftStep = "outline" | "phases" | "finish";
 
@@ -36,14 +35,7 @@ export function BuilderSidebar({ reachedStep, firstPhaseId, className, ...restPr
     state: s.key === activeStep ? "active" : i > reachedIdx ? "upcoming" : "done",
   }));
 
-  return (
-    <StageNav
-      aria-label="Curriculum builder steps"
-      stages={stages}
-      className={cn("self-start sticky top-15.25", className)}
-      {...restProps}
-    />
-  );
+  return <StageNav aria-label="Curriculum builder steps" stages={stages} className={className} {...restProps} />;
 }
 
 function activeStepFromPathname(pathname: string, draftBase: string | undefined): DraftStep | null {

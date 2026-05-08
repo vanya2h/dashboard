@@ -46,7 +46,7 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
   const activeSession = activeSessions[task.id];
 
   return (
-    <div className="group flex items-center gap-3 py-2 px-4 rounded-md transition-colors hover:bg-foreground/10">
+    <div className="group flex items-center gap-3 py-2 px-3 sm:px-4 rounded-md transition-colors hover:bg-foreground/10">
       <label className="flex items-center gap-3 flex-1 min-w-0">
         <Checkbox checked={checked} readOnly className="pointer-events-none shrink-0" />
         <span
@@ -64,13 +64,14 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
         <div
           className={cn(
             "shrink-0 flex gap-1 transition-opacity",
-            !activeSession && "opacity-0 group-hover:opacity-100",
+            !activeSession && "lg:opacity-0 lg:group-hover:opacity-100",
           )}
         >
           {activeSession && (
             <Button
               size="xs"
               variant="secondary"
+              className="hidden sm:inline-flex"
               onClick={() => {
                 void parseResponse(apiClient.api["topic-sessions"][":taskId"].$delete({ param: { taskId: task.id } }));
                 navigate(getTopicLinks(curriculumId, task.id).index);
@@ -85,7 +86,7 @@ export function TaskRow({ task, curriculumId }: { task: Task; curriculumId: stri
         </div>
       )}
       {task.estMinutes && (
-        <span className="shrink-0 text-xs text-muted-foreground">
+        <span className="hidden sm:inline shrink-0 text-xs text-muted-foreground">
           ~{task.estMinutes >= 60 ? `${Math.round(task.estMinutes / 60)}h` : `${task.estMinutes}m`}
         </span>
       )}

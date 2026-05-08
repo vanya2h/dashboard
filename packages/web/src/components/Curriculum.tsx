@@ -7,6 +7,11 @@ import type { ActiveSession } from "../hooks/useProgress";
 import { useProgress } from "../hooks/useProgress";
 import { apiClient } from "../lib/apiClient";
 import { PHASE_ORDER } from "../lib/phase";
+import { BigColumn } from "./layout/BigColumn";
+import { Inset } from "./layout/Inset";
+import { PageBody } from "./layout/PageBody";
+import { PageContent } from "./layout/PageContent";
+import { ReadingColumn } from "./layout/ReadingColumn";
 import { Badge } from "./ui/badge";
 import { Card } from "./Card";
 import { PhaseCard } from "./PhaseCard";
@@ -16,7 +21,7 @@ import { Ring } from "./Ring";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
-export type CurriculumProps = React.ComponentProps<"section"> & {
+export type CurriculumProps = React.ComponentProps<"main"> & {
   curriculum: CurriculumDef;
 };
 
@@ -38,38 +43,43 @@ export function Curriculum({ curriculum, className, ...restProps }: CurriculumPr
   const nextUp = findNextUp(curriculum, completedTaskIds, activeSessions);
 
   return (
-    <section className={cn("relative flex flex-col grow", className)} {...restProps}>
+    <PageBody className={cn("relative", className)} {...restProps}>
       {curriculum.cover && (
         <div className="absolute inset-0">
           <ProgramCover shape="wave" preset={curriculum.cover} />
         </div>
       )}
-      <div className="relative max-w-6xl w-full mx-auto grow flex flex-col py-8">
-        <div className="px-6 sm:px-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-          <NextUpCard curriculum={curriculum} nextUp={nextUp} />
-          <ProgressRingCard percent={completionPercent} remainingMinutes={remainingMinutes} />
-        </div>
-
-        <div className="px-6 sm:px-10 mt-4">
-          <Card className="overflow-hidden p-0">
-            <h2 className="font-bold px-6 py-4 border-b border-border text-foreground">
-              <Trans>All Sections</Trans>
-            </h2>
-            <div>
-              {curriculum.phases.map((phase, index) => (
-                <PhaseCard
-                  key={phase.id}
-                  phase={phase}
-                  curriculumId={curriculum.id}
-                  index={index}
-                  completedTaskIds={completedTaskIds}
-                />
-              ))}
+      <PageContent className="relative">
+        <BigColumn>
+          <Card.List className="my-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] border-b border-border">
+              <Card.Raw className="min-w-0 max-lg:border-b lg:border-r border-border">
+                <NextUpPane curriculum={curriculum} nextUp={nextUp} />
+              </Card.Raw>
+              <Card.Raw className="min-w-0">
+                <ProgressRingPane percent={completionPercent} remainingMinutes={remainingMinutes} />
+              </Card.Raw>
             </div>
-          </Card>
-        </div>
-      </div>
-    </section>
+
+            <Card.Entry>
+              <Card.Heading>
+                <Trans>All Sections</Trans>
+              </Card.Heading>
+            </Card.Entry>
+
+            {curriculum.phases.map((phase, index) => (
+              <PhaseCard
+                key={phase.id}
+                phase={phase}
+                curriculumId={curriculum.id}
+                index={index}
+                completedTaskIds={completedTaskIds}
+              />
+            ))}
+          </Card.List>
+        </BigColumn>
+      </PageContent>
+    </PageBody>
   );
 }
 
@@ -102,12 +112,12 @@ function findNextUp(
   return null;
 }
 
-function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp: NextUp | null }) {
+function NextUpPane({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp: NextUp | null }) {
   const navigate = useNavigate();
 
   if (!nextUp) {
     return (
-      <Card>
+      <>
         <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-foreground/40">
           <Trans>All done</Trans>
         </div>
@@ -118,7 +128,7 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
         <p className="text-sm leading-relaxed text-muted-foreground">
           <Trans>Revisit any section below to review what you learned.</Trans>
         </p>
-      </Card>
+      </>
     );
   }
 
@@ -132,10 +142,16 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
   }
 
   return (
-    <Card>
-      <div className="flex items-center gap-3">{session && <SessionBadge session={session} />}</div>
+    <>
+      <div className="flex items-center gap-3">
+        {session && (
+          <div className="mb-4">
+            <SessionBadge session={session} />
+          </div>
+        )}
+      </div>
 
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-foreground leading-tight">{task.title}</h2>
+      <h2 className="text-3xl font-semibold tracking-[-0.03em] text-foreground leading-tight">{task.title}</h2>
       <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground line-clamp-2">
         {task.notes ?? phase.subtitle}
       </p>
@@ -158,7 +174,7 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-col-reverse items-stretch gap-2 w-full sm:flex-row sm:items-center sm:gap-2 sm:w-auto sm:shrink-0">
           {session && (
             <Button size="lg" type="button" onClick={startOver} variant="ghost">
               <Trans>Start over</Trans>
@@ -170,7 +186,7 @@ function NextUpCard({ curriculum, nextUp }: { curriculum: CurriculumDef; nextUp:
           </Button>
         </div>
       </div>
-    </Card>
+    </>
   );
 }
 
@@ -214,21 +230,40 @@ function phaseProgressPercent(session: ActiveSession) {
   return Math.round(((idx + 1) / PHASE_ORDER.length) * 100);
 }
 
-function ProgressRingCard({ percent, remainingMinutes }: { percent: number; remainingMinutes: number }) {
+function ProgressRingPane({ percent, remainingMinutes }: { percent: number; remainingMinutes: number }) {
   return (
-    <Card className="flex flex-col items-center justify-center text-center">
-      <Ring percent={percent} size={148} stroke={8}>
-        <span className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{percent}%</span>
-      </Ring>
-      <div className="text-foreground mt-4">
-        <Trans>Program Completed</Trans>
-      </div>
-      {remainingMinutes > 0 && (
-        <div className="text-sm text-foreground/40">
-          ~{formatHours(remainingMinutes)} <Trans>remaining</Trans>
+    <>
+      <div className="lg:hidden">
+        <div className="flex items-baseline justify-between gap-2 mb-2">
+          <span className="text-foreground font-medium">
+            <Trans>Program Completed</Trans>
+          </span>
+          <span className="font-mono text-sm tabular-nums text-foreground">{percent}%</span>
         </div>
-      )}
-    </Card>
+        <div className="h-1 rounded-full bg-foreground/10 overflow-hidden">
+          <div className="h-full bg-brand transition-[width] duration-500" style={{ width: `${percent}%` }} />
+        </div>
+        {remainingMinutes > 0 && (
+          <div className="mt-2 font-mono text-[11px] tracking-[0.04em] text-foreground/50">
+            ~{formatHours(remainingMinutes)} <Trans>remaining</Trans>
+          </div>
+        )}
+      </div>
+
+      <div className="hidden lg:flex flex-col items-center justify-center text-center">
+        <Ring percent={percent} size={148} stroke={8}>
+          <span className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{percent}%</span>
+        </Ring>
+        <div className="text-foreground mt-4">
+          <Trans>Program Completed</Trans>
+        </div>
+        {remainingMinutes > 0 && (
+          <div className="text-sm text-foreground/40">
+            ~{formatHours(remainingMinutes)} <Trans>remaining</Trans>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

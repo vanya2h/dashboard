@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { GithubLogoIcon } from "@phosphor-icons/react";
+import { Inset } from "./layout/Inset";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 import { Button } from "~/components/ui/button";
@@ -9,8 +10,8 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border bg-background">
-      <div className="px-6 py-3 flex items-center justify-between gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-4 min-w-0">
+      <Inset className="py-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 min-w-0 justify-center sm:justify-start">
           <span className="whitespace-nowrap">
             <Trans>© {currentYear} Learning Tracker</Trans>
           </span>
@@ -18,7 +19,7 @@ export function Footer() {
             <Trans>Beta</Trans>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
           <LanguageSwitcher />
           <Button variant="secondary" render={<a href="mailto:hi@vanya2h.me" />}>
             <Trans>Send feedback</Trans>
@@ -38,7 +39,7 @@ export function Footer() {
             <GithubLogoIcon />
           </Button>
         </div>
-      </div>
+      </Inset>
     </footer>
   );
 }

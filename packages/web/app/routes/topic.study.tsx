@@ -2,9 +2,11 @@ import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
@@ -210,45 +212,47 @@ export default function StudyPage() {
   const headingDescription = partPlan?.description;
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>{headingTitle}</Card.Heading>
-              {headingDescription && <Card.CardSubheading>{headingDescription}</Card.CardSubheading>}
-            </div>
-            {material && (
-              <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
-                <Trans>
-                  Part {partIdx + 1} of {totalParts}
-                </Trans>
-              </span>
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col">
+                <Card.Heading>{headingTitle}</Card.Heading>
+                {headingDescription && <Card.SubHeading>{headingDescription}</Card.SubHeading>}
+              </div>
+              {material && (
+                <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+                  <Trans>
+                    Part {partIdx + 1} of {totalParts}
+                  </Trans>
+                </span>
+              )}
+            </Card.Entry>
+
+            {!part && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Preparing your study material…</Trans>
+                </p>
+              </Card.Entry>
             )}
-          </Card.Entry>
 
-          {!part && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Preparing your study material…</Trans>
-              </p>
-            </Card.Entry>
-          )}
+            {!part && partStream && (
+              <Card.Entry>
+                <Markdown isAnimating>{partStream}</Markdown>
+              </Card.Entry>
+            )}
 
-          {!part && partStream && (
-            <Card.Entry>
-              <Markdown isAnimating>{partStream}</Markdown>
-            </Card.Entry>
-          )}
-
-          {part && (
-            <Card.Entry>
-              <Markdown>{part.study}</Markdown>
-            </Card.Entry>
-          )}
-        </Card.List>
-      </TopicContainer>
+            {part && (
+              <Card.Entry>
+                <Markdown>{part.study}</Markdown>
+              </Card.Entry>
+            )}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       {material && (
         <TopicActionBar>
@@ -271,6 +275,6 @@ export default function StudyPage() {
           )}
         </TopicActionBar>
       )}
-    </>
+    </PageBody>
   );
 }

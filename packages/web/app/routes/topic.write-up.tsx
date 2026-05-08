@@ -1,9 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 import { useLoaderData, useNavigate, useParams } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useProgress } from "../../src/hooks/useProgress";
 import { useStreamAI } from "../../src/hooks/useStreamAI";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
@@ -82,40 +84,42 @@ export default function WriteUpPage() {
   }
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        <Card.List>
-          <Card.Entry>
-            <div className="flex flex-col">
-              <Card.Heading>
-                <Trans>Reflect</Trans>
-              </Card.Heading>
-              <Card.CardSubheading>{part.writeUpPrompt}</Card.CardSubheading>
-            </div>
-          </Card.Entry>
-
-          <Card.Entry>
-            <Textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder={t`Write your reflection in your own words…`}
-              rows={4}
-              aria-label={t`Text input`}
-              disabled={streaming || !!feedback}
-            />
-          </Card.Entry>
-
-          {(feedback || streaming) && (
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List>
             <Card.Entry>
-              <Card.Heading className="mb-3 flex items-center gap-2">
-                {streaming && <Spinner />}
-                <Trans>Tutor feedback</Trans>
-              </Card.Heading>
-              <Markdown isAnimating={streaming}>{feedback}</Markdown>
+              <div className="flex flex-col">
+                <Card.Heading>
+                  <Trans>Reflect</Trans>
+                </Card.Heading>
+                <Card.SubHeading>{part.writeUpPrompt}</Card.SubHeading>
+              </div>
             </Card.Entry>
-          )}
-        </Card.List>
-      </TopicContainer>
+
+            <Card.Entry>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={t`Write your reflection in your own words…`}
+                rows={4}
+                aria-label={t`Text input`}
+                disabled={streaming || !!feedback}
+              />
+            </Card.Entry>
+
+            {(feedback || streaming) && (
+              <Card.Entry>
+                <Card.Heading className="mb-3 flex items-center gap-2">
+                  {streaming && <Spinner />}
+                  <Trans>Tutor feedback</Trans>
+                </Card.Heading>
+                <Markdown isAnimating={streaming}>{feedback}</Markdown>
+              </Card.Entry>
+            )}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       <TopicActionBar>
         <Button className="ml-auto" onClick={() => void handleSubmit()} disabled={streaming || !!feedback}>
@@ -125,6 +129,6 @@ export default function WriteUpPage() {
           <Trans>Complete</Trans>
         </Button>
       </TopicActionBar>
-    </>
+    </PageBody>
   );
 }

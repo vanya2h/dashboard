@@ -30,7 +30,7 @@ export function PhaseCard({ phase, curriculumId, index, completedTaskIds, classN
         aria-expanded={open}
         aria-controls={panelId}
         className={cn(
-          "group w-full flex items-center gap-5 px-6 py-5 text-left transition-colors",
+          "group w-full flex items-center gap-3 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5 text-left transition-colors",
           "hover:bg-card-hover",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30",
           open ? "bg-card-active" : "",
@@ -38,7 +38,9 @@ export function PhaseCard({ phase, curriculumId, index, completedTaskIds, classN
       >
         <Ring percent={percent} size={36} stroke={2.5} />
 
-        <span className="font-mono text-sm tabular-nums text-foreground/40 shrink-0">{formatIndex(index + 1)}</span>
+        <span className="hidden sm:inline-block font-mono text-sm tabular-nums text-foreground/40 shrink-0">
+          {formatIndex(index + 1)}
+        </span>
 
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold tracking-[-0.01em] text-foreground truncate">{phase.title}</div>
@@ -48,7 +50,9 @@ export function PhaseCard({ phase, curriculumId, index, completedTaskIds, classN
           </div>
         </div>
 
-        <span className="font-mono text-sm tabular-nums text-foreground/50 shrink-0">{percent}%</span>
+        <span className="hidden sm:inline-block font-mono text-sm tabular-nums text-foreground/50 shrink-0">
+          {percent}%
+        </span>
 
         <span
           className={cn(
@@ -62,13 +66,22 @@ export function PhaseCard({ phase, curriculumId, index, completedTaskIds, classN
         </span>
       </button>
 
-      {open && (
-        <div id={panelId} className="border-t border-border px-3 py-3">
-          {phase.tasks.map((task) => (
-            <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
-          ))}
+      <div
+        id={panelId}
+        aria-hidden={!open}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-300 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-border px-3 py-3">
+            {phase.tasks.map((task) => (
+              <TaskRow key={task.id} task={task} curriculumId={curriculumId} />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

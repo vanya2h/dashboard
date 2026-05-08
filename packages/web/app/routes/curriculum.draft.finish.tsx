@@ -1,11 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import { redirect, useLoaderData, useNavigate, useParams } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
 import { getCurriculumLinks } from "../../src/lib/routes";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
 import type { Route } from "./+types/curriculum.draft.finish";
 
 import { Card } from "~/components/Card";
+import { ReadingColumn } from "~/components/layout/ReadingColumn";
 import { Button } from "~/components/ui/button";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -25,24 +28,28 @@ export default function DraftFinishPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-      <Card.List>
-        <Card.Entry>
-          <Card.Heading>
-            <Trans>Program Ready!</Trans>
-          </Card.Heading>
-          <Card.CardSubheading className="mt-2 max-w-sm">
-            <Trans>
-              <span className="font-medium text-foreground">{name}</span> is published and ready to study.
-            </Trans>
-          </Card.CardSubheading>
-        </Card.Entry>
-        <Card.Entry>
-          <Button className="ml-auto" onClick={() => id && void navigate(getCurriculumLinks().byId(id))}>
-            <Trans>Open Program</Trans>
-          </Button>
-        </Card.Entry>
-      </Card.List>
-    </div>
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List className="my-auto">
+            <Card.Entry>
+              <Card.Heading>
+                <Trans>Program Ready!</Trans>
+              </Card.Heading>
+              <Card.SubHeading className="mt-2 max-w-sm">
+                <Trans>
+                  <span className="font-medium text-foreground">{name}</span> is published and ready to study.
+                </Trans>
+              </Card.SubHeading>
+            </Card.Entry>
+            <Card.Entry>
+              <Button className="ml-auto" onClick={() => id && void navigate(getCurriculumLinks().byId(id))}>
+                <Trans>Open Program</Trans>
+              </Button>
+            </Card.Entry>
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
+    </PageBody>
   );
 }

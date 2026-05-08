@@ -23,13 +23,8 @@ export function SelectableCard({
 }: SelectableCardProps) {
   const interactive = !readOnly && !!onToggle;
   return (
-    <Card
-      active={selected}
-      hoverable={interactive}
-      className={cn("p-0 rounded-lg", !selected && "opacity-80", className)}
-      {...restProps}
-    >
-      <label className={cn("flex items-start gap-3 p-3", interactive ? "cursor-pointer" : "cursor-default")}>
+    <Card.Entry className="py-4 sm:py-4" active={selected} hoverable={interactive} {...restProps}>
+      <label className={cn("flex items-start gap-3", interactive ? "cursor-pointer" : "cursor-default")}>
         <Checkbox
           className="mt-1"
           checked={selected}
@@ -41,6 +36,6 @@ export function SelectableCard({
           {description && <p className="text-xs text-muted-foreground">{description}</p>}
         </div>
       </label>
-    </Card>
+    </Card.Entry>
   );
 }

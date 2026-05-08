@@ -5,7 +5,6 @@ import { z } from "zod";
 import { type Complexity, COMPLEXITY_LEVELS } from "../../data/types";
 import { Card } from "../Card";
 import { MethodPicker } from "./methods/MethodPicker";
-import { BuilderActionBar } from "./BuilderActionBar";
 
 import { Button } from "~/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -134,11 +133,11 @@ export function InputStep({ defaultComplexity = "medium", generating = false, on
         <DepthRow depth={watchedComplexity} setDepth={handleComplexityChange} enabled={isValid} />
       </Card.List>
 
-      <BuilderActionBar>
-        <Button className="ml-auto" type="button" onClick={() => void submit()} disabled={!isValid || generating}>
+      <div className="flex justify-end">
+        <Button type="button" onClick={() => void submit()} disabled={!isValid || generating}>
           <Trans>Generate program →</Trans>
         </Button>
-      </BuilderActionBar>
+      </div>
     </form>
   );
 }
@@ -161,11 +160,8 @@ function DepthRow({
   ];
 
   return (
-    <Card.Entry
-      className={cn(
-        "p-0 last:pb-0 transition-opacity duration-300",
-        enabled ? "opacity-100" : "pointer-events-none opacity-45",
-      )}
+    <Card.EntryRaw
+      className={cn("transition-opacity duration-300", enabled ? "opacity-100" : "pointer-events-none opacity-45")}
     >
       <RadioGroup
         value={depth}
@@ -195,6 +191,6 @@ function DepthRow({
           );
         })}
       </RadioGroup>
-    </Card.Entry>
+    </Card.EntryRaw>
   );
 }

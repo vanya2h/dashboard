@@ -8,6 +8,7 @@ import { authClient } from "../lib/authClient";
 import type { BreadcrumbHandle } from "../lib/breadcrumbs";
 import { getAuthLinks, getCurriculumLinks, getHomeRoute, getProfileRoute } from "../lib/routes";
 import type { AuthUser } from "../server/auth";
+import { Inset } from "./layout/Inset";
 
 import { Breadcrumb, BreadcrumbList, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
@@ -83,7 +84,7 @@ export function Header() {
         scrolled ? "bg-background/50 backdrop-blur-md" : "bg-background",
       )}
     >
-      <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4">
+      <Inset className="py-3 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <div className="shrink-0">
             <h1 className="text-lg sm:text-2xl font-semibold leading-none">
@@ -150,7 +151,7 @@ export function Header() {
             </Button>
           )}
         </div>
-      </div>
+      </Inset>
     </header>
   );
 }

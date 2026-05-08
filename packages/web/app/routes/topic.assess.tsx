@@ -1,8 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
 import { useClaude } from "../../src/lib/claude";
 import { parseJSON } from "../../src/lib/json";
@@ -107,59 +109,61 @@ export default function AssessPage() {
   const allAnswered = !!questions && questions.every((_, i) => (answers[i] ?? "").trim().length > 0);
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>
-                <Trans>Quick Assessment</Trans>
-              </Card.Heading>
-              <Card.CardSubheading>
-                <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
-              </Card.CardSubheading>
-            </div>
-            {!readOnly && (
-              <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
-                <Trans>Regenerate</Trans>
-              </Button>
-            )}
-          </Card.Entry>
-
-          {isLoading && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Preparing assessment questions…</Trans>
-              </p>
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col">
+                <Card.Heading>
+                  <Trans>Quick Assessment</Trans>
+                </Card.Heading>
+                <Card.SubHeading>
+                  <Trans>Answer each question in 2–4 sentences. Honest answers get more useful material.</Trans>
+                </Card.SubHeading>
+              </div>
+              {!readOnly && (
+                <Button variant="secondary" size="sm" onClick={() => void generateQuestions()} disabled={loading}>
+                  <Trans>Regenerate</Trans>
+                </Button>
+              )}
             </Card.Entry>
-          )}
 
-          {isLoading &&
-            questionsStream.map((q, i) => (
-              <Card.Entry key={i} className="text-sm text-foreground">
-                {i + 1}. {q}
-              </Card.Entry>
-            ))}
-
-          {!isLoading &&
-            questions?.map((q, i) => (
-              <Card.Entry key={i}>
-                <p className="text-sm font-medium text-foreground mb-2">
-                  {i + 1}. {q}
+            {isLoading && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Preparing assessment questions…</Trans>
                 </p>
-                <Textarea
-                  value={answers[i] ?? ""}
-                  onChange={(e) => handleAnswerChange(i, e.target.value)}
-                  placeholder={t`Your answer…`}
-                  rows={3}
-                  aria-label={t`Text input`}
-                  disabled={readOnly}
-                />
               </Card.Entry>
-            ))}
-        </Card.List>
-      </TopicContainer>
+            )}
+
+            {isLoading &&
+              questionsStream.map((q, i) => (
+                <Card.Entry key={i} className="text-sm text-foreground">
+                  {i + 1}. {q}
+                </Card.Entry>
+              ))}
+
+            {!isLoading &&
+              questions?.map((q, i) => (
+                <Card.Entry key={i}>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    {i + 1}. {q}
+                  </p>
+                  <Textarea
+                    value={answers[i] ?? ""}
+                    onChange={(e) => handleAnswerChange(i, e.target.value)}
+                    placeholder={t`Your answer…`}
+                    rows={3}
+                    aria-label={t`Text input`}
+                    disabled={readOnly}
+                  />
+                </Card.Entry>
+              ))}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       {!readOnly && (
         <TopicActionBar>
@@ -168,6 +172,6 @@ export default function AssessPage() {
           </Button>
         </TopicActionBar>
       )}
-    </>
+    </PageBody>
   );
 }

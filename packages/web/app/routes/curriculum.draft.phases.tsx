@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate, useParams, useRevalidator, useRouteLoaderData } from "react-router";
 import { BuilderActionBar } from "../../src/components/CurriculumBuilder/BuilderActionBar";
 import { SelectableCard } from "../../src/components/CurriculumBuilder/SelectableCard";
-import { TopicContainer } from "../../src/components/TopicContainer";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { parsePhase, type Phase, type Task } from "../../src/data/types";
 import { apiClient } from "../../src/lib/apiClient";
 import { readSSEStream } from "../../src/lib/claude";
@@ -46,7 +48,17 @@ export default function DraftPhasesPage() {
   const selections = layoutData?.draft.selections;
   const generatedPhases = layoutData?.draft.generatedPhases ?? {};
   const selectedPhaseIds = selections?.selectedPhaseIds ?? [];
-  const deselectedTaskIds = new Set(selections?.deselectedTaskIds ?? []);
+
+  const [optimisticDeselected, setOptimisticDeselected] = useState<string[] | null>(null);
+  const toggleFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deselectedTaskIds = new Set(optimisticDeselected ?? selections?.deselectedTaskIds ?? []);
+
+  useEffect(() => {
+    return () => {
+      const pending = toggleFlushRef.current;
+      if (pending) clearTimeout(pending);
+    };
+  }, []);
 
   const orderedSelected = (outline?.phases ?? []).filter((p) => selectedPhaseIds.includes(p.id));
   const currentIdx = orderedSelected.findIndex((p) => p.id === phaseId);
@@ -112,24 +124,37 @@ export default function DraftPhasesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phaseId]);
 
-  async function toggleTask(taskId: string) {
+  function toggleTask(taskId: string) {
     if (!id || !selections) return;
-    const next = new Set(selections.deselectedTaskIds);
+    const next = new Set(deselectedTaskIds);
     if (next.has(taskId)) next.delete(taskId);
     else next.add(taskId);
-    await parseResponse(
-      apiClient.api.curriculums.drafts[":id"].$patch({
-        param: { id },
-        json: {
-          selections: {
-            selectedPhaseIds: selections.selectedPhaseIds,
-            deselectedTaskIds: [...next],
-            currentPhaseIdx: selections.currentPhaseIdx,
-          },
-        },
-      }),
-    );
-    revalidate();
+    const nextArray = [...next];
+    setOptimisticDeselected(nextArray);
+
+    if (toggleFlushRef.current) clearTimeout(toggleFlushRef.current);
+    toggleFlushRef.current = setTimeout(() => {
+      toggleFlushRef.current = null;
+      void (async () => {
+        try {
+          await parseResponse(
+            apiClient.api.curriculums.drafts[":id"].$patch({
+              param: { id },
+              json: {
+                selections: {
+                  selectedPhaseIds: selections.selectedPhaseIds,
+                  deselectedTaskIds: nextArray,
+                  currentPhaseIdx: selections.currentPhaseIdx,
+                },
+              },
+            }),
+          );
+          await revalidate();
+        } finally {
+          setOptimisticDeselected(null);
+        }
+      })();
+    }, 500);
   }
 
   async function navigateTo(idx: number) {
@@ -159,56 +184,62 @@ export default function DraftPhasesPage() {
 
   if (!outlinePhase) {
     return (
-      <TopicContainer className="py-8">
-        <p className="text-sm text-muted-foreground">
-          <Trans>Phase not found.</Trans>
-        </p>
-      </TopicContainer>
+      <PageBody>
+        <PageContent>
+          <ReadingColumn>
+            <p className="text-sm text-muted-foreground">
+              <Trans>Phase not found.</Trans>
+            </p>
+          </ReadingColumn>
+        </PageContent>
+      </PageBody>
     );
   }
 
   return (
-    <>
-      <TopicContainer className="py-8">
-        {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+    <PageBody>
+      <PageContent>
+        <ReadingColumn>
+          {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        <Card.List>
-          <Card.Entry className="flex items-baseline justify-between gap-4">
-            <div className="flex flex-col">
-              <Card.Heading>{outlinePhase.title}</Card.Heading>
-              {outlinePhase.subtitle && <Card.CardSubheading>{outlinePhase.subtitle}</Card.CardSubheading>}
-            </div>
-            <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
-              <Trans>
-                Phase {currentIdx + 1} of {total}
-              </Trans>
-            </span>
-          </Card.Entry>
-
-          {streaming && !phase && (
-            <Card.Entry className="flex items-center gap-2 text-foreground/40">
-              <Spinner />
-              <p className="text-sm">
-                <Trans>Generating phase…</Trans>
-              </p>
+          <Card.List>
+            <Card.Entry className="flex items-baseline justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <Card.Heading>{outlinePhase.title}</Card.Heading>
+                {outlinePhase.subtitle && <Card.SubHeading>{outlinePhase.subtitle}</Card.SubHeading>}
+              </div>
+              <span className="hidden md:inline shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+                <Trans>
+                  Phase {currentIdx + 1} of {total}
+                </Trans>
+              </span>
             </Card.Entry>
-          )}
 
-          {(phase?.tasks.length || 0) > 0 && (
-            <Card.Entry className="flex flex-col gap-2">
-              {phase?.tasks.map((task) => (
-                <SelectableCard
-                  key={task.id}
-                  selected={!deselectedTaskIds.has(task.id)}
-                  readOnly={!persistedPhase}
-                  onToggle={persistedPhase ? () => void toggleTask(task.id) : undefined}
-                  title={<TaskTitle task={task} />}
-                />
-              ))}
-            </Card.Entry>
-          )}
-        </Card.List>
-      </TopicContainer>
+            {streaming && !phase && (
+              <Card.Entry className="flex items-center gap-2 text-foreground/40">
+                <Spinner />
+                <p className="text-sm">
+                  <Trans>Generating phase…</Trans>
+                </p>
+              </Card.Entry>
+            )}
+
+            {(phase?.tasks.length || 0) > 0 && (
+              <>
+                {phase?.tasks.map((task) => (
+                  <SelectableCard
+                    key={task.id}
+                    selected={!deselectedTaskIds.has(task.id)}
+                    readOnly={!persistedPhase}
+                    onToggle={persistedPhase ? () => void toggleTask(task.id) : undefined}
+                    title={<TaskTitle task={task} />}
+                  />
+                ))}
+              </>
+            )}
+          </Card.List>
+        </ReadingColumn>
+      </PageContent>
 
       <BuilderActionBar>
         <Button variant="outline" disabled={isFirst || streaming} onClick={() => void navigateTo(currentIdx - 1)}>
@@ -225,7 +256,7 @@ export default function DraftPhasesPage() {
           </Button>
         )}
       </BuilderActionBar>
-    </>
+    </PageBody>
   );
 }
 

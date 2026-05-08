@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { Inset } from "./layout/Inset";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -18,7 +19,7 @@ type Props = {
 
 export function TopicHeader({ taskTitle, curriculumName, onStartOver }: Props) {
   return (
-    <header className="flex items-center gap-4 px-6 py-4 border-b border-border bg-background">
+    <Inset as="header" className="flex items-center gap-4 py-3 sm:py-4 border-b border-border bg-background w-full">
       <div className="min-w-0">
         <h1 className="text-lg font-semibold text-foreground truncate line-clamp-1">{taskTitle}</h1>
         <p className="text-xs text-muted-foreground truncate">{curriculumName}</p>
@@ -46,6 +47,6 @@ export function TopicHeader({ taskTitle, curriculumName, onStartOver }: Props) {
           </DialogContent>
         </Dialog>
       </div>
-    </header>
+    </Inset>
   );
 }

@@ -5,9 +5,11 @@ import { DetailedError, parseResponse } from "hono/client";
 import { useRef, useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { GridBackground } from "../../src/components/GridBg";
+import { PageBody } from "../../src/components/layout/PageBody";
+import { PageContent } from "../../src/components/layout/PageContent";
+import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { ProgramCover } from "../../src/components/ProgramCover";
-import { TopicContainer } from "../../src/components/TopicContainer";
 import { useTheme } from "../../src/hooks/useTheme";
 import { apiClient } from "../../src/lib/apiClient";
 import { GRADIENT_PRESETS } from "../../src/lib/gradient";
@@ -74,17 +76,17 @@ export default function ProfilePage({ loaderData }: Route.ComponentProps) {
   const { theme } = useTheme();
 
   return (
-    <div className="relative flex flex-1 flex-col grow">
+    <PageBody className="relative">
       <div className="absolute inset-0">
         <ProgramCover shape="wave" preset={theme === "dark" ? GRADIENT_PRESETS.heroDark : GRADIENT_PRESETS.heroLight} />
       </div>
-      <div className="relative grow flex flex-col">
-        <GridBackground />
-        <TopicContainer className="py-8 grow">
+      <GridBackground />
+      <PageContent className="relative min-w-[55vh] items-center justify-center">
+        <ReadingColumn>
           {profile ? <FilledState user={user} profile={profile} /> : <EmptyState user={user} />}
-        </TopicContainer>
-      </div>
-    </div>
+        </ReadingColumn>
+      </PageContent>
+    </PageBody>
   );
 }
 
@@ -129,12 +131,12 @@ function EmptyState({ user }: { user: { name: string } }) {
         <Card.Heading>
           <Trans>Hello, {user.name}</Trans>
         </Card.Heading>
-        <Card.CardSubheading className="mt-2">
+        <Card.SubHeading className="mt-2">
           <Trans>
             Upload your CV so we can tailor every curriculum, assessment, and explanation to what you already know — and
             what you actually want to do next.
           </Trans>
-        </Card.CardSubheading>
+        </Card.SubHeading>
       </Card.Entry>
       <Card.Entry>
         <div
@@ -286,12 +288,6 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
   return (
     <Tabs defaultValue="preview">
       <Card.List>
-        <Card.Entry>
-          <Card.Heading>
-            <Trans>Hello, {user.name}</Trans>
-          </Card.Heading>
-        </Card.Entry>
-
         <Card.Entry className="flex items-center justify-between gap-4">
           <Card.Heading>
             <Trans>Your Profile</Trans>
@@ -347,9 +343,9 @@ function FilledState({ user, profile }: { user: { name: string }; profile: Profi
             <Card.Heading>
               <Trans>Danger zone</Trans>
             </Card.Heading>
-            <Card.CardSubheading>
+            <Card.SubHeading>
               <Trans>Removes your profile permanently. Curriculums won&apos;t be tailored until you re-upload.</Trans>
-            </Card.CardSubheading>
+            </Card.SubHeading>
           </div>
           <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)} className="shrink-0">
             <TrashIcon size={14} />

@@ -5,6 +5,7 @@ import { Outlet, redirect, useLoaderData, useNavigate, useParams, useRouteLoader
 import { BuilderActionBarSlotContext } from "../../src/components/CurriculumBuilder/BuilderActionBar";
 import { BuilderSidebar, type DraftStep } from "../../src/components/CurriculumBuilder/BuilderSidebar";
 import { GridBackground } from "../../src/components/GridBg";
+import { Inset } from "../../src/components/layout/Inset";
 import { ProgramCover } from "../../src/components/ProgramCover";
 import { type CurriculumOutline, parseCurriculumOutline } from "../../src/data/types";
 import { apiClient } from "../../src/lib/apiClient";
@@ -144,9 +145,9 @@ export default function DraftLayout() {
   return (
     <BuilderActionBarSlotContext value={actionBarSlot}>
       <DraftHeader title={data.draft.name || "New program"} onDiscard={() => void discardDraft()} />
-      <div className="flex flex-1">
+      <div className="flex flex-col lg:flex-row flex-1">
         <BuilderSidebar reachedStep={data.reachedStep} firstPhaseId={data.firstPhaseId} />
-        <div className="flex-1 min-w-0 border-l border-border flex flex-col relative">
+        <div className="flex-1 min-w-0 lg:border-l border-border flex flex-col relative">
           {data.draft.cover && (
             <div className="absolute inset-0">
               <ProgramCover shape="wave" preset={data.draft.cover} />
@@ -167,7 +168,7 @@ export default function DraftLayout() {
 
 function DraftHeader({ title, onDiscard }: { title: string; onDiscard: () => void }) {
   return (
-    <header className="flex items-center gap-4 px-6 py-4 border-b border-border bg-background">
+    <Inset as="header" className="hidden md:flex items-center gap-4 py-3 sm:py-4 border-b border-border bg-background">
       <div className="min-w-0">
         <h1 className="text-lg font-semibold text-foreground truncate">{title}</h1>
         <p className="text-xs text-muted-foreground truncate">
@@ -197,6 +198,6 @@ function DraftHeader({ title, onDiscard }: { title: string; onDiscard: () => voi
           </DialogContent>
         </Dialog>
       </div>
-    </header>
+    </Inset>
   );
 }
