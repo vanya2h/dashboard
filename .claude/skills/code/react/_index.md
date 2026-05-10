@@ -11,3 +11,4 @@ For any layout, markup, or visual decision (which element to use, sizing, spacin
 | 5 | Component ordering | Main exported component first, helpers below in order of first use | `component-ordering.md` |
 | 6 | No describing comments | Only comment the *why*, never describe what code does | `no-describing-comments.md` |
 | 7 | Layout primitives | Compose pages with `PageBody` / `PageContent` / `ReadingColumn` / `Section` / `Inset`; never hardcode `px-*` or `py-*` for column-edge or page-level chrome | `layout-primitives.md` |
+| 8 | Guard-and-validate split | Outer component reads inputs and guards (`if (!x) return null`); inner takes validated non-nullable props | `guard-and-validate.md` |

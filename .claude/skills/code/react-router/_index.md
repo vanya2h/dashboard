@@ -8,3 +8,4 @@
 | 4 | API routes via Hono | JSON API endpoints belong in Hono, not React Router actions | `api-hono.md` |
 | 5 | Loader data | Use `useLoaderData` typed against the loader; root uses `useRootData()` | `loader-data.md` |
 | 6 | No fetcher for full revalidation | Use Hono RPC + `revalidate()` instead of `useFetcher` | `no-fetcher-revalidation.md` |
+| 7 | Typed routes | Use `getTopicLinks` / `getCurriculumLinks` from `src/lib/routes.ts`; never hardcode paths or use relative navigation | `typed-routes.md` |

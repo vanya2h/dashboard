@@ -22,6 +22,7 @@ Read **only** the `_index.md` files for the domains that apply to this task:
 | React components | `.claude/skills/code/react/_index.md` | Any component file under `src/components/` or `app/routes/` |
 | React Router | `.claude/skills/code/react-router/_index.md` | Any file in `app/routes/` or `app/routes.ts` |
 | Forms | `.claude/skills/code/forms/_index.md` | Any form component or form submission handler |
+| RxJS in React | `.claude/skills/code/rxjs/_index.md` | Any file using `rxjs` or `@vanya2h/utils-rxjs-react` |
 
 Each index contains a table of rules with one-line descriptions.
 
@@ -35,6 +36,7 @@ Rule files live in subdirectories next to this file:
 - `.claude/skills/code/react/<rule>.md`
 - `.claude/skills/code/react-router/<rule>.md`
 - `.claude/skills/code/forms/<rule>.md`
+- `.claude/skills/code/rxjs/<rule>.md`
 
 ## Definition of Done
 

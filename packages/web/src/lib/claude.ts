@@ -1,10 +1,9 @@
 import type { ClientResponse } from "hono/client";
 import { hc, parseResponse } from "hono/client";
 import { useMemo } from "react";
-import { useRootData } from "../../app/hooks/useRootData";
+import { useLocale } from "../../app/hooks/useLocale";
 import type { Complexity } from "../data/types";
 import type { AppType } from "../server/app";
-import type { Locale } from "./i18n";
 
 const client = hc<AppType>("/");
 
@@ -98,7 +97,7 @@ export type ClaudeClient = {
 };
 
 export function useClaude(): ClaudeClient {
-  const locale = (useRootData()?.locale ?? "en") as Locale;
+  const locale = useLocale();
 
   return useMemo<ClaudeClient>(
     () => ({

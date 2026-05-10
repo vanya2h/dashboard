@@ -1,18 +1,37 @@
 import { Trans } from "@lingui/react/macro";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { Pending } from "@vanya2h/utils-rxjs-react";
+import { DetailedError } from "hono/client";
+import isEqual from "lodash/isEqual";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLoaderData, useNavigate, useParams, useRouteLoaderData } from "react-router";
+import {
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  map,
+  scan,
+  shareReplay,
+  skip,
+  startWith,
+  Subject,
+  tap,
+} from "rxjs";
 import { PageBody } from "../../src/components/layout/PageBody";
 import { PageContent } from "../../src/components/layout/PageContent";
 import { ReadingColumn } from "../../src/components/layout/ReadingColumn";
 import { Markdown } from "../../src/components/Markdown";
 import { TopicActionBar } from "../../src/components/TopicActionBar";
 import { useTopicSession } from "../../src/hooks/useTopicSession";
-import { useClaude } from "../../src/lib/claude";
+import { apiClient } from "../../src/lib/apiClient";
+import type { Locale } from "../../src/lib/i18n";
+import { getLlmStream } from "../../src/lib/llmStream";
 import type { Material, PhaseByKey } from "../../src/lib/phase";
 import { isPhaseReadOnly, parsePart, parsePlan, parseTopicSessionState } from "../../src/lib/phase";
+import { getTopicLinks } from "../../src/lib/routes";
 import { db } from "../../src/server/db";
 import { requireSession } from "../../src/server/session";
+import { useLocale } from "../hooks/useLocale";
 import type { Route } from "./+types/topic.study";
 import type { loader as layoutLoader } from "./topic-layout";
 
@@ -22,244 +41,408 @@ import { Spinner } from "~/components/ui/spinner";
 
 type LoaderResult = (PhaseByKey<"study"> | PhaseByKey<"gaps-review"> | { name: null }) & { readOnly: boolean };
 
+type StreamError = { kind: "rate-limit" | "generic"; message: string };
+
+function toStreamError(err: unknown): StreamError {
+  const data = err instanceof DetailedError ? (err.detail?.data as { error?: string } | undefined) : undefined;
+  if (err instanceof DetailedError && err.statusCode === 429) {
+    return { kind: "rate-limit", message: data?.error ?? "" };
+  }
+  return { kind: "generic", message: data?.error ?? (err instanceof Error ? err.message : String(err)) };
+}
+
+type MaterialUpdate =
+  | { kind: "plan"; plan: Material["plan"]; assessmentContext: string | undefined }
+  | { kind: "part"; idx: number; part: NonNullable<Material["parts"][number]> };
+
+function reduceMaterial(acc: Material | null, update: MaterialUpdate): Material | null {
+  if (update.kind === "plan") {
+    if (acc) return acc;
+    return {
+      plan: update.plan,
+      parts: Array<NonNullable<Material["parts"][number]> | null>(update.plan.partPlans.length).fill(null),
+      assessmentContext: update.assessmentContext,
+    };
+  }
+  if (acc === null || acc.parts[update.idx]) return acc;
+  return {
+    ...acc,
+    parts: acc.parts.map((p, i) => (i === update.idx ? update.part : p)),
+  };
+}
+
+// Three branches map to three distinct study-page entry states:
+//   - `study` phase exists → resume an in-progress study session (has `material` + `partIdx`).
+//   - `gaps-review` phase exists (no `study` yet) → first time on study page; we read the
+//     `context` string produced by topic.gaps.tsx and forward it as `assessmentContext` to
+//     seed the study-plan LLM call. We are NOT rendering gaps here.
+//   - neither → first time on study page with assessment skipped; generate a plan with no context.
 export async function loader({ request, params }: Route.LoaderArgs): Promise<LoaderResult> {
   const session = await requireSession(request);
   const record = await db.topicSession.findUnique({
-    where: { userId_taskId: { userId: session.user.id, taskId: params.taskId } },
+    where: {
+      userId_taskId: {
+        userId: session.user.id,
+        taskId: params.taskId,
+      },
+    },
   });
   const state = record ? parseTopicSessionState(record.phaseData) : { phases: {} };
   const readOnly = isPhaseReadOnly(state, "study");
 
   const study = state.phases.study;
-  if (study) return { ...study, readOnly };
+  if (study) {
+    return { ...study, readOnly };
+  }
   const gaps = state.phases["gaps-review"];
-  if (gaps) return { ...gaps, readOnly };
+  if (gaps) {
+    return { ...gaps, readOnly };
+  }
   return { name: null, readOnly };
 }
+
+type LayoutData = NonNullable<ReturnType<typeof useRouteLoaderData<typeof layoutLoader>>>;
 
 export default function StudyPage() {
   const loaderData = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData<typeof layoutLoader>("routes/topic-layout");
-  const { taskId } = useParams<{ taskId: string }>();
+  const { taskId, curriculumId } = useParams<{ taskId: string; curriculumId: string }>();
+  const locale = useLocale();
+
+  if (!layoutData?.task || !taskId || !curriculumId) return null;
+
+  return (
+    <StudyView
+      taskId={taskId}
+      task={layoutData.task}
+      curriculumName={layoutData.curriculumName ?? ""}
+      complexity={layoutData.complexity}
+      locale={locale}
+      readOnly={loaderData.readOnly}
+      initialMaterial={loaderData.name === "study" ? loaderData.material : null}
+      initialPartIdx={loaderData.name === "study" ? loaderData.partIdx : 0}
+      assessmentContext={loaderData.name === "gaps-review" ? loaderData.context : undefined}
+      handsOnRoute={getTopicLinks(curriculumId, taskId).handsOn}
+    />
+  );
+}
+
+type StudyViewProps = {
+  taskId: string;
+  task: LayoutData["task"];
+  curriculumName: string;
+  complexity: LayoutData["complexity"];
+  locale: Locale;
+  readOnly: boolean;
+  initialMaterial: Material | null;
+  initialPartIdx: number;
+  assessmentContext: string | undefined;
+  handsOnRoute: string;
+};
+
+function StudyView({
+  taskId,
+  task,
+  curriculumName,
+  complexity,
+  locale,
+  readOnly,
+  initialMaterial,
+  initialPartIdx,
+  assessmentContext,
+  handsOnRoute,
+}: StudyViewProps) {
   const navigate = useNavigate();
-  const { streamStudyPlan, streamStudyPart } = useClaude();
-  const { saveSession: rawSaveSession } = useTopicSession(taskId!);
-  const abortRef = useRef<AbortController | null>(null);
+  const { saveSession: rawSaveSession } = useTopicSession(taskId);
 
-  const task = layoutData?.task;
-  const curriculumName = layoutData?.curriculumName;
-  const complexity = layoutData?.complexity;
+  const [updates$] = useState(() => new Subject<MaterialUpdate>());
+  const [navigateIdx$] = useState(() => new Subject<number>());
 
-  const [material, setMaterial] = useState<Material | null>(loaderData.name === "study" ? loaderData.material : null);
-  const [partIdx, setPartIdx] = useState(loaderData.name === "study" ? loaderData.partIdx : 0);
-  const [partStream, setPartStream] = useState("");
+  const saveSession = useCallback<typeof rawSaveSession>(
+    (phase) =>
+      readOnly ? (Promise.resolve({ ok: true } as never) as ReturnType<typeof rawSaveSession>) : rawSaveSession(phase),
+    [readOnly, rawSaveSession],
+  );
 
-  function newAbort() {
-    abortRef.current?.abort();
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
-    return ctrl;
-  }
+  const material$ = useMemo(
+    () =>
+      updates$.pipe(
+        scan(reduceMaterial, initialMaterial),
+        startWith(initialMaterial),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      ),
+    [updates$, initialMaterial],
+  );
 
-  const { readOnly } = loaderData;
-  const saveSession: typeof rawSaveSession = (phase) =>
-    readOnly ? Promise.resolve({ ok: true } as never) : rawSaveSession(phase);
+  const partIdx$ = useMemo(
+    () =>
+      navigateIdx$.pipe(
+        startWith(initialPartIdx),
+        distinctUntilChanged(),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      ),
+    [navigateIdx$, initialPartIdx],
+  );
 
-  async function loadPart(idx: number, mat: Material, ctrl: AbortController) {
-    const partPlan = mat.plan.partPlans[idx];
-    if (!partPlan) return;
+  const viewState$ = useMemo(
+    () =>
+      combineLatest([material$, partIdx$]).pipe(
+        map(([material, partIdx]) => ({ material, partIdx })),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      ),
+    [material$, partIdx$],
+  );
 
-    if (!task) return;
-
-    try {
-      const text = await streamStudyPart(
+  const planStream = useMemo(() => {
+    if (initialMaterial !== null) return null;
+    const stream = getLlmStream(`study-plan:${locale}:${taskId}`, (signal) =>
+      apiClient.api.llm["study-plan"].$post(
         {
-          topic: task.title,
-          curriculum: curriculumName ?? "",
-          complexity,
-          assessmentContext: mat.assessmentContext,
-          partIdx: idx,
-          parts: mat.plan.partPlans,
-        },
-        {
-          signal: ctrl.signal,
-          onUpdate: (acc) => {
-            if (!ctrl.signal.aborted) {
-              try {
-                setPartStream(parsePart(acc).study);
-              } catch {
-                // partial stream not yet parseable
-              }
-            }
+          json: {
+            topic: task.title,
+            curriculum: curriculumName,
+            complexity,
+            assessmentContext,
+            locale,
           },
         },
-      );
-      if (ctrl.signal.aborted) return;
+        { init: { signal } },
+      ),
+    );
+    return {
+      retry: stream.retry,
+      state$: stream.state$.pipe(
+        tap((state) => {
+          if (state.status !== "complete") return;
+          updates$.next({
+            kind: "plan",
+            plan: parsePlan(state.text),
+            assessmentContext,
+          });
+          navigateIdx$.next(0);
+        }),
+      ),
+    };
+  }, [task, taskId, curriculumName, complexity, assessmentContext, locale, initialMaterial, updates$, navigateIdx$]);
 
-      const studyPart = parsePart(text);
-      setMaterial((prev) => {
-        if (!prev) return prev;
-        const updatedParts = prev.parts.map((p, i) => (i === idx ? studyPart : p));
-        const updated = { ...prev, parts: updatedParts };
-        void saveSession({
-          name: "study",
-          material: updated,
-          partIdx: idx,
-        });
-        return updated;
-      });
-      setPartStream("");
-    } catch (err) {
-      if (!ctrl.signal.aborted) console.error(err);
-    }
-  }
+  const partStream$ = useMemo(
+    () =>
+      combineLatest([material$, partIdx$]).pipe(
+        distinctUntilChanged(isEqual),
+        map(([m, idx]) => {
+          if (!m || m.parts[idx]) return null;
+          const stream = getLlmStream(`study-part:${locale}:${taskId}:${idx}`, (signal) =>
+            apiClient.api.llm["study-part"].$post(
+              {
+                json: {
+                  topic: task.title,
+                  curriculum: curriculumName,
+                  complexity,
+                  assessmentContext: m.assessmentContext,
+                  partIdx: idx,
+                  parts: m.plan.partPlans,
+                  locale,
+                },
+              },
+              { init: { signal } },
+            ),
+          );
+          return {
+            retry: stream.retry,
+            state$: stream.state$.pipe(
+              tap((state) => {
+                if (state.status !== "complete") return;
+                updates$.next({
+                  kind: "part",
+                  idx,
+                  part: parsePart(state.text),
+                });
+              }),
+            ),
+          };
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      ),
+    [material$, partIdx$, task, taskId, locale, curriculumName, complexity, updates$],
+  );
 
-  async function generatePlan() {
-    if (!task) return;
-    const ctrl = newAbort();
-    const assessmentContext = loaderData.name === "gaps-review" ? loaderData.context : undefined;
-
-    try {
-      const text = await streamStudyPlan(
-        {
-          topic: task.title,
-          curriculum: curriculumName ?? "",
-          complexity,
-          assessmentContext,
-        },
-        { signal: ctrl.signal },
-      );
-      if (ctrl.signal.aborted) return;
-
-      const plan = parsePlan(text);
-
-      const newMaterial: Material = {
-        plan,
-        parts: Array<null>(plan.partPlans.length).fill(null),
-        assessmentContext,
-      };
-
-      setMaterial(newMaterial);
-      setPartIdx(0);
-      void saveSession({
-        name: "study",
-        material: newMaterial,
-        partIdx: 0,
-      });
-      void loadPart(0, newMaterial, ctrl);
-    } catch (err) {
-      if (!ctrl.signal.aborted) console.error(err);
-    }
-  }
-
-  // On mount: generate plan if no session, or resume incomplete part
   useEffect(() => {
-    if (loaderData.name !== "study") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      void generatePlan();
-    } else if (!loaderData.material.parts[loaderData.partIdx]) {
-      const ctrl = newAbort();
-      void loadPart(loaderData.partIdx, loaderData.material, ctrl);
-    }
-    return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const sub = combineLatest([material$, partIdx$])
+      .pipe(
+        skip(1),
+        distinctUntilChanged(isEqual),
+        filter(([m]) => m !== null),
+        tap(
+          ([m, idx]) =>
+            void saveSession({
+              name: "study",
+              material: m as Material,
+              partIdx: idx,
+            }),
+        ),
+      )
+      .subscribe();
+    return () => sub.unsubscribe();
+  }, [material$, partIdx$, saveSession]);
 
-  function handleGoToPart(idx: number) {
-    if (!material || !material.parts[idx]) return;
-    setPartIdx(idx);
-    void saveSession({ name: "study", material, partIdx: idx });
+  function handleMoveToHandsOn(material: Material, partIdx: number) {
+    void saveSession({
+      name: "hands-on",
+      material,
+      partIdx,
+      answers: {},
+    });
+    void navigate(handsOnRoute);
   }
-
-  function handleNextPart() {
-    if (!material) return;
-    const nextIdx = partIdx + 1;
-    setPartIdx(nextIdx);
-    if (!material.parts[nextIdx]) {
-      const ctrl = newAbort();
-      void loadPart(nextIdx, material, ctrl);
-    }
-    void saveSession({ name: "study", material, partIdx: nextIdx });
-  }
-
-  function handleMoveToHandsOn() {
-    if (!material) return;
-    void saveSession({ name: "hands-on", material, partIdx, answers: {} });
-    void navigate("../hands-on", { relative: "path" });
-  }
-
-  const partPlan = material?.plan.partPlans[partIdx];
-  const part = material?.parts[partIdx];
-  const totalParts = material?.plan.partPlans.length ?? 0;
-  const isLastPart = material ? partIdx === totalParts - 1 : false;
-  const prevPlan = material && partIdx > 0 ? material.plan.partPlans[partIdx - 1] : null;
-  const headingTitle = partPlan?.title ?? task?.title ?? "";
-  const headingDescription = partPlan?.description;
 
   return (
     <PageBody>
       <PageContent>
         <ReadingColumn>
           <Card.List>
-            <Card.Entry className="flex items-baseline justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <Card.Heading>{headingTitle}</Card.Heading>
-                {headingDescription && <Card.SubHeading>{headingDescription}</Card.SubHeading>}
-              </div>
-              {material && (
-                <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
-                  <Trans>
-                    Part {partIdx + 1} of {totalParts}
-                  </Trans>
-                </span>
-              )}
-            </Card.Entry>
+            <Pending
+              value$={viewState$}
+              getDefaultValue={() => ({ material: initialMaterial, partIdx: initialPartIdx })}
+            >
+              {({ material, partIdx }) => {
+                const partPlan = material?.plan.partPlans[partIdx];
+                const totalParts = material?.plan.partPlans.length ?? 0;
+                const headingTitle = partPlan?.title ?? task.title;
+                const headingDescription = partPlan?.description;
+                const part = material?.parts[partIdx];
+                return (
+                  <>
+                    <Card.Entry className="flex items-baseline justify-between gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Card.Heading>{headingTitle}</Card.Heading>
+                        {headingDescription && <Card.SubHeading>{headingDescription}</Card.SubHeading>}
+                      </div>
+                      {material && (
+                        <span className="shrink-0 font-mono text-[11px] tracking-[0.04em] text-foreground/40 tabular-nums">
+                          <Trans>
+                            Part {partIdx + 1} of {totalParts}
+                          </Trans>
+                        </span>
+                      )}
+                    </Card.Entry>
 
-            {!part && (
-              <Card.Entry className="flex flex-row items-center gap-2 text-foreground/40">
-                <Spinner />
-                <p className="text-sm">
-                  <Trans>Preparing your study material…</Trans>
-                </p>
-              </Card.Entry>
-            )}
+                    {!material && planStream && (
+                      <Pending value$={planStream.state$} pending={<LoadingEntry />}>
+                        {(state) =>
+                          state.status === "error" ? (
+                            <ErrorEntry error={state.error} onRetry={() => planStream.retry()} />
+                          ) : (
+                            <LoadingEntry />
+                          )
+                        }
+                      </Pending>
+                    )}
 
-            {!part && partStream && (
-              <Card.Entry>
-                <Markdown isAnimating>{partStream}</Markdown>
-              </Card.Entry>
-            )}
+                    {part && (
+                      <Card.Entry>
+                        <Markdown>{part.study}</Markdown>
+                      </Card.Entry>
+                    )}
+                  </>
+                );
+              }}
+            </Pending>
 
-            {part && (
-              <Card.Entry>
-                <Markdown>{part.study}</Markdown>
-              </Card.Entry>
-            )}
+            <Pending value$={partStream$} getDefaultValue={() => null}>
+              {(stream) =>
+                stream === null ? null : (
+                  <Pending value$={stream.state$} pending={<LoadingEntry />}>
+                    {(state) => {
+                      if (state.status === "error") {
+                        return <ErrorEntry error={state.error} onRetry={() => stream.retry()} />;
+                      }
+                      if (state.text === "") return <LoadingEntry />;
+                      try {
+                        const parsed = parsePart(state.text);
+                        if (!parsed.study) return <LoadingEntry />;
+                        return (
+                          <Card.Entry>
+                            <Markdown isAnimating>{parsed.study}</Markdown>
+                          </Card.Entry>
+                        );
+                      } catch {
+                        return <LoadingEntry />;
+                      }
+                    }}
+                  </Pending>
+                )
+              }
+            </Pending>
           </Card.List>
         </ReadingColumn>
       </PageContent>
 
-      {material && (
-        <TopicActionBar>
-          <Button
-            variant="outline"
-            disabled={!prevPlan || !material.parts[partIdx - 1]}
-            onClick={() => handleGoToPart(partIdx - 1)}
-          >
-            <ArrowLeftIcon /> <Trans>Previous</Trans>
-          </Button>
+      <Pending value$={viewState$} getDefaultValue={() => ({ material: initialMaterial, partIdx: initialPartIdx })}>
+        {({ material, partIdx }) => {
+          if (!material) return null;
+          const part = material.parts[partIdx];
+          const totalParts = material.plan.partPlans.length;
+          const isLastPart = partIdx === totalParts - 1;
+          const prevPlan = partIdx > 0 ? material.plan.partPlans[partIdx - 1] : null;
+          return (
+            <TopicActionBar>
+              <Button
+                variant="outline"
+                disabled={!prevPlan || !material.parts[partIdx - 1]}
+                onClick={() => navigateIdx$.next(partIdx - 1)}
+              >
+                <ArrowLeftIcon /> <Trans>Previous</Trans>
+              </Button>
 
-          {isLastPart ? (
-            <Button className="ml-auto" disabled={!part} onClick={handleMoveToHandsOn}>
-              <Trans>Practice</Trans> <ArrowRightIcon />
-            </Button>
-          ) : (
-            <Button className="ml-auto" disabled={!part} onClick={handleNextPart}>
-              <Trans>Next</Trans> <ArrowRightIcon />
-            </Button>
-          )}
-        </TopicActionBar>
-      )}
+              {isLastPart ? (
+                <Button className="ml-auto" disabled={!part} onClick={() => handleMoveToHandsOn(material, partIdx)}>
+                  <Trans>Practice</Trans> <ArrowRightIcon />
+                </Button>
+              ) : (
+                <Button className="ml-auto" disabled={!part} onClick={() => navigateIdx$.next(partIdx + 1)}>
+                  <Trans>Next</Trans> <ArrowRightIcon />
+                </Button>
+              )}
+            </TopicActionBar>
+          );
+        }}
+      </Pending>
     </PageBody>
+  );
+}
+
+function LoadingEntry() {
+  return (
+    <Card.Entry className="flex flex-row items-center gap-2 text-foreground/40">
+      <Spinner />
+      <p className="text-sm">
+        <Trans>Preparing your study material…</Trans>
+      </p>
+    </Card.Entry>
+  );
+}
+
+function ErrorEntry({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const classified = toStreamError(error);
+  if (classified.kind === "rate-limit") {
+    return (
+      <Card.Entry className="flex flex-col gap-2">
+        <p className="text-sm text-foreground">
+          <Trans>You&apos;ve hit your hourly LLM usage limit. Try again later.</Trans>
+        </p>
+        {classified.message && <p className="text-xs text-muted-foreground">{classified.message}</p>}
+      </Card.Entry>
+    );
+  }
+  return (
+    <Card.Entry className="flex flex-col items-start gap-3">
+      <p className="text-sm text-foreground">
+        <Trans>Couldn&apos;t prepare your study material.</Trans>
+      </p>
+      {classified.message && <p className="text-xs text-muted-foreground">{classified.message}</p>}
+      <Button variant="outline" size="sm" onClick={onRetry}>
+        <Trans>Try again</Trans>
+      </Button>
+    </Card.Entry>
   );
 }
