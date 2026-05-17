@@ -53,7 +53,7 @@ jobs:
           pnpm --filter web run i18n:extract
           pnpm --filter web run i18n:compile
           git add packages/web/src/locales
-          git diff --staged --quiet || git commit -m "chore: update locales"
+          git diff --staged --quiet || git commit -m "chore: update locales [skip ci]"
 
       - name: Push version bumps
         run: git push

@@ -130,7 +130,7 @@ export function Dashboard() {
             split="char"
             animation="animate-soft-blur-in"
             stagger={25}
-            className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground max-w-3xl"
+            className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground max-w-3xl font-display"
           />
           <AnimatedText
             as="p"

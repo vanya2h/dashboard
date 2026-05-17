@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Route } from "./+types/sign-in";
 
 import { AuthLayout } from "~/components/AuthLayout";
+import { SheafuLogo } from "~/components/SheafuLogo";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/authClient";
@@ -63,6 +64,7 @@ export default function SignIn() {
   return (
     <AuthLayout>
       <div className="text-center">
+        <SheafuLogo className="size-14 mx-auto mb-3" />
         <h1 className="text-3xl font-semibold text-foreground">
           <Trans>Sheafu</Trans>
         </h1>
