@@ -7,9 +7,11 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/host-grotesk";
 
 @theme {
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Host Grotesk Variable", sans-serif;
   --animate-soft-blur-in: soft-blur-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-word-rise: word-rise 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-fade-rise: fade-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both;

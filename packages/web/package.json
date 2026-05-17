@@ -27,6 +27,7 @@
     "@base-ui/react": "^1.4.1",
     "@better-auth/infra": "^0.2.5",
     "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource-variable/host-grotesk": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",

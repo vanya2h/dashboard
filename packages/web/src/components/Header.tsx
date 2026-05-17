@@ -9,6 +9,7 @@ import type { BreadcrumbHandle } from "../lib/breadcrumbs";
 import { getAuthLinks, getCurriculumLinks, getHomeRoute, getProfileRoute } from "../lib/routes";
 import type { AuthUser } from "../server/auth";
 import { Inset } from "./layout/Inset";
+import { SheafuLogo } from "./SheafuLogo";
 
 import { Breadcrumb, BreadcrumbList, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
@@ -81,20 +82,22 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 border-b border-border transition-colors duration-200",
-        scrolled ? "bg-background/50 backdrop-blur-md" : "bg-background",
+        scrolled && theme === "dark" ? "bg-background/50 backdrop-blur-md" : "bg-background",
       )}
     >
       <Inset className="py-3 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <div className="shrink-0">
-            <h1 className="text-lg sm:text-2xl font-semibold leading-none">
-              <Link
-                to={getHomeRoute()}
-                className="text-foreground hover:opacity-75 transition-opacity whitespace-nowrap"
-              >
+            <Link
+              to={getHomeRoute()}
+              className="flex items-center gap-4 hover:opacity-75 transition-opacity"
+              aria-label="Sheafu"
+            >
+              <SheafuLogo className="size-7" aria-hidden />
+              <span className="text-lg sm:text-2xl font-bold leading-none text-foreground whitespace-nowrap font-display">
                 <Trans>Sheafu</Trans>
-              </Link>
-            </h1>
+              </span>
+            </Link>
           </div>
           {crumbs.length > 0 && (
             <Breadcrumb className="hidden md:block">

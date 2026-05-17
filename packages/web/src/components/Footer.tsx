@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { GithubLogoIcon } from "@phosphor-icons/react";
 import { Inset } from "./layout/Inset";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { SheafuLogo } from "./SheafuLogo";
 
 import { Button } from "~/components/ui/button";
 
@@ -12,7 +13,8 @@ export function Footer() {
     <footer className="mt-auto border-t border-border bg-background">
       <Inset className="py-3 flex flex-col gap-3 sm:flex-row sm:justify-between text-sm text-muted-foreground">
         <div className="flex items-center gap-4 min-w-0 justify-between sm:justify-start">
-          <span className="whitespace-nowrap">
+          <span className="flex items-center gap-4 whitespace-nowrap">
+            <SheafuLogo className="size-4" aria-hidden />
             <Trans>© {currentYear} Sheafu</Trans>
           </span>
           <span className="whitespace-nowrap">
